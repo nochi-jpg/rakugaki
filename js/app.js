@@ -15,6 +15,7 @@
   async function cacheMon(m) { const o = {}; for (const pid in m.parts) { const c = await imgCanvas(m.parts[pid]); if (c) o[pid] = c; } CACHE[m.id] = o; }
   const getter = m => pid => (CACHE[m.id] || {})[pid] || null;
   const isMine = m => S.player && m.creator.id === S.player.id;
+  RG.isOpen = k => !!(S.player && S.player.shapes.includes(k));
 
   // ---- 画面の大きさ（16:9 固定。1280×720 を 拡大縮小）----
   function fit() {
@@ -335,7 +336,7 @@
       </div>
       <div class="paper box"><canvas id="cv"></canvas></div>
       <div class="vrow"><button class="btn t wide on" data-a="view" data-v="0">${IC.single}<span>たんたい</span></button><button class="btn t wide" data-a="view" data-v="1">${IC.multi}<span>がったい</span></button><button class="btn t wide on" data-a="gd" id="bGd">${IC.guide}<span id="gdTx">ガイド：あり</span></button></div>
-      <div class="plist">${parts.map(p => `<button class="btn pt" data-a="part" data-p="${p.id}"><canvas width="100" height="64" data-th="${p.id}"></canvas><b>${p.name}</b><span>${p.req ? 'ひつよう' : 'じゆう'}</span></button>`).join('')}</div>
+      <div class="plist${parts.length > 8 ? ' many' : ''}">${parts.map(p => `<button class="btn pt" data-a="part" data-p="${p.id}"><canvas width="100" height="64" data-th="${p.id}"></canvas><b>${p.name}</b><span>${p.req ? 'ひつよう' : 'じゆう'}</span></button>`).join('')}</div>
       <button class="btn strong donebtn" data-a="done">かんせい</button>`, {
       tool(b) { ed.st.tool = b.dataset.t; mark('[data-a=tool]', b); },
       size(b) { ed.st.size = +b.dataset.s; mark('[data-a=size]', b); },
@@ -460,13 +461,13 @@
         <div class="box sc"><h3>プレイヤー</h3><p>${esc(p.name)}　${p.grade}ねんせい</p><div class="row"><button class="btn" data-a="grade">がくねんを かえる</button></div></div>
         <div class="box sc"><h3>データ</h3><div class="col"><button class="btn" data-a="pp">プレイヤーデータを PNGで だす</button><button class="btn" data-a="all">ぜんぶ まとめて だす</button></div></div>
         <div class="box sc"><h3>おと</h3><div class="row"><button class="btn" data-a="se">${S.se ? 'こうかおん：あり' : 'こうかおん：なし'}</button></div></div>
-        <div class="box sc"><h3>テストよう（あとで けす）</h3><div class="col"><button class="btn" data-a="t1">よつあしを かいきん</button><button class="btn" data-a="t2">わくを 1つ ふやす</button><button class="btn" data-a="t3">データを ぜんぶ けす</button></div></div>
+        <div class="box sc"><h3>テストよう（あとで けす）</h3><div class="col"><button class="btn" data-a="t1">からだを ぜんぶ かいきん</button><button class="btn" data-a="t2">わくを 1つ ふやす</button><button class="btn" data-a="t3">データを ぜんぶ けす</button></div></div>
       </div><div class="ver">ver ${RG.VERSION}</div>`, {
       back() { home(); }, grade() { setupGrade(p.name, true); },
       async pp() { await showPNG(RG.buildPlayerPNG(p), `rakugaki_player_${p.name}.png`, 'プレイヤーデータの PNG'); },
       all() { return exportAll(); },
       se() { S.se = !S.se; save(); settings(); },
-      t1() { if (!p.shapes.includes('yotsu')) p.shapes.push('yotsu'); save(); toast('よつあしを かいきんしたよ'); },
+      t1() { p.shapes = RG.SHAPE_ORDER.slice(); save(); toast('からだを ぜんぶ かいきんしたよ'); },
       t2() { p.slots = Math.min(6, p.slots + 1); save(); toast(`わくが ${p.slots}つに なったよ`); },
       async t3() { if (await ask('データを ぜんぶ けすよ。ほんとうに いい？', 'けす')) { try { localStorage.removeItem(SAVE_KEY); } catch (e) { } S = { v: 1, player: null, mons: [], se: true }; title(); } },
     });

@@ -44,7 +44,7 @@
     }
     (sh.spare || []).forEach(s => frame(s[0], s[1], s[2], s[3]));
     // 見るための すがた と なまえ（データとしては 使わない）
-    const [px, py, pw, ph] = RG.PREVIEW_SEAT;
+    const [px, py, pw, ph] = sh.preview || RG.PREVIEW_SEAT;
     RG.drawMon(ctx, m, get, px, py, pw, ph, { maxScale: 1 });
     ctx.fillStyle = '#fff'; ctx.fillRect(20, 508, 1010, 192);
     ctx.strokeStyle = '#111'; ctx.lineWidth = 3; ctx.strokeRect(21.5, 509.5, 1007, 189);

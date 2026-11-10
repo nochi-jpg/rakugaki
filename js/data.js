@@ -2,7 +2,7 @@
 window.RG = window.RG || {};
 (function (RG) {
   'use strict';
-  RG.VERSION = '0.2.0';
+  RG.VERSION = '0.3.0';
   RG.JR = 24;            // 関節の丸の半径
   RG.ADJ_MAX = 20;       // くみたてで ずらせる はば（関節の丸の中まで）
   RG.GUIDE_IN = 6;       // ガイド（描ける範囲）は わくの 6px 内がわ
@@ -27,7 +27,7 @@ window.RG = window.RG || {};
       motions: ['ぷるぷる', 'ぽよーん', 'とろーり'],
     },
     yotsu: {
-      no: 1, name: 'よつあし',
+      no: 1, name: 'よつあし', preview: [840, 244, 200, 236],
       parts: [
         { id: 'body', name: 'どう', w: 320, h: 240, seat: [240, 20], req: true },
         { id: 'face', name: 'かお', w: 240, h: 240, seat: [580, 20], req: true, parent: 'body', pj: [262, 72], cj: [62, 178], z: 1 },
@@ -37,11 +37,78 @@ window.RG = window.RG || {};
         { id: 'hind2', name: 'うしろあし2', w: 120, h: 200, seat: [160, 280], req: true, parent: 'body', pj: [118, 170], cj: [60, 38], z: 0 },
         { id: 'tail', name: 'しっぽ', w: 200, h: 200, seat: [20, 40], parent: 'body', pj: [56, 80], cj: [150, 150], z: 0 },
         { id: 'ear', name: 'みみ', w: 120, h: 120, seat: [1100, 20], parent: 'face', pj: [96, 52], cj: [60, 86], z: 1 },
-        // 席だけ 取ってある（とり・さかな 解禁後。手順5で実装）
+        // とり・さかなを 解禁すると 描ける
         { id: 'wing', name: 'はね', w: 240, h: 200, seat: [840, 20], parent: 'body', pj: [150, 60], cj: [60, 150], z: 1, locked: 'tori' },
         { id: 'fin', name: 'ひれ', w: 160, h: 160, seat: [580, 280], parent: 'body', pj: [150, 40], cj: [80, 126], z: 0, locked: 'sakana' },
       ],
       motions: ['ぴょんぴょん', 'どっしり', 'すばしっこい'],
+    },
+    // ---- ここから下：PNGの席は 上の段（y=20・高さ240まで）と 下の段（y=280・高さ200まで）に ならべる ----
+    tori: {
+      no: 2, name: 'とり', preview: [700, 280, 330, 210],
+      parts: [
+        { id: 'body', name: 'どう', w: 320, h: 240, seat: [20, 20], req: true },
+        { id: 'face', name: 'かお', w: 240, h: 240, seat: [360, 20], req: true, parent: 'body', pj: [240, 62], cj: [70, 180], z: 1 },
+        { id: 'wing1', name: 'はね1', w: 240, h: 200, seat: [620, 20], req: true, parent: 'body', pj: [172, 96], cj: [196, 52], z: 1 },
+        { id: 'wing2', name: 'はね2', w: 240, h: 200, seat: [880, 20], req: true, parent: 'body', pj: [150, 88], cj: [196, 52], z: 0 },
+        { id: 'leg1', name: 'あし1', w: 120, h: 200, seat: [20, 280], req: true, parent: 'body', pj: [178, 200], cj: [60, 38], z: 1 },
+        { id: 'leg2', name: 'あし2', w: 120, h: 200, seat: [160, 280], req: true, parent: 'body', pj: [134, 196], cj: [60, 38], z: 0 },
+        { id: 'tail', name: 'しっぽ', w: 200, h: 200, seat: [300, 280], parent: 'body', pj: [52, 150], cj: [160, 100], z: 0 },
+        { id: 'crest', name: 'とさか', w: 160, h: 160, seat: [520, 280], parent: 'face', pj: [110, 50], cj: [80, 126], z: 1 },
+      ],
+      motions: ['ぱたぱた', 'ひゅーん', 'とことこ'],
+    },
+    sakana: {
+      no: 3, name: 'さかな', preview: [220, 280, 500, 210],
+      parts: [
+        { id: 'body', name: 'どう', w: 320, h: 240, seat: [20, 20], req: true },
+        { id: 'face', name: 'かお', w: 240, h: 240, seat: [360, 20], req: true, parent: 'body', pj: [272, 120], cj: [50, 120], z: 1 },
+        { id: 'tailfin', name: 'おびれ', w: 200, h: 200, seat: [620, 20], req: true, parent: 'body', pj: [46, 120], cj: [160, 100], z: 0 },
+        { id: 'dorsal', name: 'せびれ', w: 160, h: 160, seat: [840, 20], parent: 'body', pj: [160, 46], cj: [80, 126], z: 0 },
+        { id: 'pect1', name: 'むなびれ1', w: 160, h: 160, seat: [1020, 20], parent: 'body', pj: [192, 168], cj: [100, 40], z: 1 },
+        { id: 'pect2', name: 'むなびれ2', w: 160, h: 160, seat: [20, 280], parent: 'body', pj: [218, 162], cj: [100, 40], z: 0 },
+      ],
+      motions: ['すいすい', 'ぴちぴち', 'ゆらゆら'],
+    },
+    ekitai: {
+      no: 4, name: 'えきたい', preview: [220, 280, 500, 210],
+      parts: [
+        { id: 'low', name: 'からだした', w: 320, h: 240, seat: [360, 20], req: true },
+        { id: 'up', name: 'からだうえ', w: 320, h: 240, seat: [20, 20], req: true, parent: 'low', pj: [160, 52], cj: [160, 200], z: 1 },
+        { id: 'arm1', name: 'うで1', w: 120, h: 200, seat: [700, 20], parent: 'up', pj: [252, 124], cj: [60, 38], z: 1 },
+        { id: 'arm2', name: 'うで2', w: 120, h: 200, seat: [840, 20], parent: 'up', pj: [68, 124], cj: [60, 38], z: 0 },
+      ],
+      motions: ['どろどろ', 'ぷくぷく', 'ざぶーん'],
+    },
+    robot: {
+      no: 5, name: 'ロボット', preview: [320, 280, 420, 210],
+      parts: [
+        { id: 'body', name: 'どう', w: 320, h: 240, seat: [20, 20], req: true },
+        { id: 'head', name: 'あたま', w: 240, h: 240, seat: [360, 20], req: true, parent: 'body', pj: [160, 46], cj: [120, 200], z: 1 },
+        { id: 'arm1', name: 'うで1', w: 120, h: 200, seat: [620, 20], req: true, parent: 'body', pj: [218, 84], cj: [60, 38], z: 1 },
+        { id: 'arm2', name: 'うで2', w: 120, h: 200, seat: [760, 20], req: true, parent: 'body', pj: [102, 84], cj: [60, 38], z: 0 },
+        { id: 'leg1', name: 'あし1', w: 120, h: 200, seat: [20, 280], req: true, parent: 'body', pj: [200, 200], cj: [60, 38], z: 1 },
+        { id: 'leg2', name: 'あし2', w: 120, h: 200, seat: [160, 280], req: true, parent: 'body', pj: [120, 200], cj: [60, 38], z: 0 },
+        { id: 'antenna', name: 'アンテナ', w: 160, h: 160, seat: [900, 20], parent: 'head', pj: [120, 46], cj: [80, 126], z: 1 },
+        { id: 'back', name: 'せなか', w: 160, h: 160, seat: [1080, 20], parent: 'body', pj: [62, 96], cj: [122, 80], z: 0 },
+      ],
+      motions: ['がしゃん', 'うぃーん', 'ぴこぴこ'],
+    },
+    nisoku: {
+      no: 6, name: 'にそく', preview: [760, 280, 280, 210],
+      parts: [
+        { id: 'body', name: 'どう', w: 320, h: 240, seat: [20, 20], req: true },
+        { id: 'head', name: 'あたま', w: 240, h: 240, seat: [360, 20], req: true, parent: 'body', pj: [166, 46], cj: [112, 200], z: 1 },
+        { id: 'arm1', name: 'うで1', w: 120, h: 200, seat: [620, 20], req: true, parent: 'body', pj: [214, 84], cj: [60, 38], z: 1 },
+        { id: 'arm2', name: 'うで2', w: 120, h: 200, seat: [760, 20], req: true, parent: 'body', pj: [112, 84], cj: [60, 38], z: 0 },
+        { id: 'leg1', name: 'あし1', w: 120, h: 200, seat: [20, 280], req: true, parent: 'body', pj: [196, 200], cj: [60, 38], z: 1 },
+        { id: 'leg2', name: 'あし2', w: 120, h: 200, seat: [160, 280], req: true, parent: 'body', pj: [126, 200], cj: [60, 38], z: 0 },
+        { id: 'tail', name: 'しっぽ', w: 200, h: 200, seat: [900, 20], parent: 'body', pj: [60, 172], cj: [160, 60], z: 0 },
+        { id: 'ear', name: 'みみ', w: 120, h: 120, seat: [1120, 20], parent: 'head', pj: [92, 52], cj: [60, 86], z: 1 },
+        { id: 'wing', name: 'はね', w: 240, h: 200, seat: [300, 280], parent: 'body', pj: [116, 84], cj: [196, 52], z: 0, locked: 'tori' },
+        { id: 'fin', name: 'ひれ', w: 160, h: 160, seat: [560, 280], parent: 'body', pj: [70, 112], cj: [122, 80], z: 0, locked: 'sakana' },
+      ],
+      motions: ['てくてく', 'どすどす', 'しゅっしゅっ'],
     },
   };
   RG.SHAPE_ORDER = ['slime', 'yotsu', 'tori', 'sakana', 'ekitai', 'robot', 'nisoku'];
@@ -49,7 +116,7 @@ window.RG = window.RG || {};
   RG.shapeByNo = no => Object.keys(RG.SHAPES).find(k => RG.SHAPES[k].no === no);
   RG.part = (shape, pid) => RG.SHAPES[shape].parts.find(p => p.id === pid);
   // いま 描ける パーツ（席だけの パーツは のぞく）
-  RG.usableParts = (shape, unlocked) => RG.SHAPES[shape].parts.filter(p => !p.locked);
+  RG.usableParts = shape => RG.SHAPES[shape].parts.filter(p => !p.locked || (RG.isOpen && RG.isOpen(p.locked)));   // RG.isOpen＝その体形を 解禁しているか（app.js）
 
   // ---- パレット（お絵描きリレーと同じ）。予約色（#ff00ff・#00ffff）は 入れない ----
   RG.COLORS = [

@@ -170,6 +170,39 @@ let fails = 0; const ok = (c, msg) => { console.log((c ? 'OK   ' : 'FAIL ') + ms
   fs.writeFileSync(`${SHOT}/yotsu.png`, Buffer.from(st.url.split(',')[1], 'base64'));
   ok(st.face === 1 && st.r5.reduce((a, b) => a + b, 0) === 1000, `よつあし：色の割合 ${st.r5.join(',')}（合計1000）・QR ${st.bytes}バイト`);
   await act('ok'); await shot('chars_two');
+
+  // ---- のこりの 5体形：ぜんぶの パーツを 描いて、くみたて → モーション → PNGの 読みなおし ----
+  await pg.evaluate(() => { window.RG.app.S.player.slots = 3; window.RG.app.save(); }); await act('back'); await act('chars');
+  let fi = 0;
+  for (const shape of ['tori', 'sakana', 'ekitai', 'robot', 'nisoku']) {
+    await tap('[data-a="make"]'); await tap(`[data-s="${shape}"]`); await tap(`[data-f="${fi++ % 2}"]`);
+    const ids = await pg.evaluate(sh => window.RG.usableParts(sh).map(p => p.id), shape);
+    const cols = ['#3a6fe0', '#e8434b', '#8e55d0', '#f59331', '#3db66b', '#f28bb6', '#f7cc2e', '#5ec8ef', '#9a6235', '#9a98a8'];
+    for (let i = 0; i < ids.length; i++) {
+      await tap(`[data-p="${ids[i]}"]`);
+      const b = await pg.evaluate(([sh, pid]) => { const p = window.RG.part(sh, pid), s = Math.min(696 / p.w, 516 / p.h); return [p.w * s / 720, p.h * s / 540]; }, [shape, ids[i]]);
+      await blob(cols[i], 0.5, 0.5, b[0] * 0.40, b[1] * 0.40);
+    }
+    await tap('[data-v="1"]'); await shot(shape + '_gattai');
+    await act('done'); await pg.waitForTimeout(100);
+    ok(await pg.evaluate(() => window.RG.screen === 'kumi'), `${shape}：パーツ ${ids.length}こ。関節チェックを 通って くみたてへ`);
+    await shot(shape + '_kumi'); await act('next');
+    await tap('[data-k="attack"]'); await pg.waitForTimeout(300); await shot(shape + '_motion');
+    await tap('[data-i="2"]'); await tap('[data-k="lose"]'); await pg.waitForTimeout(200);
+    await act('next'); await kana('てすと'); await act('ok'); await shot(shape + '_done');
+    const rt = await pg.evaluate(async () => {
+      const RG = window.RG, m = RG.app.S.mons[2], get = pid => RG.app.CACHE[m.id][pid] || null, png = RG.buildMonPNG(m, get);
+      const im = await new Promise(r => { const i = new Image(); i.onload = () => r(i); i.src = png.toDataURL('image/png'); });
+      const c = RG.mkCanvas(1280, 720); c.getContext('2d').drawImage(im, 0, 0);
+      const r = RG.readMonPNG(c); let same = !r.blurry && r.mon.shape === m.shape && Object.keys(r.parts).length === Object.keys(m.parts).length;
+      for (const pid in r.parts) { const a = get(pid).getContext('2d').getImageData(0, 0, get(pid).width, get(pid).height).data, b = r.parts[pid].getContext('2d').getImageData(0, 0, get(pid).width, get(pid).height).data; for (let i = 0; i < a.length; i += 4) if ((a[i + 3] > 127) !== (b[i + 3] > 127)) { same = false; break; } }
+      return { same, bytes: RG.encodeMon(m).length, url: png.toDataURL('image/png') };
+    });
+    fs.writeFileSync(`${SHOT}/${shape}.png`, Buffer.from(rt.url.split(',')[1], 'base64'));
+    ok(rt.same, `${shape}：PNGを 読みなおして 元どおり（QR ${rt.bytes}バイト）`);
+    await act('ok'); await tap('[data-a="open"][data-i="2"]'); await act('bye'); await act('y');
+  }
+  await pg.evaluate(() => { window.RG.app.S.player.slots = 2; window.RG.app.save(); });
   // 再読みこみしても 残っているか
   await pg.reload(); await act('go'); await act('chars');
   ok(await pg.evaluate(() => window.RG.app.S.mons.length === 2), 'セーブ：再読みこみ後も 2たい いる');

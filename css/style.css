@@ -142,3 +142,6 @@ button{font:inherit;color:inherit;cursor:pointer;background:none;border:0}
 .sc{padding:14px 22px;display:flex;flex-direction:column;gap:10px;min-height:150px}
 .sc h3{font-size:28px;font-weight:normal;border-bottom:3px dashed var(--ink);padding-bottom:4px}
 .sc .btn{height:52px;font-size:24px;align-self:flex-start}
+
+/* パーツが 9こ以上（にそく＋はね・ひれ）のときは ボタンを 小さく */
+.plist.many{gap:6px}.plist.many .btn.pt{height:104px}.plist.many .btn.pt canvas{width:78px;height:50px}
