@@ -92,7 +92,7 @@ let fails = 0; const ok = (c, msg) => { console.log((c ? 'OK   ' : 'FAIL ') + ms
   await act('png'); await pg.waitForTimeout(200); await shot('png_modal'); await act('n');
   await act('ok'); await shot('home');
   await act('chars'); await shot('chars'); await tap('[data-a="open"]'); await shot('detail');
-  await act('back'); await act('back'); await act('set'); await shot('settings');
+  await act('back'); await act('back'); await pg.evaluate(() => { window.RG.debug = true; }); await act('set'); await shot('settings');
   await act('t1'); await act('t2'); await pg.waitForTimeout(100);
 
   // ---- PNG：そのまま／JPEG／縮小JPEG で 読みなおす ----

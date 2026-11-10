@@ -7,7 +7,9 @@
   const TIME = 60;                 // とく時間・みる時間（びょう）
   const HP = 1500, DMG_BASE = 80, DMG_K = 0.04, CRIT = 0.05, CRIT_MUL = 1.5, LOCK = 3;
   const CPU = [{ name: 'よわい', iv: 8, acc: 0.6 }, { name: 'ふつう', iv: 6, acc: 0.7 }, { name: 'つよい', iv: 4.5, acc: 0.8 }, { name: 'とてもつよい', iv: 3.5, acc: 0.9 }];
-  B.CONST = { TIME, HP, DMG_BASE, DMG_K, CRIT, CRIT_MUL, LOCK, CPU };
+  // CPUの つよさごとの、ほうせきが 出る 確率 と、上位（200・300コインの もの）が 出る 確率
+  const DROP = [0.2, 0.35, 0.5, 0.7], DROP200 = [0, 0.1, 0.25, 0.35], DROP300 = [0, 0, 0.05, 0.15];
+  B.CONST = { TIME, HP, DMG_BASE, DMG_K, CRIT, CRIT_MUL, LOCK, CPU, DROP, DROP200, DROP300 };
   // テストのとき 時間を 早送りできる（RG.timeScale）
   const now = () => performance.now() * (RG.timeScale || 1) / 1000;
   const wait = s => new Promise(r => setTimeout(r, s * 1000 / (RG.timeScale || 1)));
@@ -125,11 +127,15 @@
     const ev = [];
     F.forEach((f, i) => f.hits.forEach(h => ev.push({ t: h.t, who: i, s: h.s })));
     ev.sort((a, b) => a.t - b.t);
-    const hp = [HP, HP], out = [];
+    const NOFX = { subj: [0, 0, 0, 0, 0], hp: 0, crit: 0, cmul: 0, def: 0, back: 0 };
+    F.forEach(f => { f.fx = f.fx || NOFX; f.maxHp = Math.round(HP * (1 + f.fx.hp)); });
+    const hp = [F[0].maxHp, F[1].maxHp], out = [];
     let end = TIME;
     for (const e of ev) {
-      const st = F[e.who].stats[e.s] ? F[e.who].stats[e.s].v : 0, crit = Math.random() < CRIT;
-      const dmg = Math.round((DMG_BASE + st * DMG_K) * (crit ? CRIT_MUL : 1)), to = 1 - e.who;
+      const A = F[e.who], to = 1 - e.who, fx = A.fx, st = A.stats[e.s] ? A.stats[e.s].v : 0, crit = Math.random() < CRIT + fx.crit;
+      // ダメージ＝（80＋属性値×0.04）×（1＋ほうせきの ボーナス）×（会心なら 1.5＋α）×（1－あいての まもり）
+      const up = 1 + (fx.subj[e.s] || 0) + (hp[e.who] <= A.maxHp / 2 ? fx.back : 0);
+      const dmg = Math.round((DMG_BASE + st * DMG_K) * up * (crit ? CRIT_MUL + fx.cmul : 1) * (1 - F[to].fx.def));
       hp[to] = Math.max(0, hp[to] - dmg);
       out.push({ t: e.t, who: e.who, dmg, crit, hp: hp[to] });
       if (hp[to] <= 0) { end = e.t; break; }
@@ -163,7 +169,7 @@
   function watch(F, sim) {
     return new Promise(res => {
       GROUND = GROUND || groundCanvas();
-      const mk = (cls, f, i) => `<div class="hp ${cls} box"><p><b>${esc(f.name)}</b><span>${esc(f.owner)}</span></p><div class="hpbar"><i id="hp${i}"></i></div><em id="hpn${i}">${HP}</em></div>`;
+      const mk = (cls, f, i) => `<div class="hp ${cls} box"><p><b>${esc(f.name)}</b><span>${esc(f.owner)}</span></p><div class="hpbar"><i id="hp${i}"></i></div><em id="hpn${i}">${f.maxHp}</em></div>`;
       const marks = F.map((f, i) => f.hits.map(h => `<i class="mk ${i ? 'e' : 'p'}" style="left:${h.t / TIME * 100}%"></i>`).join('')).join('');
       UI.show('watch', `<canvas id="bcv" width="1280" height="720"></canvas>${mk('l', F[0], 0)}${mk('r', F[1], 1)}
         <div class="seek box"><i id="skfill"></i>${marks}<u id="skhead"></u></div>
@@ -173,7 +179,7 @@
       });
       const cv = document.getElementById('bcv'), ctx = cv.getContext('2d');
       let speed = 1, T = 0, clk = 0, last = now(), ei = 0, ended = 0;
-      const st = F.map((f, i) => ({ act: 'idle', at: 0, hp: HP, flip: i === 0 ? f.m.face === 1 : f.m.face !== 1 }));
+      const st = F.map((f, i) => ({ act: 'idle', at: 0, hp: f.maxHp, flip: i === 0 ? f.m.face === 1 : f.m.face !== 1 }));
       const pend = [], pops = [];
       const BOX = [[150, 250, 330, 300], [800, 250, 330, 300]];
       const set = (i, a) => { st[i].act = a; st[i].at = clk; };
@@ -189,7 +195,7 @@
           const e = pend.splice(k, 1)[0].e, to = 1 - e.who;
           st[to].hp = e.hp; if (st[to].act !== 'lose') set(to, e.hp <= 0 ? 'lose' : 'damage');
           pops.push({ i: to, text: '-' + e.dmg, crit: e.crit, at: clk }); beep(e.crit ? 'crit' : 'hit');
-          document.getElementById('hp' + to).style.width = (e.hp / HP * 100) + '%'; document.getElementById('hpn' + to).textContent = e.hp;
+          document.getElementById('hp' + to).style.width = (e.hp / F[to].maxHp * 100) + '%'; document.getElementById('hpn' + to).textContent = e.hp;
         }
         if (!ended && T >= sim.end && !pend.length && ei >= sim.events.length) {
           ended = clk;
@@ -227,9 +233,9 @@
   function result(F, sim, o) {
     const w = sim.winner, head = w < 0 ? 'ひきわけ' : o.vs ? `${esc(F[w].owner)}の かち！` : w === 0 ? 'かち！' : 'まけ…';
     UI.show('result', `<h1 class="rhead">${head}</h1>
-      <div class="rgrid">${F.map((f, i) => `<div class="box rcard${i === w ? ' win' : ''}"><canvas width="360" height="250" id="rv${i}"></canvas><h3>${esc(f.name)}</h3><p>${esc(f.owner)}</p><p>せいかい <b>${f.hits.length}</b>もん　のこりHP <b>${sim.hp[i]}</b></p></div>`).join('')}</div>
+      <div class="rgrid">${F.map((f, i) => `<div class="box rcard${i === w ? ' win' : ''}"><canvas width="360" height="250" id="rv${i}"></canvas><h3>${esc(f.name)}</h3><p>${esc(f.owner)}</p><p>せいかい <b>${f.hits.length}</b>もん　のこりHP <b>${sim.hp[i]}</b> / ${f.maxHp}</p></div>`).join('')}</div>
       <div class="row c rbtns"><button class="btn" data-a="home">ホームに もどる</button>${o.vs ? '' : '<button class="btn" data-a="set">なんいどを かえる</button>'}<button class="btn strong" data-a="again">もういっかい</button></div>
-      ${o.vs ? '<p class="note rnote">ともだちとの たいせんは きろくに のこらないよ</p>' : '<p class="note rnote">コインと ほうせきは、つぎの こうしんで もらえるように なるよ</p>'}`, {
+      <p class="rnote">${o.note || ''}</p>`, {
       home() { UI.home(); }, set() { B.practice(); }, again() { o.again(); },
     });
     F.forEach((f, i) => RG.play(document.getElementById('rv' + i), f.m, f.get, { action: w < 0 ? 'idle' : i === w ? 'win' : 'lose', flip: i === 0 ? f.m.face === 1 : f.m.face !== 1, maxScale: 0.8 }));
@@ -265,15 +271,17 @@
     if (!P.grade || P.grade > pl.grade) P.grade = pl.grade;
     if (P.mon >= mons.length) P.mon = 0;
     const names = subjNames(P.grade); if (P.subj >= names.length) P.subj = 0;
+    RG.items.rollDay();
+    const doneB = i => pl.doneB >> i & 1, cleared = P.mode === 'A' ? pl.doneA : doneB(P.subj);
     const row = (label, html) => `<div class="brow"><span>${label}</span><div>${html}</div></div>`;
     const opt = (a, v, text, on, cls) => `<button class="btn bo${on ? ' on' : ''}${cls || ''}" data-a="${a}" data-v="${v}">${text}</button>`;
     UI.show('bset', `<h1 class="ttl">まいにち れんしゅう</h1><button class="btn backbtn" data-a="back">もどる</button><div class="bsetb">
-      ${row('モード', opt('mode', 'A', 'ランダムきょうか', P.mode === 'A', ' w') + opt('mode', 'B', 'きょうかを えらぶ', P.mode === 'B', ' w'))}
-      ${row('きょうか', names.map((n, i) => opt('subj', i, n, P.mode === 'B' && P.subj === i, P.mode === 'A' ? ' off' : '')).join(''))}
+      ${row('モード', opt('mode', 'A', 'ランダムきょうか' + (pl.doneA ? '<small>すみ</small>' : ''), P.mode === 'A', ' w') + opt('mode', 'B', 'きょうかを えらぶ', P.mode === 'B', ' w'))}
+      ${row('きょうか', names.map((n, i) => opt('subj', i, n + (doneB(i) ? '<small>すみ</small>' : ''), P.mode === 'B' && P.subj === i, P.mode === 'A' ? ' off' : '')).join(''))}
       ${row('がくねん', [1, 2, 3, 4, 5, 6].filter(g => g <= pl.grade).map(g => opt('grade', g, g + 'ねん', P.grade === g)).join(''))}
       ${row('あいて', CPU.map((c, i) => opt('cpu', i, c.name, P.cpu === i)).join(''))}
       ${row('モンスター', mons.map((m, i) => `<button class="btn bm${P.mon === i ? ' on' : ''}" data-a="mon" data-v="${i}"><canvas width="120" height="70" data-bm="${i}"></canvas><b>${esc(m.name)}</b></button>`).join(''))}
-      </div><button class="btn strong donebtn" data-a="go">スタート！</button>`, {
+      </div><p class="bleft">かつと コイン 100。きょうの のこり <b>${RG.items.left()}</b>かい${cleared ? '　／　ここは きょうは もう クリアしたよ' : ''}</p><button class="btn strong donebtn${cleared ? ' off' : ''}" data-a="go">スタート！</button>`, {
       back() { UI.home(); },
       mode(b) { P.mode = b.dataset.v; B.practice(); }, subj(b) { P.subj = +b.dataset.v; B.practice(); }, grade(b) { P.grade = +b.dataset.v; B.practice(); },
       cpu(b) { P.cpu = +b.dataset.v; B.practice(); }, mon(b) { P.mon = +b.dataset.v; B.practice(); },
@@ -286,13 +294,25 @@
     const hits = await solve({ who: pl.name, grade: P.grade, subj });
     if (!hits) return UI.home();
     const cpu = dummyMon();
+    RG.items.owners();
     const F = [
-      { m, get: UI.getter(m), name: m.name, owner: pl.name, stats: RG.stats(m, pl.grade), hits },
+      { m, get: UI.getter(m), name: m.name, owner: pl.name, stats: RG.stats(m, pl.grade), hits, fx: RG.gemFx(m.gems, pl.grade) },
       { m: cpu.m, get: cpu.get, name: cpu.m.name, owner: 'コンピューター（' + CPU[P.cpu].name + '）', stats: RG.stats(cpu.m, pl.grade), hits: cpuHits(P.cpu, n, subj < 0 ? -1 : rnd(n)) },
     ];
     const sim = simulate(F);
     await watch(F, sim);
-    result(F, sim, { vs: false, again: runPractice });
+    // かったら：コイン100、きょうの 権利が 1つ きえる、ほうせきが 出ることも（つよい あいてほど 出やすく、いいものが 出やすい）
+    let note = sim.winner === 0 ? '' : 'かつまで なんどでも ちょうせん できるよ';
+    if (sim.winner === 0) {
+      pl.coins += 100; if (P.mode === 'A') pl.doneA = 1; else pl.doneB |= 1 << P.subj;
+      RG.app.save(); note = 'コイン +100！';
+      if (Math.random() < DROP[P.cpu]) {
+        const t = RG.items.rollGem(Math.random, pl.grade, DROP200[P.cpu], DROP300[P.cpu]);
+        await UI.tell(`${RG.gemIcon(t)}<br>ほうせきを みつけた！<br>「${RG.GEMS[t].name}」<br><span class="note">${RG.gemText(t, pl.grade)}</span>`);
+        if (await RG.items.give(t)) note += `　ほうせき「${RG.GEMS[t].name}」を てにいれた！`;
+      }
+    }
+    result(F, sim, { vs: false, note, again: sim.winner === 0 ? B.practice : runPractice });
   }
 
   // =============== ともだちとたいせん（1台で 2人）===============
@@ -334,14 +354,15 @@
     UI.show('pass', UI.guide(`こうたい！<br>${esc(who[1])}に わたしてね`) + `<button class="btn big strong okbtn" data-a="go">じゅんび できた</button>`, { go() { next(); } });
     const next = async () => {
       const h1 = await solve({ who: who[1], grade: g, subj: subj[1] }); if (!h1) return UI.home();
+      RG.items.owners();
       const F = [
-        { m, get: UI.getter(m), name: m.name, owner: who[0], stats: RG.stats(m, g), hits: h0 },
-        { m: foe.m, get: foe.get, name: foe.m.name, owner: who[1], stats: RG.stats(foe.m, g), hits: h1 },
+        { m, get: UI.getter(m), name: m.name, owner: who[0], stats: RG.stats(m, g), hits: h0, fx: RG.gemFx(m.gems, g) },
+        { m: foe.m, get: foe.get, name: foe.m.name, owner: who[1], stats: RG.stats(foe.m, g), hits: h1, fx: RG.gemFx(foe.m.gems, g) },
       ];
       const sim = simulate(F);
       await UI.tell('ふたりで がめんを みよう！');
       await watch(F, sim);
-      result(F, sim, { vs: true, again: runVersus });
+      result(F, sim, { vs: true, note: 'ともだちとの たいせんは きろくに のこらないよ', again: runVersus });
     };
   }
 })(window.RG);

@@ -196,7 +196,7 @@
         const f = await pickFile(); if (!f) return;
         const p = RG.readPlayerPNG(await RG.fileToCanvas(f));
         if (S.player && !(await ask(`いまの データ（${esc(S.player.name)}）を「${esc(p.name)}」の データに かえるよ。いい？<br><span class="note">モンスターは そのまま のこるよ</span>`))) return;
-        S.player = p; save(); await tell(`「${esc(p.name)}」の データを よみこんだよ。<br><span class="note">モンスターは 1たいずつ PNGから よみこんでね</span>`); home();
+        S.player = p; S.mons.forEach(m => { m.gems = [0, 0, 0]; }); save(); await tell(`「${esc(p.name)}」の データを よみこんだよ。<br><span class="note">モンスターは 1たいずつ PNGから よみこんでね</span>`); home();
       },
     });
   }
@@ -215,7 +215,7 @@
       g(b) {
         const g = +b.dataset.g;
         if (editing) { S.player.grade = g; save(); settings(); return; }
-        S.player = { name, id: RG.newId(), grade: g, coins: 0, gems: [], shapes: ['slime'], slots: 1, day: 0, doneA: 0, doneB: 0, bonus: 0, tutorial: false };
+        S.player = { name, id: RG.newId(), grade: g, coins: 0, gems: [], shapes: ['slime'], slots: 1, day: 0, doneA: 0, doneB: 0, bonus: 0, bought: 0, tutorial: false };
         save(); tutorialIntro();
       },
       back() { settings(); },
@@ -230,11 +230,13 @@
   function home() {
     RG.making = false;
     if (S.player && !S.player.tutorial && !S.mons.length) return tutorialIntro();
+    const bonus = RG.items.loginBonus();
     show('home', `<div class="hname box">${esc(S.player.name)}　${S.player.grade}ねんせい</div><div class="hcoin box">コイン　${S.player.coins}</div>
-      <div class="hbig"><button class="btn huge" data-a="prac"><b>まいにち れんしゅう</b><span>コンピューターと たたかう</span></button><button class="btn huge" data-a="vs"><b>ともだちと たいせん</b><span>1だいで ふたりで あそぶ</span></button></div>
-      <div class="hsmall"><button class="btn" data-a="chars">キャラクター</button><button class="btn" data-a="soon">ほうせき</button><button class="btn" data-a="soon">おみせ</button><button class="btn" data-a="set">せってい</button></div>`, {
-      chars() { chars(); }, set() { settings(); }, prac() { RG.battle.practice(); }, vs() { RG.battle.versus(); }, soon() { toast('ここは いま つくっているよ。もうすこし まってね'); },
+      <div class="hbig"><button class="btn huge" data-a="prac"><b>まいにち れんしゅう</b><span>きょうの のこり ${RG.items.left()}かい</span></button><button class="btn huge" data-a="vs"><b>ともだちと たいせん</b><span>1だいで ふたりで あそぶ</span></button></div>
+      <div class="hsmall"><button class="btn" data-a="chars">キャラクター</button><button class="btn" data-a="gems">ほうせき</button><button class="btn" data-a="shop">おみせ</button><button class="btn" data-a="set">せってい</button></div>`, {
+      chars() { chars(); }, set() { settings(); }, prac() { RG.battle.practice(); }, vs() { RG.battle.versus(); }, gems() { RG.items.gemScreen(); }, shop() { RG.items.shop(); },
     });
+    if (bonus) toast('ログインボーナス！ コイン +100');
   }
 
   // =============== キャラクター ===============
@@ -283,13 +285,14 @@
     return `<div class="stats">${RG.stats(m, S.player.grade).map(s => `<div class="st"><span>${s.name}</span><i><em style="width:${Math.min(100, s.v / 10)}%"></em></i><b>${s.v}</b></div>`).join('')}</div>`;
   }
   function detail(m) {
-    const mine = isMine(m);
+    const mine = isMine(m); RG.items.owners();
     show('detail', `<h1 class="ttl">${esc(m.name)}</h1><button class="btn backbtn" data-a="back">もどる</button>
       <div class="box dprev"><canvas id="pv" width="560" height="440"></canvas></div>
-      <div class="dinfo"><p>${RG.SHAPES[m.shape].name}・${RG.SHAPES[m.shape].motions[m.motion] || ''}</p><p>うみのおや：${esc(m.creator.name)}（${RG.dayStr(m.date)}）</p>${statsHTML(m)}
+      <div class="dinfo"><p>${RG.SHAPES[m.shape].name}・${RG.SHAPES[m.shape].motions[m.motion] || ''}</p><p>うみのおや：${esc(m.creator.name)}（${RG.dayStr(m.date)}）</p>${statsHTML(m)}${RG.items.slotsHTML(m)}
       <div class="dbtns"><button class="btn${mine ? '' : ' off'}" data-a="edit">なおす</button><button class="btn strong" data-a="png">PNGで だす</button><button class="btn" data-a="bye">にがす</button></div>
       ${mine ? '' : '<p class="note">えを なおせるのは うみのおや だけだよ</p>'}</div>`, {
       back() { chars(); },
+      async gslot(b) { if (await RG.items.slotTap(m, +b.dataset.k)) detail(m); },
       edit() { startMake({ shape: m.shape, edit: m }); },
       async png() { await showPNG(RG.buildMonPNG(m, getter(m)), fileName(m), `「${esc(m.name)}」の PNG`); },
       async bye() {
@@ -512,6 +515,7 @@
   }
 
   // =============== せってい ===============
+  let verTap = 0;
   function settings() {
     const p = S.player;
     show('settings', `<h1 class="ttl">せってい</h1><button class="btn backbtn" data-a="back">もどる</button>
@@ -519,8 +523,13 @@
         <div class="box sc"><h3>プレイヤー</h3><p>${esc(p.name)}　${p.grade}ねんせい</p><div class="row"><button class="btn" data-a="grade">がくねんを かえる</button></div></div>
         <div class="box sc"><h3>データ</h3><div class="col"><button class="btn" data-a="pp">プレイヤーデータを PNGで だす</button><button class="btn" data-a="all">ぜんぶ まとめて だす</button></div></div>
         <div class="box sc"><h3>おと</h3><div class="row"><button class="btn" data-a="se">${S.se ? 'こうかおん：あり' : 'こうかおん：なし'}</button></div></div>
-        <div class="box sc"><h3>テストよう（あとで けす）</h3><div class="col"><button class="btn" data-a="t1">からだを ぜんぶ かいきん</button><button class="btn" data-a="t2">わくを 1つ ふやす</button><button class="btn" data-a="t3">データを ぜんぶ けす</button></div></div>
-      </div><div class="ver">ver ${RG.VERSION}</div>`, {
+        ${RG.debug ? `<div class="box sc dbg"><h3>テストよう</h3><div class="dgrid"><button class="btn" data-a="t1">からだ ぜんぶ</button><button class="btn" data-a="t2">わく +1</button><button class="btn" data-a="t4">コイン +1000</button><button class="btn" data-a="t5">きょうを もどす</button><button class="btn" data-a="t6">ほうせき +3</button><button class="btn" data-a="t3">データを けす</button></div></div>` : ''}
+      </div><button class="ver" data-a="ver">ver ${RG.VERSION}</button>`, {
+      // テストよう：バージョンを 7かい おすと 出る
+      ver() { verTap++; if (verTap >= 7) { verTap = 0; RG.debug = !RG.debug; settings(); } },
+      t4() { p.coins += 1000; save(); toast('コイン +1000'); },
+      t5() { p.day = -1; RG.items.rollDay(); toast('きょうの かいすうと おみせを もどしたよ'); },
+      async t6() { for (let i = 0; i < 3; i++) await RG.items.give(RG.items.rollGem(Math.random, p.grade, 0.3, 0.1)); toast('ほうせきを 3こ もらったよ'); },
       back() { home(); }, grade() { setupGrade(p.name, true); },
       async pp() { await showPNG(RG.buildPlayerPNG(p), `rakugaki_player_${p.name}.png`, 'プレイヤーデータの PNG'); },
       all() { return exportAll(); },

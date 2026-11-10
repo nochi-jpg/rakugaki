@@ -80,6 +80,7 @@
     w.u8((p.gems || []).length); (p.gems || []).forEach(g => w.u8(g));
     let mask = 0; RG.SHAPE_ORDER.forEach((s, i) => { if (p.shapes.includes(s)) mask |= 1 << i; }); w.u8(mask);
     w.u8(p.slots); w.vu(p.day || 0); w.u8(p.doneA || 0); w.u8(p.doneB || 0); w.u8(p.bonus || 0); w.u8(p.tutorial ? 1 : 0);
+    w.u8(p.bought || 0);   // きょう おみせで 買った わく（ビット）
     return seal(w);
   };
   RG.decodePlayer = function (bytes) {
@@ -87,6 +88,7 @@
     const n = r.u8(); p.gems = []; for (let i = 0; i < n; i++) p.gems.push(r.u8());
     const mask = r.u8(); p.shapes = RG.SHAPE_ORDER.filter((s, i) => mask & (1 << i));
     p.slots = r.u8(); p.day = r.vu(); p.doneA = r.u8(); p.doneB = r.u8(); p.bonus = r.u8(); p.tutorial = !!r.u8();
+    p.bought = r.i < r.b.length ? r.u8() : 0;
     return p;
   };
 })(window.RG);
