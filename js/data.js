@@ -2,7 +2,7 @@
 window.RG = window.RG || {};
 (function (RG) {
   'use strict';
-  RG.VERSION = '0.3.0';
+  RG.VERSION = '0.4.0';
   RG.JR = 24;            // 関節の丸の半径
   RG.ADJ_MAX = 20;       // くみたてで ずらせる はば（関節の丸の中まで）
   RG.GUIDE_IN = 6;       // ガイド（描ける範囲）は わくの 6px 内がわ
@@ -21,9 +21,12 @@ window.RG = window.RG || {};
       parts: [
         { id: 'body', name: 'からだ', w: 320, h: 240, seat: [240, 20], req: true },
         { id: 'horn', name: 'つの', w: 160, h: 160, seat: [580, 20], req: true, parent: 'body', pj: [160, 56], cj: [80, 126], z: 1 },
+        // じゆうパーツ（4つまで）。しゅるい・つける位置は モンスターごとに ちがう（m.free）。ここの pj は はじめの位置
+        { id: 'free1', free: 1, name: 'じゆう1', w: 160, h: 160, seat: [760, 20], parent: 'body', pj: [86, 150], cj: [80, 126], z: 1 },
+        { id: 'free2', free: 2, name: 'じゆう2', w: 160, h: 160, seat: [940, 20], parent: 'body', pj: [234, 150], cj: [80, 126], z: 1 },
+        { id: 'free3', free: 3, name: 'じゆう3', w: 160, h: 160, seat: [20, 280], parent: 'body', pj: [104, 84], cj: [80, 126], z: 1 },
+        { id: 'free4', free: 4, name: 'じゆう4', w: 160, h: 160, seat: [200, 280], parent: 'body', pj: [216, 84], cj: [80, 126], z: 1 },
       ],
-      // じゆうパーツ4つ分の席（くみたて解禁ごとに使う。手順5で実装）
-      spare: [[760, 20, 160, 160], [940, 20, 160, 160], [20, 280, 160, 160], [200, 280, 160, 160]],
       motions: ['ぷるぷる', 'ぽよーん', 'とろーり'],
     },
     yotsu: {
@@ -116,7 +119,34 @@ window.RG = window.RG || {};
   RG.shapeByNo = no => Object.keys(RG.SHAPES).find(k => RG.SHAPES[k].no === no);
   RG.part = (shape, pid) => RG.SHAPES[shape].parts.find(p => p.id === pid);
   // いま 描ける パーツ（席だけの パーツは のぞく）
-  RG.usableParts = shape => RG.SHAPES[shape].parts.filter(p => !p.locked || (RG.isOpen && RG.isOpen(p.locked)));   // RG.isOpen＝その体形を 解禁しているか（app.js）
+  // スライムの じゆうパーツの しゅるい。need＝その体形を 解禁すると 使える／cj＝パーツがわの つなぎめ／mo＝うごきかた
+  // ★ 番号は QRに 入るので 変えない（足すときは うしろに）
+  RG.FREE_KINDS = {
+    1: { name: 'あし', need: ['yotsu', 'nisoku'], cj: [80, 34], mo: 'limb' },
+    2: { name: 'しっぽ', need: ['yotsu'], cj: [126, 84], mo: 'tail' },
+    3: { name: 'みみ', need: ['yotsu'], cj: [80, 126], mo: 'ear' },
+    4: { name: 'はね', need: ['tori'], cj: [126, 50], mo: 'wing' },
+    5: { name: 'とさか', need: ['tori'], cj: [80, 126], mo: 'ear' },
+    6: { name: 'ひれ', need: ['sakana'], cj: [80, 126], mo: 'fin' },
+    7: { name: 'とろけるうで', need: ['ekitai'], cj: [80, 34], mo: 'drip' },
+    8: { name: 'アンテナ', need: ['robot'], cj: [80, 126], mo: 'antenna' },
+    9: { name: 'うで', need: ['robot', 'nisoku'], cj: [80, 34], mo: 'limb' },
+  };
+  RG.FREE_MAX = 4;
+  // そのモンスターの パーツ一覧（じゆうパーツは m.free の 中身で しゅるい・位置を 決める。つけていない じゆうパーツは ふくまない）
+  RG.partsFor = function (m) {
+    const out = [];
+    for (const p of RG.SHAPES[m.shape].parts) {
+      if (!p.free) { out.push(p); continue; }
+      const f = m.free && m.free[p.free]; if (!f) continue;
+      const K = RG.FREE_KINDS[f.k] || RG.FREE_KINDS[3];
+      out.push(Object.assign({}, p, { name: K.name, cj: K.cj, pj: [f.x, f.y], z: f.z ? 1 : 0, mo: K.mo }));
+    }
+    return out;
+  };
+  RG.partOf = (m, pid) => RG.partsFor(m).find(p => p.id === pid);
+  // いま 描ける パーツ（解禁していない体形の パーツは のぞく）。RG.isOpen＝その体形を 解禁しているか（app.js）
+  RG.usableParts = m => RG.partsFor(typeof m === 'string' ? { shape: m } : m).filter(p => !p.locked || (RG.isOpen && RG.isOpen(p.locked)));
 
   // ---- パレット（お絵描きリレーと同じ）。予約色（#ff00ff・#00ffff）は 入れない ----
   RG.COLORS = [
@@ -192,15 +222,15 @@ window.RG = window.RG || {};
 
   // ---- くみたて（パーツの ならべかた）----
   // かえり値：描く順の [{p, x, y}]（みぎむきの座標。どうの左上が 0,0）と 全体の はんい
-  RG.layout = function (shape, adj, has) {
-    const parts = RG.SHAPES[shape].parts, pos = {}, order = [];
+  RG.layout = function (m, has) {
+    const parts = RG.partsFor(m), adj = m.adj, pos = {}, order = [], byId = id => parts.find(q => q.id === id);
     const place = p => {
       if (pos[p.id]) return pos[p.id];
       if (!p.parent) return (pos[p.id] = [0, 0]);
-      const pp = place(RG.part(shape, p.parent)), a = (adj && adj[p.id]) || [0, 0];
+      const pp = place(byId(p.parent)), a = (!p.free && adj && adj[p.id]) || [0, 0];
       return (pos[p.id] = [pp[0] + p.pj[0] + a[0] - p.cj[0], pp[1] + p.pj[1] + a[1] - p.cj[1]]);
     };
-    const zOf = p => { const a = adj && adj[p.id]; return a && a[2] != null ? a[2] : p.z; };
+    const zOf = p => { const a = !p.free && adj && adj[p.id]; return a && a[2] != null ? a[2] : p.z; };
     const emit = p => {
       const kids = parts.filter(c => c.parent === p.id && (!has || has(c.id)));
       kids.filter(c => !zOf(c)).forEach(emit);
@@ -217,11 +247,11 @@ window.RG = window.RG || {};
   // みぎむきの座標で 組み立て、ひだりむきの絵は 全体を うらがえして 描く（回転も いっしょに うらがえる）
   RG.drawMon = function (ctx, m, get, bx, by, bw, bh, opt) {
     opt = opt || {};
-    const has = pid => !!get(pid), L = RG.layout(m.shape, m.adj, has);
+    const has = pid => !!get(pid), L = RG.layout(m, has);
     if (!L.order.length) return null;
     const s = Math.min(bw / L.w, bh / L.h, opt.maxScale || 9), left = m.face === 1, pose = opt.pose || null;
-    const ox = bx + (bw - L.w * s) / 2, oy = by + (bh - L.h * s) / 2, parts = RG.SHAPES[m.shape].parts;
-    const zOf = p => { const a = m.adj && m.adj[p.id]; return a && a[2] != null ? a[2] : p.z; };
+    const ox = bx + (bw - L.w * s) / 2, oy = by + (bh - L.h * s) / 2, parts = RG.partsFor(m);
+    const zOf = p => { const a = !p.free && m.adj && m.adj[p.id]; return a && a[2] != null ? a[2] : p.z; };
     ctx.save();
     if (opt.flip) { ctx.translate(bx * 2 + bw, 0); ctx.scale(-1, 1); }
     ctx.translate(ox, oy); ctx.scale(s, s);
@@ -230,7 +260,7 @@ window.RG = window.RG || {};
     const draw = p => {
       ctx.save();
       if (p.parent) {
-        const a = (m.adj && m.adj[p.id]) || [0, 0];
+        const a = (!p.free && m.adj && m.adj[p.id]) || [0, 0];
         ctx.translate(p.pj[0] + a[0], p.pj[1] + a[1]);
         if (pose && pose.parts[p.id]) ctx.rotate(pose.parts[p.id]);
         ctx.translate(-p.cj[0], -p.cj[1]);

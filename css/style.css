@@ -145,3 +145,81 @@ button{font:inherit;color:inherit;cursor:pointer;background:none;border:0}
 
 /* パーツが 9こ以上（にそく＋はね・ひれ）のときは ボタンを 小さく */
 .plist.many{gap:6px}.plist.many .btn.pt{height:104px}.plist.many .btn.pt canvas{width:78px;height:50px}
+
+/* じゆうパーツ */
+.btn.pt.add{border-style:dashed}.plus2{font-style:normal;font-size:44px;line-height:1}.btn.pt.add em{font-style:normal;font-size:14px;opacity:.7}
+.kinds{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.kinds .btn{min-width:200px}
+.kprev canvas{touch-action:none}
+
+/* ===== バトル ===== */
+/* じゅんび */
+.bsetb{position:absolute;left:50px;top:96px;width:1180px;display:flex;flex-direction:column;gap:14px}
+.brow{display:flex;align-items:center;gap:16px}
+.brow>span{width:150px;font-size:26px;flex:none;text-align:right}
+.brow>div{display:flex;gap:12px;flex-wrap:nowrap}
+.btn.bo{min-width:0;width:190px;height:62px;padding:0 6px;font-size:24px}
+.btn.bo.w{width:290px}
+.btn.bm{min-width:0;width:150px;height:112px;padding:4px;flex-direction:column;gap:0;font-size:20px}
+.btn.bm b{font-weight:normal}.btn.bm canvas{width:120px;height:70px}
+.btn.bm.on{background:#fff;color:var(--ink);outline:5px solid var(--ink);outline-offset:-1px}
+.row.wrap{flex-wrap:wrap;max-width:820px}
+/* とく */
+.qtime{position:absolute;left:40px;top:18px;width:860px;height:40px;overflow:hidden;padding:0}
+.qtime i{display:block;height:100%;width:100%;background:repeating-linear-gradient(-55deg,#111 0 4px,#fff 4px 9px)}
+.qleft{position:absolute;left:912px;top:14px;width:160px;height:48px;display:flex;align-items:center;justify-content:center;gap:8px;font-size:22px}
+.qcnt{position:absolute;left:1084px;top:14px;width:156px;height:48px;display:flex;align-items:center;justify-content:center;gap:8px;font-size:22px}
+.qleft b,.qcnt b{font-size:32px;font-weight:normal;min-width:44px;text-align:center}
+.qwho{position:absolute;left:40px;top:74px;font-size:26px}
+.qsub{position:absolute;left:540px;top:70px;width:200px;height:44px;display:flex;align-items:center;justify-content:center;font-size:26px}
+.btn.qquit{position:absolute;right:40px;top:70px;min-width:110px;height:44px;font-size:20px}
+.qbox{position:absolute;left:90px;top:128px;width:1100px;height:214px;display:flex;align-items:center;justify-content:center;padding:14px 40px}
+.qbox p{font-family:var(--kyo);font-size:46px;line-height:1.35;text-align:center}
+.qbox p.l2{font-size:38px}.qbox p.l3{font-size:31px}
+.qch{position:absolute;left:90px;top:362px;width:1100px;display:grid;grid-template-columns:1fr 1fr;gap:22px 30px}
+.btn.qc{min-width:0;height:150px;padding:6px 20px;font-family:var(--kyo);font-size:38px;white-space:normal;line-height:1.25;text-align:center}
+.btn.qc.l2{font-size:28px}.btn.qc.l3{font-size:22px}
+.btn.qc.right{background:var(--ink);color:#fff}.btn.qc.wrong{border-style:dashed;text-decoration:line-through;opacity:.55}.btn.qc.dim{opacity:.3}
+.qlock{position:absolute;left:0;right:0;top:60px;display:flex;justify-content:center;pointer-events:none;z-index:5}
+.qlock .box{padding:10px 40px;font-size:32px;box-shadow:4px 5px 0 var(--ink)}
+.qlock b{font-size:44px;font-weight:normal}
+.qready{position:absolute;inset:0;background:rgba(255,255,255,.9);display:flex;align-items:center;justify-content:center;z-index:9}
+.qready .box{width:420px;height:320px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;box-shadow:5px 6px 0 var(--ink)}
+.qready p{font-size:34px}.qready b{font-size:150px;line-height:1;font-weight:normal}
+/* みる */
+#bcv{position:absolute;left:0;top:0;width:1280px;height:720px}
+.hp{position:absolute;top:16px;width:520px;height:104px;padding:6px 18px;display:flex;flex-direction:column;gap:2px}
+.hp.l{left:30px}.hp.r{right:30px}
+.hp p{display:flex;align-items:baseline;gap:12px;height:34px;overflow:hidden;white-space:nowrap}
+.hp p b{font-size:28px;font-weight:normal}.hp p span{font-size:18px;color:#555}
+.hpbar{height:26px;border:3px solid var(--ink);border-radius:var(--wob);overflow:hidden}
+.hpbar i{display:block;height:100%;width:100%;background:var(--ink);transition:width .25s}
+.hp em{font-style:normal;font-size:20px;text-align:right;height:24px;line-height:24px}
+.seek{position:absolute;left:60px;top:636px;width:960px;height:24px;padding:0}
+.seek #skfill{position:absolute;left:0;top:0;height:100%;width:0;background:repeating-linear-gradient(-55deg,#111 0 3px,#fff 3px 7px);border-radius:inherit}
+.seek #skhead{position:absolute;top:-10px;width:4px;height:38px;margin-left:-2px;background:var(--ink)}
+.mk{position:absolute;display:block;margin-left:-8px}
+.mk.p{top:-24px;width:16px;height:16px;border-radius:50%;background:var(--ink)}
+.mk.e{top:26px;width:0;height:0;border-left:9px solid transparent;border-right:9px solid transparent;border-bottom:16px solid var(--ink);margin-left:-9px}
+.sklegend{position:absolute;left:60px;top:684px;display:flex;gap:40px;font-size:18px}
+.sklegend span{display:flex;align-items:center;gap:8px}.sklegend .mk{position:static;margin:0}
+.btn.spd{position:absolute;right:30px;top:620px;width:200px;height:60px;font-size:24px;min-width:0}
+.bend{position:absolute;left:290px;top:138px;width:700px;height:120px;display:flex;align-items:center;justify-content:center;font-size:60px;box-shadow:6px 7px 0 var(--ink)}
+/* けっか */
+.rhead{position:absolute;left:0;right:0;top:20px;text-align:center;font-size:76px;font-weight:normal}
+.rgrid{position:absolute;left:150px;top:140px;width:980px;display:flex;gap:60px}
+.rcard{flex:1;height:420px;padding:10px;display:flex;flex-direction:column;align-items:center;gap:2px;overflow:hidden}
+.rcard.win{box-shadow:6px 7px 0 var(--ink);border-width:5px}
+.rcard canvas{width:360px;height:250px}
+.rcard h3{font-size:34px;font-weight:normal;line-height:1.2}.rcard p{font-size:22px}.rcard p b{font-size:30px;font-weight:normal}
+.rbtns{position:absolute;left:0;right:0;top:590px}
+.rnote{position:absolute;left:0;right:0;top:670px;text-align:center}
+/* たいせんの じゅんび */
+.vcol{position:absolute;top:100px;width:500px;display:flex;flex-direction:column;align-items:center;gap:12px}
+.vcol.l{left:50px}.vcol.r{right:50px}
+.vcol h3{font-size:34px;font-weight:normal}
+.vmons{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.vmid{position:absolute;left:570px;top:250px;width:140px;text-align:center;font-size:60px;white-space:nowrap}
+.vfoe{width:340px;height:256px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:26px}
+.vfoe b{font-weight:normal}.vfoe.empty{border-style:dashed;color:#777;text-align:center}
+.vfoe canvas{width:300px;height:200px}
+.vmode{position:absolute;left:50px;top:560px}

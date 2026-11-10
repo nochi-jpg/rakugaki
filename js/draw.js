@@ -6,14 +6,18 @@
 
   // shape, face, sources:{pid:canvas}（なおすとき）, onChange()
   RG.Editor = function (view, opt) {
-    const E = this, sh = RG.SHAPES[opt.shape], parts = RG.usableParts(opt.shape);
+    const E = this, sh = RG.SHAPES[opt.shape];
+    E.free = opt.free || {};
+    // いま 描ける パーツ（じゆうパーツを つけたり はずしたり すると 変わる）
+    const model = () => ({ shape: opt.shape, adj: E.adj, free: E.free });
+    const PARTS = () => RG.usableParts(model()), partNow = pid => PARTS().find(p => p.id === pid) || RG.part(opt.shape, pid);
     const vctx = view.getContext('2d');
     view.width = VW * DPR; view.height = VH * DPR;
-    E.face = opt.face; E.adj = opt.adj || {}; E.parts = parts;
+    E.face = opt.face; E.adj = opt.adj || {}; E.parts = PARTS;
     E.st = { tool: 'pen', color: RG.COLORS[0][1], size: RG.SIZES[1][1], penOnly: false, guide: true, gattai: false };
-    E.cur = parts[0].id;
+    E.cur = sh.parts[0].id;
     const P = {};   // pid → {cv, ctx, base, strokes, redo}
-    for (const p of parts) {
+    for (const p of sh.parts) {
       const cv = mk(p.w, p.h), ctx = cv.getContext('2d');
       RG.guidePath(ctx, p); ctx.clip();          // ガイドの外には はみださない（自動で けずる）
       P[p.id] = { p, cv, ctx, base: (opt.sources && opt.sources[p.id]) || null, strokes: [], redo: [], ink: false };
@@ -88,9 +92,9 @@
     // ---- 見えかた ----
     // いまのパーツの「紙の座標 → 画面の座標」
     function viewOf() {
-      const p = RG.part(opt.shape, E.cur);
+      const p = partNow(E.cur);
       if (!E.st.gattai) { const s = Math.min((VW - 24) / p.w, (VH - 24) / p.h); return { s, ox: (VW - p.w * s) / 2, oy: (VH - p.h * s) / 2, L: null }; }
-      const L = RG.layout(opt.shape, E.adj, pid => parts.some(q => q.id === pid));
+      const parts = PARTS(), L = RG.layout(model(), pid => parts.some(q => q.id === pid));
       const s = Math.min((VW - 24) / L.w, (VH - 24) / L.h), bx = (VW - L.w * s) / 2, by = (VH - L.h * s) / 2;
       const at = o => [bx + (E.face === 1 ? L.x1 - (o.x + o.p.w) : o.x - L.x0) * s, by + (o.y - L.y0) * s];
       const me = L.order.find(o => o.p.id === E.cur), [ox, oy] = at(me);
@@ -99,11 +103,11 @@
     // そのパーツに ある 関節（自分がわ＋子どもがわ）
     function jointsOf(p) {
       const js = []; if (p.cj) js.push({ pt: RG.jx(p, p.cj, E.face), key: p.id + '>' + p.id, need: true, child: p.id });
-      parts.filter(c => c.parent === p.id).forEach(c => js.push({ pt: RG.jx(p, c.pj, E.face), key: c.id + '>' + p.id, need: !!c.req || E.hasInk(c.id), child: c.id }));
+      PARTS().filter(c => c.parent === p.id).forEach(c => js.push({ pt: RG.jx(p, c.pj, E.face), key: c.id + '>' + p.id, need: !!c.req || E.hasInk(c.id), child: c.id }));
       return js;
     }
     function render() {
-      const c = vctx, v = viewOf(), p = RG.part(opt.shape, E.cur), o = P[E.cur];
+      const c = vctx, v = viewOf(), p = partNow(E.cur), o = P[E.cur];
       c.setTransform(DPR, 0, 0, DPR, 0, 0); c.clearRect(0, 0, VW, VH);
       // 透明を あらわす チェックがら
       c.fillStyle = '#fff'; c.fillRect(0, 0, VW, VH); c.fillStyle = '#e4e4e8';
@@ -112,7 +116,7 @@
       if (v.L) {
         for (const q of v.L.order) {
           if (q.p.id === E.cur) { c.globalAlpha = 1; c.drawImage(o.cv, v.ox, v.oy, p.w * v.s, p.h * v.s); }
-          else if (P[q.p.id].ink) { const [x, y] = v.at(q); c.globalAlpha = 0.3; c.drawImage(P[q.p.id].cv, x, y, q.p.w * v.s, q.p.h * v.s); }
+          else if (P[q.p.id] && P[q.p.id].ink) { const [x, y] = v.at(q); c.globalAlpha = 0.3; c.drawImage(P[q.p.id].cv, x, y, q.p.w * v.s, q.p.h * v.s); }
         }
         c.globalAlpha = 1;
       } else c.drawImage(o.cv, v.ox, v.oy, p.w * v.s, p.h * v.s);
@@ -180,6 +184,8 @@
 
     // ---- そうさ ----
     E.select = pid => { E.cur = pid; render(); };
+    // じゆうパーツを はずしたとき：その紙を まっさらに
+    E.wipe = pid => { const o = P[pid]; o.base = null; o.strokes = []; o.redo = []; renderPart(o); };
     E.undo = () => { const o = P[E.cur]; if (!o.strokes.length) return; o.redo.push(o.strokes.pop()); renderPart(o); render(); changed(); };
     E.redo = () => { const o = P[E.cur]; if (!o.redo.length) return; o.strokes.push(o.redo.pop()); renderPart(o); render(); changed(); };
     E.clear = () => { const o = P[E.cur]; if (!o.ink) return; o.strokes.push({ tool: 'clear' }); o.redo = []; renderPart(o); render(); changed(); };
@@ -196,11 +202,11 @@
     }
     // たりない所の一覧：[{pid（描きたす パーツ）, key, text}]
     E.check = function () {
-      const miss = [];
+      const miss = [], parts = PARTS();
       for (const p of parts) {
         if (p.req && !P[p.id].ink) { miss.push({ pid: p.id, key: '', text: `「${p.name}」を かこう` }); continue; }
         if (!p.parent || !P[p.id].ink) continue;
-        const par = RG.part(opt.shape, p.parent);
+        const par = partNow(p.parent);
         if (!P[par.id].ink) continue;
         if (!inkAt(P[p.id], RG.jx(p, p.cj, E.face))) miss.push({ pid: p.id, key: p.id + '>' + p.id, text: `「${p.name}」の まるの なかに かこう` });
         if (!inkAt(P[par.id], RG.jx(par, p.pj, E.face))) miss.push({ pid: par.id, key: p.id + '>' + par.id, text: `「${par.name}」の「${p.name}」と つながる まるの なかに かこう` });
@@ -215,7 +221,7 @@
     // できあがった パーツ（描いたものだけ）を、あたらしい キャンバスで わたす
     E.result = function () {
       const out = {};
-      for (const p of parts) if (P[p.id].ink) { const c = mk(p.w, p.h); c.getContext('2d').drawImage(P[p.id].cv, 0, 0); out[p.id] = c; }
+      for (const p of PARTS()) if (P[p.id].ink) { const c = mk(p.w, p.h); c.getContext('2d').drawImage(P[p.id].cv, 0, 0); out[p.id] = c; }
       return out;
     };
     render();

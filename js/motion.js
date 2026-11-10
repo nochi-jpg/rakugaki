@@ -238,6 +238,27 @@
     return { dx: o.dx || 0, dy: o.dy || 0, rot: (o.rot || 0) * D2R, sx: o.sx == null ? 1 : o.sx, sy: o.sy == null ? 1 : o.sy, parts };
   };
 
+  // じゆうパーツ（スライム）の うごき：しゅるい（mo）ごとの ゆれ
+  const FREE_MO = { limb: [9, 3.2, -78], tail: [11, 2.6, -24], ear: [6, 3, -16], wing: [16, 7, 30], fin: [6, 2.4, -14], drip: [13, 1.6, -60], antenna: [9, 6, -22] };
+  // モンスター m の t びょう めの ポーズ（じゆうパーツの うごきも 足す）。motion を わたすと その番号で
+  RG.poseFor = function (m, action, t, motion) {
+    const mo = motion == null ? (m.motion || 0) : motion, po = RG.pose(m.shape, mo, action, t);
+    if (!m.free) return po;
+    const d = RG.motionDur(m.shape, mo, action) || 1, u = cl(t / d), a = sin(PI * u);
+    for (const p of RG.partsFor(m)) {
+      if (!p.free) continue;
+      const [amp, f, atk] = FREE_MO[p.mo] || FREE_MO.ear, ph = p.free * 1.7;
+      let v;
+      if (action === 'idle') v = amp * sin(t * f + ph);
+      else if (action === 'win') v = amp * 2.2 * sin(t * f * 1.7 + ph);
+      else if (action === 'attack') v = p.mo === 'wing' ? atk * sin(t * 30) * a : atk * a;
+      else if (action === 'damage') v = 30 * a * (p.free % 2 ? 1 : -1);
+      else v = 46 * ease(u) * (p.free % 2 ? 1 : -1);
+      po.parts[p.id] = v * D2R;
+    }
+    return po;
+  };
+
   // キャンバスの上で 動かしつづける。かえり値：{ set(action), stop() }
   // こうげき・ダメージは おわったら たいきに もどる。まけは たおれたまま
   RG.play = function (canvas, m, get, opt) {
@@ -257,7 +278,7 @@
       if (d && t > d + (action === 'lose' ? 1e9 : 0.05)) { action = 'idle'; t0 = now; t = 0; if (opt.onEnd) opt.onEnd(); }
       ctx.clearRect(0, 0, W, H);
       // うごく ぶんの よゆうを とって 中央より 少し うしろ・下に おく
-      RG.drawMon(ctx, m, get, W * ((m.face === 1) !== !!opt.flip ? 0.26 : 0.14), H * 0.24, W * 0.6, H * 0.72, { maxScale: opt.maxScale || 1.2, pose: RG.pose(m.shape, C.motion, action, t), flip: opt.flip });
+      RG.drawMon(ctx, m, get, W * ((m.face === 1) !== !!opt.flip ? 0.26 : 0.14), H * 0.24, W * 0.6, H * 0.72, { maxScale: opt.maxScale || 1.2, pose: RG.poseFor(m, action, t, C.motion), flip: opt.flip });
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);

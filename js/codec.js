@@ -48,10 +48,13 @@
     w.u32(m.id); w.str(m.name); w.u8(RG.SHAPES[m.shape].no); w.u8(m.face ? 1 : 0);
     let mask = 0; parts.forEach((p, i) => { if (m.parts[p.id]) mask += Math.pow(2, i); }); w.vu(mask);
     m.r5.forEach(v => w.vu(v)); m.r4.forEach(v => w.vu(v));
-    parts.filter(p => p.parent).forEach(p => { const a = (m.adj && m.adj[p.id]) || [0, 0, p.z]; w.u8(a[0] + 32); w.u8(a[1] + 32); w.u8(a[2] == null ? p.z : a[2]); });
+    parts.filter(p => p.parent && !p.free).forEach(p => { const a = (m.adj && m.adj[p.id]) || [0, 0, p.z]; w.u8(a[0] + 32); w.u8(a[1] + 32); w.u8(a[2] == null ? p.z : a[2]); });
     w.u8(m.motion || 0);
     for (let i = 0; i < 3; i++) w.u8((m.gems && m.gems[i]) || 0);
     w.str(m.creator.name); w.u32(m.creator.id); w.u8(m.grade); w.vu(m.date);
+    // じゆうパーツ（スライム）：こ数 →（わく番号・しゅるい・x・y・重なり）
+    const fr = Object.keys(m.free || {}).filter(k => m.free[k]);
+    w.u8(fr.length); fr.forEach(k => { const f = m.free[k]; w.u8(+k); w.u8(f.k); w.vu(f.x); w.vu(f.y); w.u8(f.z ? 1 : 0); });
     return seal(w);
   };
   RG.decodeMon = function (bytes) {
@@ -61,9 +64,11 @@
     m.face = r.u8() ? 1 : 0;
     const mask = r.vu(); m.has = {}; parts.forEach((p, i) => { if (Math.floor(mask / Math.pow(2, i)) % 2) m.has[p.id] = true; });
     m.r5 = [0, 0, 0, 0, 0].map(() => r.vu()); m.r4 = [0, 0, 0, 0].map(() => r.vu());
-    m.adj = {}; parts.filter(p => p.parent).forEach(p => { m.adj[p.id] = [r.u8() - 32, r.u8() - 32, r.u8() ? 1 : 0]; });
+    m.adj = {}; parts.filter(p => p.parent && !p.free).forEach(p => { m.adj[p.id] = [r.u8() - 32, r.u8() - 32, r.u8() ? 1 : 0]; });
     m.motion = r.u8(); m.gems = [r.u8(), r.u8(), r.u8()];
     m.creator = { name: r.str(), id: r.u32() }; m.grade = r.u8(); m.date = r.vu();
+    m.free = {};
+    if (r.i < r.b.length) { const n = r.u8(); for (let i = 0; i < n; i++) { const k = r.u8(), f = { k: r.u8(), x: Math.min(290, Math.max(30, r.vu())), y: Math.min(210, Math.max(30, r.vu())), z: r.u8() ? 1 : 0 }; if (k >= 1 && k <= RG.FREE_MAX && RG.FREE_KINDS[f.k]) m.free[k] = f; } }
     return m;
   };
 

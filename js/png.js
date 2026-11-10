@@ -38,11 +38,11 @@
       const [x, y] = p.seat; frame(x, y, p.w, p.h);
       // 関節の めじるし（わくの外がわに 小さな線）。絵には 重ねない
       ctx.fillStyle = RG.JOINT_COLOR;
-      const js = []; if (p.cj) js.push(p.cj); sh.parts.filter(c => c.parent === p.id).forEach(c => js.push(c.pj));
+      const now = RG.partsFor(m), me = now.find(q => q.id === p.id), js = [];
+      if (me) { if (me.cj) js.push(me.cj); now.filter(c => c.parent === p.id).forEach(c => js.push(c.pj)); }
       js.forEach(j => { const q = RG.jx(p, j, m.face); ctx.fillRect(x + q[0] - 1, y - 8, 2, 6); ctx.fillRect(x - 8, y + q[1] - 1, 6, 2); });
       const c = get(p.id); if (c) ctx.drawImage(c, x, y);
     }
-    (sh.spare || []).forEach(s => frame(s[0], s[1], s[2], s[3]));
     // 見るための すがた と なまえ（データとしては 使わない）
     const [px, py, pw, ph] = sh.preview || RG.PREVIEW_SEAT;
     RG.drawMon(ctx, m, get, px, py, pw, ph, { maxScale: 1 });
@@ -191,6 +191,18 @@
     ctx.lineTo(x + w, y + h - r); ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
     ctx.lineTo(x + r, y + h); ctx.quadraticCurveTo(x, y + h, x, y + h - r);
     ctx.lineTo(x, y + r); ctx.quadraticCurveTo(x, y, x + r, y); ctx.closePath();
+  };
+
+  // その点（関節）の 丸の中に 絵が あるか
+  RG.inkAt = function (cv, pt) {
+    const r = RG.JR, x0 = Math.max(0, Math.floor(pt[0] - r)), y0 = Math.max(0, Math.floor(pt[1] - r));
+    const w = Math.min(cv.width, Math.ceil(pt[0] + r)) - x0, h = Math.min(cv.height, Math.ceil(pt[1] + r)) - y0;
+    if (w <= 0 || h <= 0) return false;
+    const d = cv.getContext('2d').getImageData(x0, y0, w, h).data;
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+      if (d[(y * w + x) * 4 + 3] > 24 && Math.hypot(x0 + x + .5 - pt[0], y0 + y + .5 - pt[1]) <= r) return true;
+    }
+    return false;
   };
 
   // ---- 保存（ダウンロード）----

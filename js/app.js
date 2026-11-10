@@ -231,9 +231,9 @@
     RG.making = false;
     if (S.player && !S.player.tutorial && !S.mons.length) return tutorialIntro();
     show('home', `<div class="hname box">${esc(S.player.name)}　${S.player.grade}ねんせい</div><div class="hcoin box">コイン　${S.player.coins}</div>
-      <div class="hbig"><button class="btn huge" data-a="soon"><b>まいにち れんしゅう</b><span>じゅんびちゅう</span></button><button class="btn huge" data-a="soon"><b>ともだちと たいせん</b><span>じゅんびちゅう</span></button></div>
+      <div class="hbig"><button class="btn huge" data-a="prac"><b>まいにち れんしゅう</b><span>コンピューターと たたかう</span></button><button class="btn huge" data-a="vs"><b>ともだちと たいせん</b><span>1だいで ふたりで あそぶ</span></button></div>
       <div class="hsmall"><button class="btn" data-a="chars">キャラクター</button><button class="btn" data-a="soon">ほうせき</button><button class="btn" data-a="soon">おみせ</button><button class="btn" data-a="set">せってい</button></div>`, {
-      chars() { chars(); }, set() { settings(); }, soon() { toast('ここは いま つくっているよ。もうすこし まってね'); },
+      chars() { chars(); }, set() { settings(); }, prac() { RG.battle.practice(); }, vs() { RG.battle.versus(); }, soon() { toast('ここは いま つくっているよ。もうすこし まってね'); },
     });
   }
 
@@ -260,7 +260,7 @@
     const old = S.mons.findIndex(m => m.id === q.id);
     if (old >= 0) { if (!(await ask(`「${esc(S.mons[old].name)}」は もう いるよ。うわがき する？`))) return; }
     else if (S.mons.length >= S.player.slots) return tell('わくが いっぱいだよ。<br>どれかを PNGで だしてから にがしてね');
-    const m = { id: q.id, name: q.name, shape: q.shape, face: q.face, parts: {}, adj: q.adj, motion: q.motion, gems: [0, 0, 0], r5: q.r5, r4: q.r4, creator: q.creator, grade: q.grade, date: q.date };
+    const m = { id: q.id, name: q.name, shape: q.shape, face: q.face, parts: {}, adj: q.adj, free: q.free || {}, motion: q.motion, gems: [0, 0, 0], r5: q.r5, r4: q.r4, creator: q.creator, grade: q.grade, date: q.date };
     for (const pid in r.parts) m.parts[pid] = r.parts[pid].toDataURL('image/png');
     CACHE[m.id] = r.parts;
     if (old >= 0) S.mons[old] = m; else S.mons.push(m);
@@ -312,7 +312,7 @@
   }
   function startMake(o) {
     const e = o.edit;
-    D = { shape: o.shape, tutorial: !!o.tutorial, edit: e || null, face: e ? e.face : 0, adj: e ? JSON.parse(JSON.stringify(e.adj || {})) : {}, motion: e ? e.motion : 0, name: e ? e.name : '', parts: e ? Object.assign({}, CACHE[e.id]) : {} };
+    D = { shape: o.shape, tutorial: !!o.tutorial, edit: e || null, face: e ? e.face : 0, adj: e ? JSON.parse(JSON.stringify(e.adj || {})) : {}, motion: e ? e.motion : 0, name: e ? e.name : '', parts: e ? Object.assign({}, CACHE[e.id]) : {}, free: e ? JSON.parse(JSON.stringify(e.free || {})) : {} };
     RG.making = true;
     e ? drawScreen() : pickFace();
   }
@@ -324,7 +324,20 @@
 
   // ---- おえかき ----
   function drawScreen() {
-    const parts = RG.usableParts(D.shape);
+    let parts = RG.usableParts(D);
+    // スライムの じゆうパーツ：解禁した体形の パーツを 4つまで
+    const kinds = () => D.shape === 'slime' ? Object.keys(RG.FREE_KINDS).filter(k => RG.FREE_KINDS[k].need.some(RG.isOpen)) : [];
+    const freeCount = () => Object.keys(D.free).length;
+    const plistHTML = () => parts.map(p => `<button class="btn pt" data-a="part" data-p="${p.id}"><canvas width="100" height="64" data-th="${p.id}"></canvas><b>${p.name}</b><span>${p.req ? 'ひつよう' : 'じゆう'}</span></button>`).join('') +
+      (kinds().length && freeCount() < RG.FREE_MAX ? `<button class="btn pt add" data-a="addfree"><i class="plus2">＋</i><b>パーツを たす</b><em>あと ${RG.FREE_MAX - freeCount()}こ</em></button>` : '');
+    // じゆうパーツの しゅるいを えらぶ（slot＝わく番号。すでに ある わくなら「はずす」も 出す）
+    const chooseKind = slot => new Promise(res => {
+      const has = !!D.free[slot];
+      modal(`<p class="mtext s">${has ? 'どの パーツに かえる？' : 'どの パーツを つける？'}</p><div class="kinds">${kinds().map(k => `<button class="btn${has && D.free[slot].k === +k ? ' on' : ''}" data-a="k" data-k="${k}">${RG.FREE_KINDS[k].name}</button>`).join('')}</div>
+        <div class="row c">${has ? '<button class="btn" data-a="rm">はずす</button>' : ''}<button class="btn" data-a="n">やめる</button></div>`,
+        { k(b) { closeModal(); res(+b.dataset.k); }, rm() { closeModal(); res(-1); }, n() { closeModal(); res(0); } });
+    });
+    const rebuild = () => { parts = RG.usableParts(D); const pl = stage.querySelector('.plist'); pl.className = 'plist' + (parts.length > 8 ? ' many' : ''); pl.innerHTML = plistHTML(); refresh(); ed.render(); };
     show('draw', `<div class="dhead">${EFUDE}<div class="box bubble" id="hint"></div><div class="dir box">${D.face ? '← ひだりむき' : 'みぎむき →'}</div><button class="btn" data-a="quit">やめる</button></div>
       <div class="tools box">
         <div class="trow"><button class="btn t on" data-a="tool" data-t="pen">${IC.pen}<span>ペン</span></button><button class="btn t" data-a="tool" data-t="eraser">${IC.eraser}<span>けしごむ</span></button><button class="btn t" data-a="tool" data-t="fill">${IC.fill}<span>バケツ</span></button></div>
@@ -336,7 +349,7 @@
       </div>
       <div class="paper box"><canvas id="cv"></canvas></div>
       <div class="vrow"><button class="btn t wide on" data-a="view" data-v="0">${IC.single}<span>たんたい</span></button><button class="btn t wide" data-a="view" data-v="1">${IC.multi}<span>がったい</span></button><button class="btn t wide on" data-a="gd" id="bGd">${IC.guide}<span id="gdTx">ガイド：あり</span></button></div>
-      <div class="plist${parts.length > 8 ? ' many' : ''}">${parts.map(p => `<button class="btn pt" data-a="part" data-p="${p.id}"><canvas width="100" height="64" data-th="${p.id}"></canvas><b>${p.name}</b><span>${p.req ? 'ひつよう' : 'じゆう'}</span></button>`).join('')}</div>
+      <div class="plist${parts.length > 8 ? ' many' : ''}">${plistHTML()}</div>
       <button class="btn strong donebtn" data-a="done">かんせい</button>`, {
       tool(b) { ed.st.tool = b.dataset.t; mark('[data-a=tool]', b); },
       size(b) { ed.st.size = +b.dataset.s; mark('[data-a=size]', b); },
@@ -347,7 +360,23 @@
       pal(b) { const pro = document.getElementById('pal').classList.toggle('hide'); document.getElementById('palPro').classList.toggle('hide', !pro); document.getElementById('palTx').textContent = pro ? 'シンプル' : 'プロのいろ'; },
       view(b) { ed.st.gattai = b.dataset.v === '1'; mark('[data-a=view]', b); ed.render(); },
       gd(b) { ed.st.guide = !ed.st.guide; b.classList.toggle('on', ed.st.guide); document.getElementById('gdTx').textContent = ed.st.guide ? 'ガイド：あり' : 'ガイド：なし'; ed.render(); },
-      part(b) { ed.select(b.dataset.p); refresh(); },
+      async part(b) {
+        const pid = b.dataset.p, tp = RG.part(D.shape, pid);
+        // えらんである じゆうパーツを もういちど おすと、しゅるいを かえる・はずす
+        if (tp.free && pid === ed.cur) {
+          const k = await chooseKind(tp.free);
+          if (k > 0) { D.free[tp.free].k = k; rebuild(); }
+          else if (k < 0 && (!ed.hasInk(pid) || await ask('この パーツを はずすよ。かいた えも きえるよ。いい？', 'はずす'))) { delete D.free[tp.free]; ed.wipe(pid); ed.select('body'); rebuild(); }
+          return;
+        }
+        ed.select(pid); refresh();
+      },
+      async addfree() {
+        let slot = 1; while (D.free[slot]) slot++;
+        const k = await chooseKind(slot); if (k <= 0) return;
+        const tp = RG.SHAPES[D.shape].parts.find(p => p.free === slot);
+        D.free[slot] = { k, x: tp.pj[0], y: tp.pj[1], z: 1 }; ed.select(tp.id); rebuild();
+      },
       async quit() { if (await ask(D.edit ? 'なおすのを やめる？<br><span class="note">かきたした ところは きえるよ</span>' : 'つくるのを やめる？<br><span class="note">かいた えは きえるよ</span>', 'やめる', 'つづける')) { RG.making = false; D.tutorial ? home() : chars(); } },
       done() {
         const miss = ed.check();
@@ -356,7 +385,7 @@
       },
     });
     const mark = (sel, b) => { stage.querySelectorAll(sel).forEach(x => x.classList.remove('on')); if (b) b.classList.add('on'); };
-    const ed = new RG.Editor(document.getElementById('cv'), { shape: D.shape, face: D.face, adj: D.adj, sources: D.parts, onChange: () => refresh() });
+    const ed = new RG.Editor(document.getElementById('cv'), { shape: D.shape, face: D.face, adj: D.adj, free: D.free, sources: D.parts, onChange: () => refresh() });
     RG.ed = ed;
     mark('.sw', stage.querySelector('.sw'));
     function refresh() {
@@ -367,11 +396,12 @@
         x.clearRect(0, 0, 100, 64); if (src) { const s = Math.min(100 / p.w, 64 / p.h); x.drawImage(src, (100 - p.w * s) / 2, (64 - p.h * s) / 2, p.w * s, p.h * s); }
         c.parentNode.classList.toggle('has', !!src);
       }
-      const miss = ed.check(), cur = RG.part(D.shape, ed.cur);
+      const miss = ed.check(), cur = RG.partOf(D, ed.cur) || RG.part(D.shape, ed.cur);
       let t;
       if (!miss.length) t = 'いいね！ できたら「かんせい」を おそう。「がったい」で ぜんたいも みられるよ';
       else if (!ed.hasInk(ed.cur)) t = `「${cur.name}」を かこう。はいいろの てんせんの なかなら、どんな かたちでも いいよ` + (cur.parent || parts.some(c => c.parent === cur.id) ? '。ちゃいろの まるは つなぎめ。まるの なかにも かいてね' : '');
       else { const m = miss.find(x => x.pid === ed.cur) || miss[0]; t = m.text + (m.pid !== ed.cur ? '（みぎの ボタンで パーツを きりかえよう）' : ''); }
+      if (cur.free && !miss.some(x => x.pid === ed.cur)) t = `「${cur.name}」は、つぎの「くみたて」で すきな ばしょに つけられるよ。もういちど おすと、かえたり はずしたり できるよ`;
       document.getElementById('hint').textContent = t;
     }
     refresh();
@@ -379,10 +409,14 @@
 
   // ---- くみたて ----
   function kumi() {
-    const kids = RG.usableParts(D.shape).filter(p => p.parent && D.parts[p.id]);
-    let sel = kids[0] ? kids[0].id : null;
+    // かかなかった じゆうパーツは はずす
+    for (const k of Object.keys(D.free)) if (!D.parts['free' + k]) delete D.free[k];
+    const kids = RG.usableParts(D).filter(p => p.parent && D.parts[p.id]);
+    let sel = kids[0] ? kids[0].id : null, last = null, drag = null;
     const A = pid => (D.adj[pid] = D.adj[pid] || [0, 0, RG.part(D.shape, pid).z]);
-    show('kumi', guide('つなぎめを すこし うごかせるよ。<br>このままで よければ「つぎへ」') + `<button class="btn backbtn" data-a="back">えを なおす</button>
+    const F = pid => { const tp = RG.part(D.shape, pid); return tp && tp.free ? D.free[tp.free] : null; };
+    const clampF = f => { f.x = Math.max(30, Math.min(290, Math.round(f.x))); f.y = Math.max(30, Math.min(210, Math.round(f.y))); };
+    show('kumi', guide(kids.some(p => p.free) ? 'じゆうパーツは、えを なぞって すきな ばしょへ うごかそう。<br>よければ「つぎへ」' : 'つなぎめを すこし うごかせるよ。<br>このままで よければ「つぎへ」') + `<button class="btn backbtn" data-a="back">えを なおす</button>
       <div class="box kprev"><canvas id="pv" width="640" height="500"></canvas></div>
       <div class="kside"><div class="klist">${kids.map(p => `<button class="btn t kp" data-a="sel" data-p="${p.id}">${p.name}</button>`).join('')}</div>
         <div class="pad"><button class="btn t" data-a="mv" data-d="0,-1" style="grid-area:u">うえ</button><button class="btn t" data-a="mv" data-d="-1,0" style="grid-area:l">ひだり</button><button class="btn t" data-a="mv" data-d="1,0" style="grid-area:r">みぎ</button><button class="btn t" data-a="mv" data-d="0,1" style="grid-area:d">した</button></div>
@@ -391,21 +425,45 @@
       back() { drawScreen(); },
       sel(b) { sel = b.dataset.p; draw(); },
       mv(b) {
-        if (!sel) return; const [dx, dy] = b.dataset.d.split(',').map(Number), a = A(sel), M = RG.ADJ_MAX;
+        if (!sel) return; const [dx, dy] = b.dataset.d.split(',').map(Number), f = F(sel);
+        if (f) { f.x += dx * 8 * (D.face ? -1 : 1); f.y += dy * 8; clampF(f); draw(); return; }
+        const a = A(sel), M = RG.ADJ_MAX;
         a[0] = Math.max(-M, Math.min(M, a[0] + dx * 2 * (D.face ? -1 : 1))); a[1] = Math.max(-M, Math.min(M, a[1] + dy * 2)); draw();
       },
-      z() { if (!sel) return; const a = A(sel); a[2] = a[2] ? 0 : 1; draw(); },
-      reset() { if (!sel) return; D.adj[sel] = [0, 0, RG.part(D.shape, sel).z]; draw(); },
-      next() { motion(); },
+      z() { if (!sel) return; const f = F(sel); if (f) { f.z = f.z ? 0 : 1; draw(); return; } const a = A(sel); a[2] = a[2] ? 0 : 1; draw(); },
+      reset() { if (!sel) return; const f = F(sel), tp = RG.part(D.shape, sel); if (f) { f.x = tp.pj[0]; f.y = tp.pj[1]; f.z = 1; } else D.adj[sel] = [0, 0, tp.z]; draw(); },
+      async next() {
+        // じゆうパーツは からだの えの 上に つける
+        const body = RG.part(D.shape, 'body');
+        for (const p of kids.filter(q => q.free)) {
+          const f = F(p.id);
+          if (!RG.inkAt(D.parts.body, RG.jx(body, [f.x, f.y], D.face))) { sel = p.id; draw(); return tell(`「${p.name}」が からだから はなれているよ。<br>からだの えの うえに つけてね`); }
+        }
+        motion();
+      },
     });
+    // じゆうパーツは、えの 上を なぞって うごかせる
+    const pv = document.getElementById('pv');
+    const toBody = e => { const b = pv.getBoundingClientRect(), r = drag.r, cx = (e.clientX - b.left) * 640 / b.width, cy = (e.clientY - b.top) * 500 / b.height; return [D.face ? r.L.x1 - (cx - r.ox) / r.s : (cx - r.ox) / r.s + r.L.x0, (cy - r.oy) / r.s + r.L.y0]; };
+    pv.addEventListener('pointerdown', e => {
+      if (!sel || !F(sel) || !last) return; e.preventDefault();
+      drag = { id: e.pointerId, r: last }; const p0 = toBody(e), f = F(sel); drag.off = [f.x - p0[0], f.y - p0[1]];
+      // つなぎめから 遠い所を さわったら、そこへ とぶ
+      if (Math.hypot(drag.off[0], drag.off[1]) > 90) { drag.off = [0, 0]; f.x = p0[0]; f.y = p0[1]; clampF(f); draw(); }
+      try { pv.setPointerCapture(e.pointerId); } catch (_) { }
+    });
+    pv.addEventListener('pointermove', e => { if (!drag || e.pointerId !== drag.id) return; const p = toBody(e), f = F(sel); f.x = p[0] + drag.off[0]; f.y = p[1] + drag.off[1]; clampF(f); draw(); });
+    const endDrag = e => { if (drag && e.pointerId === drag.id) drag = null; };
+    pv.addEventListener('pointerup', endDrag); pv.addEventListener('pointercancel', endDrag);
     function draw() {
       const c = document.getElementById('pv'), x = c.getContext('2d'); x.clearRect(0, 0, 640, 500);
       const r = RG.drawMon(x, D, pid => D.parts[pid] || null, 20, 20, 600, 460, { maxScale: 1.6 });
+      last = r;
       stage.querySelectorAll('.kp').forEach(b => b.classList.toggle('on', b.dataset.p === sel));
       const bz = document.getElementById('bz');
       if (!sel) { bz.textContent = 'かさなり'; return; }
-      const p = RG.part(D.shape, sel), par = RG.part(D.shape, p.parent), a = A(sel);
-      bz.textContent = a[2] ? `${par.name}の まえ` : `${par.name}の うしろ`;
+      const p = RG.partOf(D, sel), par = RG.partOf(D, p.parent), zf = p.free ? p.z : A(sel)[2];
+      bz.textContent = zf ? `${par.name}の まえ` : `${par.name}の うしろ`;
       const o = r.L.order.find(q => q.p.id === sel), jx = o.x + p.cj[0], jy = o.y + p.cj[1];
       const sx = r.ox + (D.face ? r.L.x1 - jx : jx - r.L.x0) * r.s, sy = r.oy + (jy - r.L.y0) * r.s;
       x.setLineDash([7, 5]); x.lineWidth = 3; x.strokeStyle = '#8a5a2b'; x.beginPath(); x.arc(sx, sy, RG.JR * r.s, 0, Math.PI * 2); x.stroke(); x.setLineDash([]);
@@ -439,7 +497,7 @@
   function finish() {
     const ratio = RG.colorRatio(Object.values(D.parts)), e = D.edit;
     const m = e || { id: RG.newId(), gems: [0, 0, 0], creator: { name: S.player.name, id: S.player.id }, date: RG.today() };
-    Object.assign(m, { name: D.name, shape: D.shape, face: D.face, adj: D.adj, motion: D.motion, r5: ratio.r5, r4: ratio.r4, grade: S.player.grade, parts: {} });
+    Object.assign(m, { name: D.name, shape: D.shape, face: D.face, adj: D.adj, free: D.free, motion: D.motion, r5: ratio.r5, r4: ratio.r4, grade: S.player.grade, parts: {} });
     for (const pid in D.parts) m.parts[pid] = D.parts[pid].toDataURL('image/png');
     CACHE[m.id] = D.parts;
     if (!e) S.mons.push(m);
@@ -475,6 +533,8 @@
 
   // ---- はじまり ----
   RG.app = { get S() { return S; }, save, title, home, chars, cacheMon, CACHE };
+  // ほかの ファイル（battle.js）から 使う 部品
+  RG.ui = { stage, show, modal, closeModal, ask, tell, toast, guide, esc, pickFile, getter, home, EFUDE, get seOn() { return S.se; } };
   (async function () {
     load();
     for (const m of S.mons) await cacheMon(m);
