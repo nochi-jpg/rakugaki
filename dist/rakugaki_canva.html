@@ -56,7 +56,8 @@ button{font:inherit;color:inherit;cursor:pointer;background:none;border:0}
 
 /* かな入力 */
 .namebox{position:absolute;left:300px;top:128px;width:680px;height:86px;display:flex;align-items:center;justify-content:center;gap:10px}
-.namebox b,.namebox u{width:64px;height:64px;font-size:52px;line-height:64px;text-align:center;font-weight:normal;text-decoration:none;border-bottom:3px solid var(--ink)}
+.namebox input{width:100%;height:100%;border:0;outline:0;background:transparent;font:inherit;font-size:54px;text-align:center;letter-spacing:.18em;color:var(--ink);-webkit-user-select:text;user-select:text;caret-color:var(--ink);padding:0 20px}
+.namebox:focus-within{box-shadow:4px 5px 0 var(--ink)}
 .kana{position:absolute;left:160px;top:232px;width:960px;display:grid;grid-template-columns:repeat(10,1fr);gap:10px 8px}
 .kana i{height:62px}
 .btn.k{min-width:0;height:62px;padding:0;font-size:34px;box-shadow:2px 3px 0 var(--ink)}
@@ -89,7 +90,7 @@ button{font:inherit;color:inherit;cursor:pointer;background:none;border:0}
 .card canvas{width:340px;height:190px}
 .card.empty{border-style:dashed}.plus{font-size:90px;line-height:1}
 .foot{position:absolute;left:0;right:0;bottom:18px}
-.dprev{position:absolute;left:40px;top:128px;width:600px;height:480px;display:flex;align-items:center;justify-content:center;
+.dprev{position:absolute;left:40px;top:128px;width:600px;height:480px;display:flex;align-items:center;justify-content:center;overflow:hidden;
   background:#fff}
 .scr-detail .dprev{top:104px}
 .dinfo{position:absolute;left:680px;top:128px;width:560px;display:flex;flex-direction:column;gap:12px;font-size:26px}
@@ -108,14 +109,15 @@ button{font:inherit;color:inherit;cursor:pointer;background:none;border:0}
 .dhead .bubble{min-height:58px;max-height:62px;font-size:19px;line-height:1.3;padding:3px 16px}
 .dhead .btn{min-width:110px;height:52px;font-size:22px}
 .dir{flex:none;width:200px;height:52px;display:flex;align-items:center;justify-content:center;font-size:24px}
-.tools{position:absolute;left:12px;top:80px;width:240px;overflow:hidden;height:628px;padding:12px 10px;display:flex;flex-direction:column;gap:11px;border-radius:14px 22px 16px 20px}
+.tools{position:absolute;left:12px;top:80px;width:240px;overflow:hidden;height:628px;padding:10px 10px;display:flex;flex-direction:column;gap:9px;border-radius:14px 22px 16px 20px}
 .trow{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.trow.two{grid-template-columns:repeat(2,1fr)}
-.btn.t{min-width:0;height:58px;padding:0 1px;font-size:16px;letter-spacing:-.04em;box-shadow:2px 3px 0 var(--ink);border-width:2.5px;gap:3px}
-.btn.t.sz{flex-direction:column;gap:2px;font-size:14px}.btn.t.sz i{background:currentColor;border-radius:50%}
-.btn.t.wide{font-size:22px;height:56px;padding:0 18px;letter-spacing:0}
+.btn.t{min-width:0;height:64px;padding:0 1px;font-size:14px;letter-spacing:-.04em;flex-direction:column;box-shadow:2px 3px 0 var(--ink);border-width:2.5px;gap:3px}
+.ic{width:26px;height:26px;flex:none}
+.btn.t.sz{gap:2px}.btn.t.sz i{flex:none}.btn.t.sz i{background:currentColor;border-radius:50%}
+.btn.t.wide{font-size:22px;height:56px;padding:0 14px;letter-spacing:0;flex-direction:row;gap:8px}
 .pal{display:grid;gap:5px}.pal.simple{grid-template-columns:repeat(4,1fr)}.pal.pro{grid-template-columns:repeat(6,1fr);grid-auto-flow:column;grid-template-rows:repeat(8,1fr);gap:3px}
-.sw{height:52px;border:2.5px solid var(--ink);border-radius:12px 16px 12px 15px}
-.pal.pro .sw{height:34px;border-width:1.5px;border-radius:6px}
+.sw{height:50px;border:2.5px solid var(--ink);border-radius:12px 16px 12px 15px}
+.pal.pro .sw{height:32px;border-width:1.5px;border-radius:6px}
 .sw.on{outline:4px solid var(--ink);outline-offset:1px;position:relative;z-index:1}
 .paper{position:absolute;left:262px;top:80px;width:726px;height:546px;border-radius:8px 12px 9px 13px;overflow:hidden}
 .paper canvas{width:720px;height:540px;display:block;touch-action:none;cursor:crosshair}
@@ -137,7 +139,9 @@ button{font:inherit;color:inherit;cursor:pointer;background:none;border:0}
 .pad{display:grid;grid-template-areas:". u ." "l . r" ". d .";grid-template-columns:repeat(3,120px);gap:8px;justify-content:center}
 .pad .btn{height:58px;font-size:22px}
 .kside .row{justify-content:center}
-.mprev{position:absolute;left:60px;top:128px;width:560px;height:460px;display:flex;align-items:center;justify-content:center}
+.mprev{position:absolute;left:40px;top:128px;width:600px;height:420px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.arow{position:absolute;left:40px;top:566px;width:600px;display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.arow .btn.t.wide{font-size:19px;padding:0 2px;height:60px}
 .mlist{position:absolute;left:680px;top:140px;width:520px;display:flex;flex-direction:column;gap:24px;align-items:stretch}
 .mlist .btn{height:96px;font-size:40px}
 
@@ -12563,7 +12567,7 @@ window.RG.ASSETS = {"decide": "data:audio/mpeg;base64,//uwTAAAAAAAAAAAAAAAAAAAAA
 window.RG = window.RG || {};
 (function (RG) {
   'use strict';
-  RG.VERSION = '0.1.0';
+  RG.VERSION = '0.2.0';
   RG.JR = 24;            // 関節の丸の半径
   RG.ADJ_MAX = 20;       // くみたてで ずらせる はば（関節の丸の中まで）
   RG.GUIDE_IN = 6;       // ガイド（描ける範囲）は わくの 6px 内がわ
@@ -12706,22 +12710,43 @@ window.RG = window.RG || {};
     order.forEach(o => { x0 = Math.min(x0, o.x); y0 = Math.min(y0, o.y); x1 = Math.max(x1, o.x + o.p.w); y1 = Math.max(y1, o.y + o.p.h); });
     return { order, x0, y0, x1, y1, w: x1 - x0, h: y1 - y0 };
   };
-  // モンスターを 描く。get(pid)＝そのパーツのキャンバス。box に おさまるように。flip＝左右反転して表示
+  // モンスターを 描く。get(pid)＝そのパーツのキャンバス。box に おさまるように。
+  // opt.flip＝左右反転して表示／opt.pose＝うごき（RG.pose の かえり値）／opt.maxScale
+  // みぎむきの座標で 組み立て、ひだりむきの絵は 全体を うらがえして 描く（回転も いっしょに うらがえる）
   RG.drawMon = function (ctx, m, get, bx, by, bw, bh, opt) {
     opt = opt || {};
     const has = pid => !!get(pid), L = RG.layout(m.shape, m.adj, has);
     if (!L.order.length) return null;
-    // 絵の はんい（なにも描いていない所を のぞく）で 合わせると 大きさが そろわないので、わくで 合わせる
-    const s = Math.min(bw / L.w, bh / L.h, opt.maxScale || 9), left = m.face === 1;
-    const ox = bx + (bw - L.w * s) / 2, oy = by + (bh - L.h * s) / 2;
+    const s = Math.min(bw / L.w, bh / L.h, opt.maxScale || 9), left = m.face === 1, pose = opt.pose || null;
+    const ox = bx + (bw - L.w * s) / 2, oy = by + (bh - L.h * s) / 2, parts = RG.SHAPES[m.shape].parts;
+    const zOf = p => { const a = m.adj && m.adj[p.id]; return a && a[2] != null ? a[2] : p.z; };
     ctx.save();
     if (opt.flip) { ctx.translate(bx * 2 + bw, 0); ctx.scale(-1, 1); }
-    for (const o of L.order) {
-      // ひだりむきの絵は、席を 左右うらがえしに ならべる
-      const x = left ? (L.x1 - (o.x + o.p.w)) : (o.x - L.x0), y = o.y - L.y0;
-      ctx.globalAlpha = opt.alpha ? opt.alpha(o.p.id) : 1;
-      ctx.drawImage(get(o.p.id), ox + x * s, oy + y * s, o.p.w * s, o.p.h * s);
-    }
+    ctx.translate(ox, oy); ctx.scale(s, s);
+    if (left) { ctx.translate(L.w, 0); ctx.scale(-1, 1); }
+    ctx.translate(-L.x0, -L.y0);
+    const draw = p => {
+      ctx.save();
+      if (p.parent) {
+        const a = (m.adj && m.adj[p.id]) || [0, 0];
+        ctx.translate(p.pj[0] + a[0], p.pj[1] + a[1]);
+        if (pose && pose.parts[p.id]) ctx.rotate(pose.parts[p.id]);
+        ctx.translate(-p.cj[0], -p.cj[1]);
+      } else if (pose) {
+        // からだ全体：足もとを じくに のびちぢみ・かたむき
+        const px = p.w / 2, py = p.h * 0.92;
+        ctx.translate(pose.dx + px, pose.dy + py); ctx.rotate(pose.rot); ctx.scale(pose.sx, pose.sy); ctx.translate(-px, -py);
+      }
+      const kids = parts.filter(c => c.parent === p.id && has(c.id));
+      kids.filter(c => !zOf(c)).forEach(draw);
+      if (has(p.id)) {
+        if (left) { ctx.save(); ctx.translate(p.w, 0); ctx.scale(-1, 1); ctx.drawImage(get(p.id), 0, 0); ctx.restore(); }
+        else ctx.drawImage(get(p.id), 0, 0);
+      }
+      kids.filter(c => zOf(c)).forEach(draw);
+      ctx.restore();
+    };
+    parts.filter(p => !p.parent).forEach(draw);
     ctx.restore();
     return { s, ox, oy, L };
   };
@@ -13027,6 +13052,122 @@ window.RG = window.RG || {};
 
 </script>
 <script>
+// ===== モーション（体形ごとに 3パターン × たいき・こうげき・ダメージ・かち・まけ） =====
+// 関節を じくにした パーツの回転 と、からだ全体の うごき（上下・前後・のびちぢみ・かたむき）で 動かす。見た目だけ
+// 角度は「度」で書く（みぎむき。＋は 時計まわり＝前に たおれる）。dx の ＋は 前（進む方向）
+(function (RG) {
+  'use strict';
+  const PI = Math.PI, sin = Math.sin, abs = Math.abs;
+  const cl = v => Math.max(0, Math.min(1, v));
+  const hill = (t, a, b) => (t <= a || t >= b) ? 0 : sin(PI * (t - a) / (b - a));   // a〜b の あいだ だけ ふくらむ山
+  const ease = u => u * u * (3 - 2 * u);
+  RG.ACTIONS = ['idle', 'attack', 'damage', 'win', 'lose'];
+  RG.ACTION_NAMES = { idle: 'たいき', attack: 'こうげき', damage: 'ダメージ', win: 'かち', lose: 'まけ' };
+
+  // ---- よつあし ----
+  const yDamage = k => t => { const u = cl(t / 0.5), a = sin(PI * u); return { dx: -46 * a * k + 5 * sin(t * 70) * (1 - u), rot: -11 * a, P: { face: -20 * a, tail: 24 * a, ear: -28 * a, fore1: 16 * a, fore2: 22 * a, hind1: -10 * a, hind2: -6 * a } }; };
+  const yLose = d => t => { const u = ease(cl(t / d)); return { dy: 30 * u, sy: 1 - 0.08 * u, P: { face: 36 * u, fore1: -72 * u, fore2: -62 * u, hind1: 72 * u, hind2: 62 * u, tail: 38 * u, ear: 34 * u } }; };
+  const YOTSU = [
+    { // ぴょんぴょん：はねて たいあたり
+      dur: { attack: 0.75, damage: 0.5, lose: 0.9 },
+      idle(t) { const h = abs(sin(t * PI * 1.5)); return { dy: -20 * h, sy: 1 + 0.03 * h, sx: 1 - 0.02 * h, P: { face: -5 * h, fore1: -16 * h, fore2: -9 * h, hind1: 16 * h, hind2: 9 * h, tail: -8 + 20 * h, ear: -14 * h } }; },
+      attack(t) { const u = cl(t / 0.75), a = sin(PI * u), h = abs(sin(2 * PI * u)); return { dx: 170 * a, dy: -75 * h, rot: 13 * sin(2 * PI * u), P: { face: 10 * a, fore1: -38 * h, fore2: -30 * h, hind1: 40 * h, hind2: 32 * h, tail: -30 * a, ear: -20 * h } }; },
+      damage: yDamage(1),
+      win(t) { const w = t * PI * 2.4, h = abs(sin(w)); return { dy: -56 * h, rot: -7 * sin(w), P: { face: -10 * h, fore1: -40 * h, fore2: -28 * h, hind1: 22 * h, hind2: 14 * h, tail: 30 * sin(t * 16), ear: -18 * h } }; },
+      lose: yLose(0.9),
+    },
+    { // どっしり：ゆっくり ずつき
+      dur: { attack: 1.0, damage: 0.5, lose: 1.2 },
+      idle(t) { const b = sin(t * 2.0); return { sy: 1 + 0.022 * b, sx: 1 - 0.012 * b, P: { face: 3 * b, tail: 9 * sin(t * 1.4), ear: 3 * sin(t * 2 + 1) } }; },
+      attack(t) { const u = cl(t / 1.0), back = hill(u, 0, 0.5), hit = hill(u, 0.42, 1); return { dx: -34 * back + 110 * hit, rot: -7 * back + 9 * hit, P: { face: -18 * back + 46 * hit, fore1: 10 * back - 22 * hit, fore2: 8 * back - 18 * hit, hind1: -8 * back + 20 * hit, hind2: -6 * back + 16 * hit, tail: -12 * hit, ear: 12 * back - 16 * hit } }; },
+      damage: yDamage(0.6),
+      win(t) { const b = abs(sin(t * PI * 1.1)); return { dy: -14 * b, rot: -9 * b, sy: 1 + 0.03 * b, P: { face: -22 * b, fore1: -30 * b, fore2: -22 * b, tail: 16 * sin(t * 5), ear: -8 * b } }; },
+      lose: yLose(1.2),
+    },
+    { // すばしっこい：こきざみに ひっかく
+      dur: { attack: 0.6, damage: 0.45, lose: 0.7 },
+      idle(t) { const q = sin(t * 12); return { dx: 6 * sin(t * 6), dy: -3 * abs(q), P: { fore1: 13 * q, fore2: -13 * q, hind1: -13 * q, hind2: 13 * q, tail: 16 * sin(t * 10), ear: 6 * sin(t * 9), face: 3 * sin(t * 6) } }; },
+      attack(t) { const u = cl(t / 0.6), a = Math.pow(sin(PI * u), 0.6), c = sin(t * 42) * hill(u, 0.15, 0.9); return { dx: 190 * a, dy: -8 * a, rot: 7 * a, P: { fore1: -20 * a + 58 * c, fore2: -20 * a - 58 * c, hind1: 26 * a, hind2: 18 * a, face: 8 * a + 6 * c, tail: -34 * a, ear: -12 * a } }; },
+      damage: yDamage(1.3),
+      win(t) { const q = sin(t * 15), h = abs(sin(t * PI * 3)); return { dx: 22 * sin(t * 5), dy: -26 * h, P: { fore1: 22 * q, fore2: -22 * q, hind1: -22 * q, hind2: 22 * q, tail: 34 * sin(t * 18), ear: 12 * q, face: -6 * h } }; },
+      lose: yLose(0.7),
+    },
+  ];
+
+  // ---- スライム ----
+  const sDamage = t => { const u = cl(t / 0.5), a = sin(PI * u); return { dx: -34 * a + 5 * sin(t * 70) * (1 - u), sy: 1 - 0.24 * a, sx: 1 + 0.2 * a, P: { horn: -30 * a } }; };
+  const sLose = d => t => { const u = ease(cl(t / d)); return { sy: 1 - 0.5 * u, sx: 1 + 0.4 * u, P: { horn: 74 * u } }; };
+  const SLIME = [
+    { // ぷるぷる
+      dur: { attack: 0.65, damage: 0.5, lose: 0.9 },
+      idle(t) { const e = 0.45 + 0.55 * abs(sin(t * 1.3)), q = sin(t * 15) * e; return { sx: 1 + 0.035 * q, sy: 1 - 0.035 * q, P: { horn: 9 * q } }; },
+      attack(t) { const u = cl(t / 0.65), back = hill(u, 0, 0.4), a = hill(u, 0.3, 1); return { dx: -22 * back + 150 * a, sx: 1 - 0.1 * back + 0.26 * a, sy: 1 + 0.08 * back - 0.16 * a, rot: 6 * a, P: { horn: -18 * back + 30 * a } }; },
+      damage: sDamage,
+      win(t) { const h = abs(sin(t * PI * 2.2)), q = sin(t * 22); return { dy: -44 * h, sx: 1 + 0.05 * q - 0.05 * h, sy: 1 - 0.05 * q + 0.08 * h, P: { horn: 16 * q } }; },
+      lose: sLose(0.9),
+    },
+    { // ぽよーん
+      dur: { attack: 0.9, damage: 0.5, lose: 1.0 },
+      idle(t) { const w = t * PI * 1.05, h = abs(sin(w)); return { dy: -40 * h, sy: 0.88 + 0.26 * h, sx: 1.1 - 0.17 * h, P: { horn: 12 - 22 * h } }; },
+      attack(t) { const u = cl(t / 0.9), a = sin(PI * u), up = hill(u, 0, 0.62), land = hill(u, 0.55, 0.85); return { dx: 150 * a, dy: -150 * up, sy: 1 + 0.2 * up - 0.34 * land, sx: 1 - 0.12 * up + 0.3 * land, P: { horn: -16 * up + 30 * land } }; },
+      damage: sDamage,
+      win(t) { const w = t * PI * 1.6, h = abs(sin(w)); return { dy: -84 * h, sy: 0.84 + 0.36 * h, sx: 1.12 - 0.22 * h, rot: 5 * sin(w), P: { horn: 16 - 30 * h } }; },
+      lose: sLose(1.0),
+    },
+    { // とろーり
+      dur: { attack: 1.0, damage: 0.5, lose: 1.4 },
+      idle(t) { const k = 0.5 + 0.5 * sin(t * 1.5); return { sy: 1 - 0.2 * k, sx: 1 + 0.18 * k, P: { horn: 26 * k } }; },
+      attack(t) { const u = cl(t / 1.0), flat = hill(u, 0, 0.6), spring = hill(u, 0.5, 1); return { dx: 70 * flat + 110 * spring, sy: 1 - 0.4 * flat + 0.22 * spring, sx: 1 + 0.42 * flat - 0.1 * spring, P: { horn: 44 * flat - 22 * spring } }; },
+      damage: sDamage,
+      win(t) { const k = 0.5 + 0.5 * sin(t * 4); return { sy: 0.8 + 0.42 * k, sx: 1.16 - 0.26 * k, dy: -10 * k, P: { horn: 24 - 44 * k } }; },
+      lose: sLose(1.4),
+    },
+  ];
+  const TABLE = { yotsu: YOTSU, slime: SLIME };
+  const D2R = PI / 180;
+
+  // 1回で おわる うごき の ながさ（びょう）。たいき・かち は くりかえし（0）
+  RG.motionDur = function (shape, motion, action) {
+    const M = (TABLE[shape] || [])[motion] || (TABLE[shape] || [])[0];
+    return (M && M.dur[action]) || 0;
+  };
+  // t びょう めの ポーズ。かえり値：{dx, dy, rot, sx, sy, parts:{pid: ラジアン}}
+  RG.pose = function (shape, motion, action, t) {
+    const M = (TABLE[shape] || [])[motion] || (TABLE[shape] || [])[0];
+    const o = M && M[action] ? M[action](t) : {}, parts = {};
+    for (const k in (o.P || {})) parts[k] = o.P[k] * D2R;
+    return { dx: o.dx || 0, dy: o.dy || 0, rot: (o.rot || 0) * D2R, sx: o.sx == null ? 1 : o.sx, sy: o.sy == null ? 1 : o.sy, parts };
+  };
+
+  // キャンバスの上で 動かしつづける。かえり値：{ set(action), stop() }
+  // こうげき・ダメージは おわったら たいきに もどる。まけは たおれたまま
+  RG.play = function (canvas, m, get, opt) {
+    opt = opt || {};
+    const ctx = canvas.getContext('2d'), W = canvas.width, H = canvas.height;
+    let action = opt.action || 'idle', t0 = performance.now(), dead = false, raf = 0;
+    const C = {
+      motion: m.motion || 0,
+      set(a) { action = a; t0 = performance.now(); },
+      stop() { dead = true; cancelAnimationFrame(raf); },
+    };
+    const tick = now => {
+      if (dead) return;
+      if (!canvas.isConnected) { dead = true; return; }
+      let t = (now - t0) / 1000;
+      const d = RG.motionDur(m.shape, C.motion, action);
+      if (d && t > d + (action === 'lose' ? 1e9 : 0.05)) { action = 'idle'; t0 = now; t = 0; if (opt.onEnd) opt.onEnd(); }
+      ctx.clearRect(0, 0, W, H);
+      // うごく ぶんの よゆうを とって 中央より 少し うしろ・下に おく
+      RG.drawMon(ctx, m, get, W * ((m.face === 1) !== !!opt.flip ? 0.26 : 0.14), H * 0.24, W * 0.6, H * 0.72, { maxScale: opt.maxScale || 1.2, pose: RG.pose(m.shape, C.motion, action, t), flip: opt.flip });
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return C;
+  };
+})(window.RG);
+
+</script>
+<script>
 // ===== おえかき（パーツを1つずつ描く）。お絵描きリレーの描画エンジンを 透明の紙・小さいパーツ用に 直したもの =====
 (function (RG) {
   'use strict';
@@ -13090,7 +13231,8 @@ window.RG = window.RG || {};
       const img = o.ctx.getImageData(0, 0, w, h).data, k0 = (y0 * w + x0) * 4;
       const tr = img[k0], tg = img[k0 + 1], tb = img[k0 + 2], ta = img[k0 + 3], [fr, fg, fb] = RG.hexRgb(hex);
       if (ta > 250 && Math.abs(tr - fr) + Math.abs(tg - fg) + Math.abs(tb - fb) < 12) return null;
-      const T = 100, seen = new Uint8Array(w * h);
+      // 色の ちがいは きびしめに 見る（近い色の線で かこんだ所だけを ぬれるように）。ふちの にじみは ぬるときに 1ピクセル ひろげて うめる
+      const T = 48, seen = new Uint8Array(w * h);
       const ok = q => {
         if (seen[q]) return false; const k = q * 4;
         if (ta < 40) return img[k + 3] < 110;   // 透明な所から ぬるとき：うすい所まで
@@ -13301,6 +13443,14 @@ window.RG = window.RG || {};
   let lastTouch = 0; document.addEventListener('touchend', e => { const n = Date.now(); if (n - lastTouch < 320 && !e.target.closest('input')) e.preventDefault(); lastTouch = n; }, { passive: false });
   addEventListener('beforeunload', e => { if (RG.making) { e.preventDefault(); e.returnValue = ''; } });
 
+  // おえかき中の キーボード：Ctrl+Z＝もどす、Ctrl+Y・Ctrl+Shift+Z＝すすむ
+  addEventListener('keydown', e => {
+    if (RG.screen !== 'draw' || !RG.ed || stage.querySelector('.modal') || !(e.ctrlKey || e.metaKey)) return;
+    const k = e.key.toLowerCase();
+    if (k === 'z' && !e.shiftKey) { e.preventDefault(); RG.ed.undo(); }
+    else if (k === 'y' || (k === 'z' && e.shiftKey)) { e.preventDefault(); RG.ed.redo(); }
+  });
+
   // ---- ふきだし・まど ----
   let modalActs = null;
   function modal(html, handlers) {
@@ -13333,24 +13483,89 @@ window.RG = window.RG || {};
   }
   const fileName = m => `rakugaki_${m.name}_${(m.id >>> 0).toString(16)}.png`;
 
-  // ---- かな入力（ひらがな・カタカナのみ）----
+  // ---- アイコン（お絵描きリレーと 同じ 線画）----
+  const svg = (d, w) => `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w || 2.4}" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+  const IC = {
+    pen: svg('<path d="M4 20l1.2-4.6L16 4.6a2 2 0 0 1 2.8 0l.6.6a2 2 0 0 1 0 2.8L8.6 18.8z"/><path d="M14 6.6l3.4 3.4"/>'),
+    eraser: svg('<path d="M8.5 20H20"/><path d="M5.2 15.8l9.6-9.6a2 2 0 0 1 2.8 0l2.2 2.2a2 2 0 0 1 0 2.8L12 19.1a3 3 0 0 1-4.2 0l-2.6-2.6a.5.5 0 0 1 0-.7z"/><path d="M9.5 11.5l5 5"/>'),
+    fill: svg('<path d="M10.2 3.8l8 8-6.6 6.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8z"/><path d="M4.2 11.6h13.6"/><path d="M8 5.6L6.2 3.8"/><path d="M20.5 15.5c.9 1.3 1.4 2.2 1.4 2.9a1.4 1.4 0 0 1-2.8 0c0-.7.5-1.6 1.4-2.9z"/>'),
+    undo: svg('<path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/>', 2.6),
+    redo: svg('<path d="M15 14l5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/>', 2.6),
+    clear: svg('<path d="M4 7h16"/><path d="M9 7V4.5h6V7"/><path d="M6.5 7l1 13h9l1-13"/><path d="M10 11v5.5M14 11v5.5"/>'),
+    penonly: svg('<path d="M12 3v11"/><path d="M9 14h6l-3 7z"/><path d="M9.5 3h5"/>'),
+    pal: svg('<path d="M12 3.5a8.5 8.5 0 1 0 0 17c1.4 0 2-1 1.6-2.1-.5-1.3.3-2.4 1.7-2.4h1.9a3.3 3.3 0 0 0 3.3-3.3C20.500 7.600 16.700 3.500 12 3.500z"/><circle cx="8" cy="11" r=".9"/><circle cx="11" cy="7.500" r=".9"/><circle cx="15.500" cy="8.500" r=".9"/>'),
+    single: svg('<rect x="6" y="6" width="12" height="12" rx="2"/>'),
+    multi: svg('<rect x="3.500" y="9" width="8" height="8" rx="1.500"/><rect x="12.500" y="5" width="8" height="8" rx="1.500"/><path d="M11.500 12h1"/>'),
+    guide: svg('<rect x="4" y="4" width="16" height="16" rx="3" stroke-dasharray="3 3"/><circle cx="12" cy="12" r="3"/>'),
+  };
+
+  // ---- かな入力（ひらがな・カタカナのみ。画面のボタンでも キーボードでも）----
+  // ローマ字 → かな（日本語入力が オフのとき用）
+  const ROMA = (() => {
+    const t = { a: 'あ', i: 'い', u: 'う', e: 'え', o: 'お', '-': 'ー', nn: 'ん', wa: 'わ', wo: 'を', ya: 'や', yu: 'ゆ', yo: 'よ', shi: 'し', chi: 'ち', tsu: 'つ', fu: 'ふ', ji: 'じ', vu: 'ゔ',
+      sha: 'しゃ', shu: 'しゅ', sho: 'しょ', cha: 'ちゃ', chu: 'ちゅ', cho: 'ちょ', ja: 'じゃ', ju: 'じゅ', jo: 'じょ',
+      xa: 'ぁ', xi: 'ぃ', xu: 'ぅ', xe: 'ぇ', xo: 'ぉ', la: 'ぁ', li: 'ぃ', lu: 'ぅ', le: 'ぇ', lo: 'ぉ', xtu: 'っ', ltu: 'っ', xya: 'ゃ', xyu: 'ゅ', xyo: 'ょ' };
+    const rows = { k: 'かきくけこ', s: 'さしすせそ', t: 'たちつてと', n: 'なにぬねの', h: 'はひふへほ', m: 'まみむめも', r: 'らりるれろ', g: 'がぎぐげご', z: 'ざじずぜぞ', d: 'だぢづでど', b: 'ばびぶべぼ', p: 'ぱぴぷぺぽ' };
+    for (const c in rows) { [...'aiueo'].forEach((v, i) => { t[c + v] = rows[c][i]; }); [['a', 'ゃ'], ['u', 'ゅ'], ['o', 'ょ']].forEach(([v, y]) => { t[c + 'y' + v] = rows[c][1] + y; }); }
+    return t;
+  })();
+  // 入力された文字を ひらがな・カタカナ だけに する。さいごの 打ちかけの ローマ字は のこす
+  function kanaFilter(raw, kata) {
+    let out = '', i = 0; const str = raw.toLowerCase().replace(/[Ａ-Ｚａ-ｚ]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xfee0)).replace(/[ｰ－―‐]/g, 'ー');
+    const conv = k => (kata ? toKata(k) : k);
+    while (i < str.length) {
+      const c = str[i];
+      if (/[ぁ-ゖァ-ヶー]/.test(c)) { out += c; i++; continue; }
+      if (!/[a-z\-]/.test(c)) { i++; continue; }
+      let hit = false;
+      for (const n of [3, 2, 1]) { const k = ROMA[str.substr(i, n)]; if (k && str.substr(i, n).length === n) { out += conv(k); i += n; hit = true; break; } }
+      if (hit) continue;
+      const nx = str[i + 1];
+      if (c === 'n' && nx && !/[aiueoyn]/.test(nx)) { out += conv('ん'); i++; continue; }
+      if (nx && c === nx && /[kstnhmrgzdbpcjfwy]/.test(c) && c !== 'n') { out += conv('っ'); i++; continue; }
+      // 打ちかけ（つづきが まだ ない）は のこす。つづきが あるのに かなに ならない文字は すてる
+      const rest = str.slice(i); if (/^[a-z]{1,3}$/.test(rest)) return { kana: out, pend: rest };
+      i++;
+    }
+    return { kana: out, pend: '' };
+  }
   const K_ROWS = ['あかさたなはまやらわ', 'いきしちにひみ　りを', 'うくすつぬふむゆるん', 'えけせてねへめ　れー', 'おこそとのほもよろ　'];
   const DK_A = 'かきくけこさしすせそたちつてとはひふへほう', DK_B = 'がぎぐげござじずぜぞだぢづでどばびぶべぼゔ';
   const HD_A = 'はひふへほ', HD_B = 'ぱぴぷぺぽ', SM_A = 'あいうえおつやゆよわ', SM_B = 'ぁぃぅぇぉっゃゅょゎ';
   const toKata = s => s.replace(/[ぁ-ゖ]/g, c => String.fromCharCode(c.charCodeAt(0) + 0x60));
   const toHira = s => s.replace(/[ァ-ヶ]/g, c => String.fromCharCode(c.charCodeAt(0) - 0x60));
   function kanaHTML(val) {
-    return `<div class="namebox box" id="kval"></div><div class="kana">` +
+    return `<div class="namebox box"><input id="kin" type="text" inputmode="kana" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="なまえ"></div><div class="kana">` +
       K_ROWS.map(r => [...r].map(ch => ch === '　' ? '<i></i>' : `<button class="btn k" data-a="k" data-c="${ch}">${ch}</button>`).join('')).join('') +
       `</div><div class="row kctl"><button class="btn" data-a="kmode" id="kmode">カタカナ</button><button class="btn" data-a="kd">゛</button><button class="btn" data-a="kh">゜</button><button class="btn" data-a="ks">ちいさく</button><button class="btn" data-a="kb">けす</button></div>`;
   }
   function kanaActs(K, max) {
-    const draw = () => {
-      const v = document.getElementById('kval'); v.innerHTML = [...K.val].map(c => `<b>${c}</b>`).join('') + '<u></u>'.repeat(max - [...K.val].length);
+    let composing = false;
+    const draw = keepInput => {
+      const inp = document.getElementById('kin'); if (!inp) return;
+      if (!keepInput) inp.value = K.val;
       document.querySelectorAll('.k').forEach(b => { b.textContent = K.kata ? toKata(b.dataset.c) : b.dataset.c; });
       document.getElementById('kmode').textContent = K.kata ? 'ひらがな' : 'カタカナ';
       if (K.onChange) K.onChange();
     };
+    // キーボード入力：日本語入力の とちゅう（変換中）は さわらない
+    const fromInput = () => {
+      const inp = document.getElementById('kin'), r = kanaFilter(inp.value, K.kata);
+      K.val = [...r.kana].slice(0, max).join('');
+      const v = K.val + ([...K.val].length < max ? r.pend : '');
+      if (inp.value !== v) inp.value = v;
+      draw(true);
+    };
+    setTimeout(() => {
+      const inp = document.getElementById('kin'); if (!inp) return;
+      inp.addEventListener('compositionstart', () => { composing = true; });
+      inp.addEventListener('compositionend', () => { composing = false; fromInput(); });
+      inp.addEventListener('input', () => { if (!composing) fromInput(); });
+      inp.addEventListener('keydown', e => { if (e.key === 'Enter' && !composing && !e.isComposing) { e.preventDefault(); inp.value += ' '; fromInput(); inp.value = K.val; const ok = document.getElementById('ok'); if (ok && !ok.classList.contains('off')) ok.click(); } });
+      inp.addEventListener('blur', () => { if (!composing) { inp.value += ' '; fromInput(); inp.value = K.val; } });   // うちかけの「n」は「ん」に
+      // キーボードが つながっている 端末では、そのまま 打ちはじめられるように
+      if (matchMedia('(hover: hover) and (pointer: fine)').matches) inp.focus();
+    }, 0);
     const swap = (A, B) => {
       if (!K.val) return; const last = K.val.slice(-1), kata = /[ァ-ヶ]/.test(last), h = toHira(last);
       let i = A.indexOf(h), r = i >= 0 ? B[i] : (i = B.indexOf(h)) >= 0 ? A[i] : null;
@@ -13477,7 +13692,7 @@ window.RG = window.RG || {};
         S.mons = S.mons.filter(x => x !== m); delete CACHE[m.id]; save(); chars();
       },
     });
-    RG.drawMon(document.getElementById('pv').getContext('2d'), m, getter(m), 10, 10, 540, 420, { maxScale: 1.4 });
+    RG.play(document.getElementById('pv'), m, getter(m));
   }
 
   // =============== キャラクターを つくる ===============
@@ -13507,15 +13722,15 @@ window.RG = window.RG || {};
     const parts = RG.usableParts(D.shape);
     show('draw', `<div class="dhead">${EFUDE}<div class="box bubble" id="hint"></div><div class="dir box">${D.face ? '← ひだりむき' : 'みぎむき →'}</div><button class="btn" data-a="quit">やめる</button></div>
       <div class="tools box">
-        <div class="trow"><button class="btn t on" data-a="tool" data-t="pen">ペン</button><button class="btn t" data-a="tool" data-t="eraser">けしごむ</button><button class="btn t" data-a="tool" data-t="fill">バケツ</button></div>
+        <div class="trow"><button class="btn t on" data-a="tool" data-t="pen">${IC.pen}<span>ペン</span></button><button class="btn t" data-a="tool" data-t="eraser">${IC.eraser}<span>けしごむ</span></button><button class="btn t" data-a="tool" data-t="fill">${IC.fill}<span>バケツ</span></button></div>
         <div class="trow">${RG.SIZES.map(([n, px], i) => `<button class="btn t sz${i === 1 ? ' on' : ''}" data-a="size" data-s="${px}"><i style="width:${[6, 12, 22][i]}px;height:${[6, 12, 22][i]}px"></i><span>${n}</span></button>`).join('')}</div>
-        <div class="trow"><button class="btn t" data-a="undo" id="bUndo">もどす</button><button class="btn t" data-a="redo" id="bRedo">すすむ</button><button class="btn t" data-a="clear">ぜんけし</button></div>
-        <div class="trow two"><button class="btn t" data-a="penonly" id="bPen">ペンだけ</button><button class="btn t" data-a="pal" id="bPal">プロ</button></div>
+        <div class="trow"><button class="btn t" data-a="undo" id="bUndo">${IC.undo}<span>もどす</span></button><button class="btn t" data-a="redo" id="bRedo">${IC.redo}<span>すすむ</span></button><button class="btn t" data-a="clear">${IC.clear}<span>ぜんけし</span></button></div>
+        <div class="trow two"><button class="btn t" data-a="penonly" id="bPen">${IC.penonly}<span>ペンだけ</span></button><button class="btn t" data-a="pal" id="bPal">${IC.pal}<span id="palTx">プロのいろ</span></button></div>
         <div class="pal simple" id="pal">${RG.COLORS.map(c => `<button class="sw" data-a="col" data-c="${c[1]}" style="background:${c[1]}" aria-label="${c[0]}"></button>`).join('')}</div>
         <div class="pal pro hide" id="palPro">${RG.PRO.map(c => `<button class="sw" data-a="col" data-c="${c[1]}" style="background:${c[1]}" aria-label="${c[0]}"></button>`).join('')}</div>
       </div>
       <div class="paper box"><canvas id="cv"></canvas></div>
-      <div class="vrow"><button class="btn t wide on" data-a="view" data-v="0">たんたい</button><button class="btn t wide" data-a="view" data-v="1">がったい</button><button class="btn t wide on" data-a="gd" id="bGd">ガイド：あり</button></div>
+      <div class="vrow"><button class="btn t wide on" data-a="view" data-v="0">${IC.single}<span>たんたい</span></button><button class="btn t wide" data-a="view" data-v="1">${IC.multi}<span>がったい</span></button><button class="btn t wide on" data-a="gd" id="bGd">${IC.guide}<span id="gdTx">ガイド：あり</span></button></div>
       <div class="plist">${parts.map(p => `<button class="btn pt" data-a="part" data-p="${p.id}"><canvas width="100" height="64" data-th="${p.id}"></canvas><b>${p.name}</b><span>${p.req ? 'ひつよう' : 'じゆう'}</span></button>`).join('')}</div>
       <button class="btn strong donebtn" data-a="done">かんせい</button>`, {
       tool(b) { ed.st.tool = b.dataset.t; mark('[data-a=tool]', b); },
@@ -13524,9 +13739,9 @@ window.RG = window.RG || {};
       undo() { ed.undo(); }, redo() { ed.redo(); },
       async clear() { if (ed.hasInk(ed.cur) && await ask('この パーツを ぜんぶ けすよ。いい？<br><span class="note">「もどす」で もとに もどせるよ</span>', 'けす')) ed.clear(); },
       penonly(b) { ed.st.penOnly = !ed.st.penOnly; b.classList.toggle('on', ed.st.penOnly); },
-      pal(b) { const pro = document.getElementById('pal').classList.toggle('hide'); document.getElementById('palPro').classList.toggle('hide', !pro); b.textContent = pro ? 'シンプル' : 'プロ'; },
+      pal(b) { const pro = document.getElementById('pal').classList.toggle('hide'); document.getElementById('palPro').classList.toggle('hide', !pro); document.getElementById('palTx').textContent = pro ? 'シンプル' : 'プロのいろ'; },
       view(b) { ed.st.gattai = b.dataset.v === '1'; mark('[data-a=view]', b); ed.render(); },
-      gd(b) { ed.st.guide = !ed.st.guide; b.classList.toggle('on', ed.st.guide); b.textContent = ed.st.guide ? 'ガイド：あり' : 'ガイド：なし'; ed.render(); },
+      gd(b) { ed.st.guide = !ed.st.guide; b.classList.toggle('on', ed.st.guide); document.getElementById('gdTx').textContent = ed.st.guide ? 'ガイド：あり' : 'ガイド：なし'; ed.render(); },
       part(b) { ed.select(b.dataset.p); refresh(); },
       async quit() { if (await ask(D.edit ? 'なおすのを やめる？<br><span class="note">かきたした ところは きえるよ</span>' : 'つくるのを やめる？<br><span class="note">かいた えは きえるよ</span>', 'やめる', 'つづける')) { RG.making = false; D.tutorial ? home() : chars(); } },
       done() {
@@ -13592,16 +13807,22 @@ window.RG = window.RG || {};
     }
     draw();
   }
-  // ---- モーション（うごきは 手順2で つく。いまは えらぶだけ）----
+  // ---- モーション（3パターンから えらぶ。5つの うごきを ためせる）----
   function motion() {
     const ms = RG.SHAPES[D.shape].motions;
-    show('motion', guide('どんな うごきに する？') + `<button class="btn backbtn" data-a="back">もどる</button>
-      <div class="box mprev"><canvas id="pv" width="520" height="420"></canvas></div>
-      <div class="mlist">${ms.map((n, i) => `<button class="btn big mo${i === D.motion ? ' on' : ''}" data-a="m" data-i="${i}">${n}</button>`).join('')}<p class="note">うごきは つぎの こうしんで つくよ</p></div>
+    show('motion', guide('どんな うごきに する？<br>したの ボタンで うごきを ためせるよ') + `<button class="btn backbtn" data-a="back">もどる</button>
+      <div class="box mprev"><canvas id="pv" width="560" height="400"></canvas></div>
+      <div class="arow">${RG.ACTIONS.map(a => `<button class="btn t wide ac${a === 'idle' ? ' on' : ''}" data-a="act" data-k="${a}">${RG.ACTION_NAMES[a]}</button>`).join('')}</div>
+      <div class="mlist">${ms.map((n, i) => `<button class="btn big mo${i === D.motion ? ' on' : ''}" data-a="m" data-i="${i}">${n}</button>`).join('')}</div>
       <button class="btn strong donebtn" data-a="next">つぎへ</button>`, {
-      back() { kumi(); }, m(b) { D.motion = +b.dataset.i; stage.querySelectorAll('.mo').forEach(x => x.classList.toggle('on', x === b)); }, next() { nameMon(); },
+      back() { kumi(); },
+      m(b) { D.motion = +b.dataset.i; pl.motion = D.motion; stage.querySelectorAll('.mo').forEach(x => x.classList.toggle('on', x === b)); setAct('idle'); },
+      act(b) { setAct(b.dataset.k); },
+      next() { nameMon(); },
     });
-    RG.drawMon(document.getElementById('pv').getContext('2d'), D, pid => D.parts[pid] || null, 10, 10, 500, 400, { maxScale: 1.4 });
+    const setAct = k => { pl.set(k); stage.querySelectorAll('.ac').forEach(x => x.classList.toggle('on', x.dataset.k === k)); };
+    const pl = RG.play(document.getElementById('pv'), D, pid => D.parts[pid] || null, { onEnd() { stage.querySelectorAll('.ac').forEach(x => x.classList.toggle('on', x.dataset.k === 'idle')); } });
+    pl.motion = D.motion; RG.pl = pl;
   }
   // ---- なまえ ----
   function nameMon() {
@@ -13624,7 +13845,7 @@ window.RG = window.RG || {};
       <div class="dinfo"><h2>${esc(m.name)}</h2>${statsHTML(m)}<div class="dbtns"><button class="btn" data-a="png">PNGで だす</button><button class="btn strong" data-a="ok">おわる</button></div></div>`, {
       async png() { await showPNG(RG.buildMonPNG(m, getter(m)), fileName(m), `「${esc(m.name)}」の PNG`); }, ok() { wasTut ? home() : chars(); },
     });
-    RG.drawMon(document.getElementById('pv').getContext('2d'), m, getter(m), 10, 10, 540, 420, { maxScale: 1.4 });
+    RG.play(document.getElementById('pv'), m, getter(m), { action: 'win' });
   }
 
   // =============== せってい ===============

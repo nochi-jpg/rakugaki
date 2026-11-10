@@ -47,6 +47,14 @@
   let lastTouch = 0; document.addEventListener('touchend', e => { const n = Date.now(); if (n - lastTouch < 320 && !e.target.closest('input')) e.preventDefault(); lastTouch = n; }, { passive: false });
   addEventListener('beforeunload', e => { if (RG.making) { e.preventDefault(); e.returnValue = ''; } });
 
+  // おえかき中の キーボード：Ctrl+Z＝もどす、Ctrl+Y・Ctrl+Shift+Z＝すすむ
+  addEventListener('keydown', e => {
+    if (RG.screen !== 'draw' || !RG.ed || stage.querySelector('.modal') || !(e.ctrlKey || e.metaKey)) return;
+    const k = e.key.toLowerCase();
+    if (k === 'z' && !e.shiftKey) { e.preventDefault(); RG.ed.undo(); }
+    else if (k === 'y' || (k === 'z' && e.shiftKey)) { e.preventDefault(); RG.ed.redo(); }
+  });
+
   // ---- ふきだし・まど ----
   let modalActs = null;
   function modal(html, handlers) {
@@ -79,24 +87,89 @@
   }
   const fileName = m => `rakugaki_${m.name}_${(m.id >>> 0).toString(16)}.png`;
 
-  // ---- かな入力（ひらがな・カタカナのみ）----
+  // ---- アイコン（お絵描きリレーと 同じ 線画）----
+  const svg = (d, w) => `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w || 2.4}" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+  const IC = {
+    pen: svg('<path d="M4 20l1.2-4.6L16 4.6a2 2 0 0 1 2.8 0l.6.6a2 2 0 0 1 0 2.8L8.6 18.8z"/><path d="M14 6.6l3.4 3.4"/>'),
+    eraser: svg('<path d="M8.5 20H20"/><path d="M5.2 15.8l9.6-9.6a2 2 0 0 1 2.8 0l2.2 2.2a2 2 0 0 1 0 2.8L12 19.1a3 3 0 0 1-4.2 0l-2.6-2.6a.5.5 0 0 1 0-.7z"/><path d="M9.5 11.5l5 5"/>'),
+    fill: svg('<path d="M10.2 3.8l8 8-6.6 6.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8z"/><path d="M4.2 11.6h13.6"/><path d="M8 5.6L6.2 3.8"/><path d="M20.5 15.5c.9 1.3 1.4 2.2 1.4 2.9a1.4 1.4 0 0 1-2.8 0c0-.7.5-1.6 1.4-2.9z"/>'),
+    undo: svg('<path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/>', 2.6),
+    redo: svg('<path d="M15 14l5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/>', 2.6),
+    clear: svg('<path d="M4 7h16"/><path d="M9 7V4.5h6V7"/><path d="M6.5 7l1 13h9l1-13"/><path d="M10 11v5.5M14 11v5.5"/>'),
+    penonly: svg('<path d="M12 3v11"/><path d="M9 14h6l-3 7z"/><path d="M9.5 3h5"/>'),
+    pal: svg('<path d="M12 3.5a8.5 8.5 0 1 0 0 17c1.4 0 2-1 1.6-2.1-.5-1.3.3-2.4 1.7-2.4h1.9a3.3 3.3 0 0 0 3.3-3.3C20.500 7.600 16.700 3.500 12 3.500z"/><circle cx="8" cy="11" r=".9"/><circle cx="11" cy="7.500" r=".9"/><circle cx="15.500" cy="8.500" r=".9"/>'),
+    single: svg('<rect x="6" y="6" width="12" height="12" rx="2"/>'),
+    multi: svg('<rect x="3.500" y="9" width="8" height="8" rx="1.500"/><rect x="12.500" y="5" width="8" height="8" rx="1.500"/><path d="M11.500 12h1"/>'),
+    guide: svg('<rect x="4" y="4" width="16" height="16" rx="3" stroke-dasharray="3 3"/><circle cx="12" cy="12" r="3"/>'),
+  };
+
+  // ---- かな入力（ひらがな・カタカナのみ。画面のボタンでも キーボードでも）----
+  // ローマ字 → かな（日本語入力が オフのとき用）
+  const ROMA = (() => {
+    const t = { a: 'あ', i: 'い', u: 'う', e: 'え', o: 'お', '-': 'ー', nn: 'ん', wa: 'わ', wo: 'を', ya: 'や', yu: 'ゆ', yo: 'よ', shi: 'し', chi: 'ち', tsu: 'つ', fu: 'ふ', ji: 'じ', vu: 'ゔ',
+      sha: 'しゃ', shu: 'しゅ', sho: 'しょ', cha: 'ちゃ', chu: 'ちゅ', cho: 'ちょ', ja: 'じゃ', ju: 'じゅ', jo: 'じょ',
+      xa: 'ぁ', xi: 'ぃ', xu: 'ぅ', xe: 'ぇ', xo: 'ぉ', la: 'ぁ', li: 'ぃ', lu: 'ぅ', le: 'ぇ', lo: 'ぉ', xtu: 'っ', ltu: 'っ', xya: 'ゃ', xyu: 'ゅ', xyo: 'ょ' };
+    const rows = { k: 'かきくけこ', s: 'さしすせそ', t: 'たちつてと', n: 'なにぬねの', h: 'はひふへほ', m: 'まみむめも', r: 'らりるれろ', g: 'がぎぐげご', z: 'ざじずぜぞ', d: 'だぢづでど', b: 'ばびぶべぼ', p: 'ぱぴぷぺぽ' };
+    for (const c in rows) { [...'aiueo'].forEach((v, i) => { t[c + v] = rows[c][i]; }); [['a', 'ゃ'], ['u', 'ゅ'], ['o', 'ょ']].forEach(([v, y]) => { t[c + 'y' + v] = rows[c][1] + y; }); }
+    return t;
+  })();
+  // 入力された文字を ひらがな・カタカナ だけに する。さいごの 打ちかけの ローマ字は のこす
+  function kanaFilter(raw, kata) {
+    let out = '', i = 0; const str = raw.toLowerCase().replace(/[Ａ-Ｚａ-ｚ]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xfee0)).replace(/[ｰ－―‐]/g, 'ー');
+    const conv = k => (kata ? toKata(k) : k);
+    while (i < str.length) {
+      const c = str[i];
+      if (/[ぁ-ゖァ-ヶー]/.test(c)) { out += c; i++; continue; }
+      if (!/[a-z\-]/.test(c)) { i++; continue; }
+      let hit = false;
+      for (const n of [3, 2, 1]) { const k = ROMA[str.substr(i, n)]; if (k && str.substr(i, n).length === n) { out += conv(k); i += n; hit = true; break; } }
+      if (hit) continue;
+      const nx = str[i + 1];
+      if (c === 'n' && nx && !/[aiueoyn]/.test(nx)) { out += conv('ん'); i++; continue; }
+      if (nx && c === nx && /[kstnhmrgzdbpcjfwy]/.test(c) && c !== 'n') { out += conv('っ'); i++; continue; }
+      // 打ちかけ（つづきが まだ ない）は のこす。つづきが あるのに かなに ならない文字は すてる
+      const rest = str.slice(i); if (/^[a-z]{1,3}$/.test(rest)) return { kana: out, pend: rest };
+      i++;
+    }
+    return { kana: out, pend: '' };
+  }
   const K_ROWS = ['あかさたなはまやらわ', 'いきしちにひみ　りを', 'うくすつぬふむゆるん', 'えけせてねへめ　れー', 'おこそとのほもよろ　'];
   const DK_A = 'かきくけこさしすせそたちつてとはひふへほう', DK_B = 'がぎぐげござじずぜぞだぢづでどばびぶべぼゔ';
   const HD_A = 'はひふへほ', HD_B = 'ぱぴぷぺぽ', SM_A = 'あいうえおつやゆよわ', SM_B = 'ぁぃぅぇぉっゃゅょゎ';
   const toKata = s => s.replace(/[ぁ-ゖ]/g, c => String.fromCharCode(c.charCodeAt(0) + 0x60));
   const toHira = s => s.replace(/[ァ-ヶ]/g, c => String.fromCharCode(c.charCodeAt(0) - 0x60));
   function kanaHTML(val) {
-    return `<div class="namebox box" id="kval"></div><div class="kana">` +
+    return `<div class="namebox box"><input id="kin" type="text" inputmode="kana" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="なまえ"></div><div class="kana">` +
       K_ROWS.map(r => [...r].map(ch => ch === '　' ? '<i></i>' : `<button class="btn k" data-a="k" data-c="${ch}">${ch}</button>`).join('')).join('') +
       `</div><div class="row kctl"><button class="btn" data-a="kmode" id="kmode">カタカナ</button><button class="btn" data-a="kd">゛</button><button class="btn" data-a="kh">゜</button><button class="btn" data-a="ks">ちいさく</button><button class="btn" data-a="kb">けす</button></div>`;
   }
   function kanaActs(K, max) {
-    const draw = () => {
-      const v = document.getElementById('kval'); v.innerHTML = [...K.val].map(c => `<b>${c}</b>`).join('') + '<u></u>'.repeat(max - [...K.val].length);
+    let composing = false;
+    const draw = keepInput => {
+      const inp = document.getElementById('kin'); if (!inp) return;
+      if (!keepInput) inp.value = K.val;
       document.querySelectorAll('.k').forEach(b => { b.textContent = K.kata ? toKata(b.dataset.c) : b.dataset.c; });
       document.getElementById('kmode').textContent = K.kata ? 'ひらがな' : 'カタカナ';
       if (K.onChange) K.onChange();
     };
+    // キーボード入力：日本語入力の とちゅう（変換中）は さわらない
+    const fromInput = () => {
+      const inp = document.getElementById('kin'), r = kanaFilter(inp.value, K.kata);
+      K.val = [...r.kana].slice(0, max).join('');
+      const v = K.val + ([...K.val].length < max ? r.pend : '');
+      if (inp.value !== v) inp.value = v;
+      draw(true);
+    };
+    setTimeout(() => {
+      const inp = document.getElementById('kin'); if (!inp) return;
+      inp.addEventListener('compositionstart', () => { composing = true; });
+      inp.addEventListener('compositionend', () => { composing = false; fromInput(); });
+      inp.addEventListener('input', () => { if (!composing) fromInput(); });
+      inp.addEventListener('keydown', e => { if (e.key === 'Enter' && !composing && !e.isComposing) { e.preventDefault(); inp.value += ' '; fromInput(); inp.value = K.val; const ok = document.getElementById('ok'); if (ok && !ok.classList.contains('off')) ok.click(); } });
+      inp.addEventListener('blur', () => { if (!composing) { inp.value += ' '; fromInput(); inp.value = K.val; } });   // うちかけの「n」は「ん」に
+      // キーボードが つながっている 端末では、そのまま 打ちはじめられるように
+      if (matchMedia('(hover: hover) and (pointer: fine)').matches) inp.focus();
+    }, 0);
     const swap = (A, B) => {
       if (!K.val) return; const last = K.val.slice(-1), kata = /[ァ-ヶ]/.test(last), h = toHira(last);
       let i = A.indexOf(h), r = i >= 0 ? B[i] : (i = B.indexOf(h)) >= 0 ? A[i] : null;
@@ -223,7 +296,7 @@
         S.mons = S.mons.filter(x => x !== m); delete CACHE[m.id]; save(); chars();
       },
     });
-    RG.drawMon(document.getElementById('pv').getContext('2d'), m, getter(m), 10, 10, 540, 420, { maxScale: 1.4 });
+    RG.play(document.getElementById('pv'), m, getter(m));
   }
 
   // =============== キャラクターを つくる ===============
@@ -253,15 +326,15 @@
     const parts = RG.usableParts(D.shape);
     show('draw', `<div class="dhead">${EFUDE}<div class="box bubble" id="hint"></div><div class="dir box">${D.face ? '← ひだりむき' : 'みぎむき →'}</div><button class="btn" data-a="quit">やめる</button></div>
       <div class="tools box">
-        <div class="trow"><button class="btn t on" data-a="tool" data-t="pen">ペン</button><button class="btn t" data-a="tool" data-t="eraser">けしごむ</button><button class="btn t" data-a="tool" data-t="fill">バケツ</button></div>
+        <div class="trow"><button class="btn t on" data-a="tool" data-t="pen">${IC.pen}<span>ペン</span></button><button class="btn t" data-a="tool" data-t="eraser">${IC.eraser}<span>けしごむ</span></button><button class="btn t" data-a="tool" data-t="fill">${IC.fill}<span>バケツ</span></button></div>
         <div class="trow">${RG.SIZES.map(([n, px], i) => `<button class="btn t sz${i === 1 ? ' on' : ''}" data-a="size" data-s="${px}"><i style="width:${[6, 12, 22][i]}px;height:${[6, 12, 22][i]}px"></i><span>${n}</span></button>`).join('')}</div>
-        <div class="trow"><button class="btn t" data-a="undo" id="bUndo">もどす</button><button class="btn t" data-a="redo" id="bRedo">すすむ</button><button class="btn t" data-a="clear">ぜんけし</button></div>
-        <div class="trow two"><button class="btn t" data-a="penonly" id="bPen">ペンだけ</button><button class="btn t" data-a="pal" id="bPal">プロ</button></div>
+        <div class="trow"><button class="btn t" data-a="undo" id="bUndo">${IC.undo}<span>もどす</span></button><button class="btn t" data-a="redo" id="bRedo">${IC.redo}<span>すすむ</span></button><button class="btn t" data-a="clear">${IC.clear}<span>ぜんけし</span></button></div>
+        <div class="trow two"><button class="btn t" data-a="penonly" id="bPen">${IC.penonly}<span>ペンだけ</span></button><button class="btn t" data-a="pal" id="bPal">${IC.pal}<span id="palTx">プロのいろ</span></button></div>
         <div class="pal simple" id="pal">${RG.COLORS.map(c => `<button class="sw" data-a="col" data-c="${c[1]}" style="background:${c[1]}" aria-label="${c[0]}"></button>`).join('')}</div>
         <div class="pal pro hide" id="palPro">${RG.PRO.map(c => `<button class="sw" data-a="col" data-c="${c[1]}" style="background:${c[1]}" aria-label="${c[0]}"></button>`).join('')}</div>
       </div>
       <div class="paper box"><canvas id="cv"></canvas></div>
-      <div class="vrow"><button class="btn t wide on" data-a="view" data-v="0">たんたい</button><button class="btn t wide" data-a="view" data-v="1">がったい</button><button class="btn t wide on" data-a="gd" id="bGd">ガイド：あり</button></div>
+      <div class="vrow"><button class="btn t wide on" data-a="view" data-v="0">${IC.single}<span>たんたい</span></button><button class="btn t wide" data-a="view" data-v="1">${IC.multi}<span>がったい</span></button><button class="btn t wide on" data-a="gd" id="bGd">${IC.guide}<span id="gdTx">ガイド：あり</span></button></div>
       <div class="plist">${parts.map(p => `<button class="btn pt" data-a="part" data-p="${p.id}"><canvas width="100" height="64" data-th="${p.id}"></canvas><b>${p.name}</b><span>${p.req ? 'ひつよう' : 'じゆう'}</span></button>`).join('')}</div>
       <button class="btn strong donebtn" data-a="done">かんせい</button>`, {
       tool(b) { ed.st.tool = b.dataset.t; mark('[data-a=tool]', b); },
@@ -270,9 +343,9 @@
       undo() { ed.undo(); }, redo() { ed.redo(); },
       async clear() { if (ed.hasInk(ed.cur) && await ask('この パーツを ぜんぶ けすよ。いい？<br><span class="note">「もどす」で もとに もどせるよ</span>', 'けす')) ed.clear(); },
       penonly(b) { ed.st.penOnly = !ed.st.penOnly; b.classList.toggle('on', ed.st.penOnly); },
-      pal(b) { const pro = document.getElementById('pal').classList.toggle('hide'); document.getElementById('palPro').classList.toggle('hide', !pro); b.textContent = pro ? 'シンプル' : 'プロ'; },
+      pal(b) { const pro = document.getElementById('pal').classList.toggle('hide'); document.getElementById('palPro').classList.toggle('hide', !pro); document.getElementById('palTx').textContent = pro ? 'シンプル' : 'プロのいろ'; },
       view(b) { ed.st.gattai = b.dataset.v === '1'; mark('[data-a=view]', b); ed.render(); },
-      gd(b) { ed.st.guide = !ed.st.guide; b.classList.toggle('on', ed.st.guide); b.textContent = ed.st.guide ? 'ガイド：あり' : 'ガイド：なし'; ed.render(); },
+      gd(b) { ed.st.guide = !ed.st.guide; b.classList.toggle('on', ed.st.guide); document.getElementById('gdTx').textContent = ed.st.guide ? 'ガイド：あり' : 'ガイド：なし'; ed.render(); },
       part(b) { ed.select(b.dataset.p); refresh(); },
       async quit() { if (await ask(D.edit ? 'なおすのを やめる？<br><span class="note">かきたした ところは きえるよ</span>' : 'つくるのを やめる？<br><span class="note">かいた えは きえるよ</span>', 'やめる', 'つづける')) { RG.making = false; D.tutorial ? home() : chars(); } },
       done() {
@@ -338,16 +411,22 @@
     }
     draw();
   }
-  // ---- モーション（うごきは 手順2で つく。いまは えらぶだけ）----
+  // ---- モーション（3パターンから えらぶ。5つの うごきを ためせる）----
   function motion() {
     const ms = RG.SHAPES[D.shape].motions;
-    show('motion', guide('どんな うごきに する？') + `<button class="btn backbtn" data-a="back">もどる</button>
-      <div class="box mprev"><canvas id="pv" width="520" height="420"></canvas></div>
-      <div class="mlist">${ms.map((n, i) => `<button class="btn big mo${i === D.motion ? ' on' : ''}" data-a="m" data-i="${i}">${n}</button>`).join('')}<p class="note">うごきは つぎの こうしんで つくよ</p></div>
+    show('motion', guide('どんな うごきに する？<br>したの ボタンで うごきを ためせるよ') + `<button class="btn backbtn" data-a="back">もどる</button>
+      <div class="box mprev"><canvas id="pv" width="560" height="400"></canvas></div>
+      <div class="arow">${RG.ACTIONS.map(a => `<button class="btn t wide ac${a === 'idle' ? ' on' : ''}" data-a="act" data-k="${a}">${RG.ACTION_NAMES[a]}</button>`).join('')}</div>
+      <div class="mlist">${ms.map((n, i) => `<button class="btn big mo${i === D.motion ? ' on' : ''}" data-a="m" data-i="${i}">${n}</button>`).join('')}</div>
       <button class="btn strong donebtn" data-a="next">つぎへ</button>`, {
-      back() { kumi(); }, m(b) { D.motion = +b.dataset.i; stage.querySelectorAll('.mo').forEach(x => x.classList.toggle('on', x === b)); }, next() { nameMon(); },
+      back() { kumi(); },
+      m(b) { D.motion = +b.dataset.i; pl.motion = D.motion; stage.querySelectorAll('.mo').forEach(x => x.classList.toggle('on', x === b)); setAct('idle'); },
+      act(b) { setAct(b.dataset.k); },
+      next() { nameMon(); },
     });
-    RG.drawMon(document.getElementById('pv').getContext('2d'), D, pid => D.parts[pid] || null, 10, 10, 500, 400, { maxScale: 1.4 });
+    const setAct = k => { pl.set(k); stage.querySelectorAll('.ac').forEach(x => x.classList.toggle('on', x.dataset.k === k)); };
+    const pl = RG.play(document.getElementById('pv'), D, pid => D.parts[pid] || null, { onEnd() { stage.querySelectorAll('.ac').forEach(x => x.classList.toggle('on', x.dataset.k === 'idle')); } });
+    pl.motion = D.motion; RG.pl = pl;
   }
   // ---- なまえ ----
   function nameMon() {
@@ -370,7 +449,7 @@
       <div class="dinfo"><h2>${esc(m.name)}</h2>${statsHTML(m)}<div class="dbtns"><button class="btn" data-a="png">PNGで だす</button><button class="btn strong" data-a="ok">おわる</button></div></div>`, {
       async png() { await showPNG(RG.buildMonPNG(m, getter(m)), fileName(m), `「${esc(m.name)}」の PNG`); }, ok() { wasTut ? home() : chars(); },
     });
-    RG.drawMon(document.getElementById('pv').getContext('2d'), m, getter(m), 10, 10, 540, 420, { maxScale: 1.4 });
+    RG.play(document.getElementById('pv'), m, getter(m), { action: 'win' });
   }
 
   // =============== せってい ===============

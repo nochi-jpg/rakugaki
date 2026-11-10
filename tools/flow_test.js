@@ -62,14 +62,33 @@ let fails = 0; const ok = (c, msg) => { console.log((c ? 'OK   ' : 'FAIL ') + ms
   await act('done'); await pg.waitForTimeout(60); await shot('draw_missing');
   await pg.waitForTimeout(2700);
   await blob('#3db66b', 0.5, 0.55, 0.36, 0.36); await shot('draw_body');
+  // Ctrl+Z・Ctrl+Y
+  const ink = () => pg.evaluate(() => window.RG.ed.hasInk('body'));
+  await pg.keyboard.press('Control+z'); await pg.keyboard.press('Control+z');
+  ok(!(await ink()), 'Ctrl+Z で もどる');
+  await pg.keyboard.press('Control+y'); await pg.keyboard.press('Control+Shift+z');
+  ok(await ink(), 'Ctrl+Y・Ctrl+Shift+Z で すすむ');
+  // バケツ：近い色の線で かこんだ所だけ ぬれる（プロのいろ：みどり4 の上に みどり5 で かこむ）
+  await act('pal');
+  await blob('#17e84b', 0.5, 0.55, 0.36, 0.36);
+  await tap('.pal:not(.hide) .sw[data-c="#11b039"]'); await tap('[data-t="pen"]');
+  { const pts = []; for (let i = 0; i <= 24; i++) { const a = i / 24 * Math.PI * 2; pts.push([0.5 + Math.cos(a) * 0.12, 0.6 + Math.sin(a) * 0.12]); } await strokeOn(pts); }
+  await tap('.pal:not(.hide) .sw[data-c="#f6cfa6"]'); await tap('[data-t="fill"]'); await strokeOn([[0.5, 0.6], [0.5, 0.6]]);
+  const px = await pg.evaluate(() => { const c = window.RG.ed.canvasOf('body').getContext('2d'), g = (x, y) => [...c.getImageData(x, y, 1, 1).data].join(','); return { inside: g(160, 143), outside: g(160, 60), ring: g(160, 143 - 53) }; });
+  ok(px.inside === '246,207,166,255' && px.outside === '23,232,75,255', `バケツ：かこんだ中だけ ぬれる（中 ${px.inside}・外 ${px.outside}）`);
+  await shot('draw_fill_enclosed'); await act('pal');
   await tap('[data-p="horn"]'); await blob('#f7cc2e', 0.5, 0.6, 0.12, 0.3); await shot('draw_horn');
   await tap('[data-v="1"]'); await shot('draw_gattai'); await tap('[data-v="0"]');
   await act('pal'); await shot('draw_pro'); await act('pal');
   await act('done'); await shot('kumi');
   await tap('[data-d="0,-1"]'); await tap('[data-d="1,0"]'); await act('z'); await shot('kumi_moved'); await act('z');
-  await act('next'); await shot('motion'); await tap('[data-i="1"]'); await act('next');
-  await kana('ふ'); await act('kh'); await kana('るりん'); await shot('name');
-  await act('ok'); await shot('done');
+  await act('next'); await shot('motion'); await tap('[data-i="1"]');
+  for (const k of ['attack', 'damage', 'win', 'lose']) { await tap(`[data-k="${k}"]`); await pg.waitForTimeout(250); }
+  await shot('motion_lose'); await act('next');
+  await pg.keyboard.type('pururin'); await shot('name');
+  await pg.keyboard.press('Enter');
+  ok(await pg.evaluate(() => window.RG.screen === 'done' && window.RG.app.S.mons[0].name === 'ぷるりん'), 'キーボード（ローマ字）で なまえ入力 → Enter で きまり');
+  await shot('done');
   await act('png'); await pg.waitForTimeout(200); await shot('png_modal'); await act('n');
   await act('ok'); await shot('home');
   await act('chars'); await shot('chars'); await tap('[data-a="open"]'); await shot('detail');
@@ -146,7 +165,7 @@ let fails = 0; const ok = (c, msg) => { console.log((c ? 'OK   ' : 'FAIL ') + ms
   await act('done'); await pg.waitForTimeout(100);
   ok(await pg.evaluate(() => window.RG.screen === 'kumi'), 'よつあし：関節チェックを 通って くみたてへ');
   await shot('yotsu_kumi'); await tap('.kp[data-p="tail"]'); await act('z'); await shot('yotsu_kumi_tail');
-  await act('next'); await act('next'); await kana('わんこ'); await act('ok'); await shot('yotsu_done');
+  await act('next'); await shot('yotsu_motion'); await act('next'); await kana('わんこ'); await act('ok'); await shot('yotsu_done');
   const st = await pg.evaluate(() => { const RG = window.RG, m = RG.app.S.mons[1]; return { r5: m.r5, face: m.face, bytes: RG.encodeMon(m).length, url: RG.buildMonPNG(m, pid => RG.app.CACHE[m.id][pid] || null).toDataURL() }; });
   fs.writeFileSync(`${SHOT}/yotsu.png`, Buffer.from(st.url.split(',')[1], 'base64'));
   ok(st.face === 1 && st.r5.reduce((a, b) => a + b, 0) === 1000, `よつあし：色の割合 ${st.r5.join(',')}（合計1000）・QR ${st.bytes}バイト`);

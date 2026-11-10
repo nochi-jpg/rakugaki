@@ -2,7 +2,7 @@
 window.RG = window.RG || {};
 (function (RG) {
   'use strict';
-  RG.VERSION = '0.1.0';
+  RG.VERSION = '0.2.0';
   RG.JR = 24;            // 関節の丸の半径
   RG.ADJ_MAX = 20;       // くみたてで ずらせる はば（関節の丸の中まで）
   RG.GUIDE_IN = 6;       // ガイド（描ける範囲）は わくの 6px 内がわ
@@ -145,22 +145,43 @@ window.RG = window.RG || {};
     order.forEach(o => { x0 = Math.min(x0, o.x); y0 = Math.min(y0, o.y); x1 = Math.max(x1, o.x + o.p.w); y1 = Math.max(y1, o.y + o.p.h); });
     return { order, x0, y0, x1, y1, w: x1 - x0, h: y1 - y0 };
   };
-  // モンスターを 描く。get(pid)＝そのパーツのキャンバス。box に おさまるように。flip＝左右反転して表示
+  // モンスターを 描く。get(pid)＝そのパーツのキャンバス。box に おさまるように。
+  // opt.flip＝左右反転して表示／opt.pose＝うごき（RG.pose の かえり値）／opt.maxScale
+  // みぎむきの座標で 組み立て、ひだりむきの絵は 全体を うらがえして 描く（回転も いっしょに うらがえる）
   RG.drawMon = function (ctx, m, get, bx, by, bw, bh, opt) {
     opt = opt || {};
     const has = pid => !!get(pid), L = RG.layout(m.shape, m.adj, has);
     if (!L.order.length) return null;
-    // 絵の はんい（なにも描いていない所を のぞく）で 合わせると 大きさが そろわないので、わくで 合わせる
-    const s = Math.min(bw / L.w, bh / L.h, opt.maxScale || 9), left = m.face === 1;
-    const ox = bx + (bw - L.w * s) / 2, oy = by + (bh - L.h * s) / 2;
+    const s = Math.min(bw / L.w, bh / L.h, opt.maxScale || 9), left = m.face === 1, pose = opt.pose || null;
+    const ox = bx + (bw - L.w * s) / 2, oy = by + (bh - L.h * s) / 2, parts = RG.SHAPES[m.shape].parts;
+    const zOf = p => { const a = m.adj && m.adj[p.id]; return a && a[2] != null ? a[2] : p.z; };
     ctx.save();
     if (opt.flip) { ctx.translate(bx * 2 + bw, 0); ctx.scale(-1, 1); }
-    for (const o of L.order) {
-      // ひだりむきの絵は、席を 左右うらがえしに ならべる
-      const x = left ? (L.x1 - (o.x + o.p.w)) : (o.x - L.x0), y = o.y - L.y0;
-      ctx.globalAlpha = opt.alpha ? opt.alpha(o.p.id) : 1;
-      ctx.drawImage(get(o.p.id), ox + x * s, oy + y * s, o.p.w * s, o.p.h * s);
-    }
+    ctx.translate(ox, oy); ctx.scale(s, s);
+    if (left) { ctx.translate(L.w, 0); ctx.scale(-1, 1); }
+    ctx.translate(-L.x0, -L.y0);
+    const draw = p => {
+      ctx.save();
+      if (p.parent) {
+        const a = (m.adj && m.adj[p.id]) || [0, 0];
+        ctx.translate(p.pj[0] + a[0], p.pj[1] + a[1]);
+        if (pose && pose.parts[p.id]) ctx.rotate(pose.parts[p.id]);
+        ctx.translate(-p.cj[0], -p.cj[1]);
+      } else if (pose) {
+        // からだ全体：足もとを じくに のびちぢみ・かたむき
+        const px = p.w / 2, py = p.h * 0.92;
+        ctx.translate(pose.dx + px, pose.dy + py); ctx.rotate(pose.rot); ctx.scale(pose.sx, pose.sy); ctx.translate(-px, -py);
+      }
+      const kids = parts.filter(c => c.parent === p.id && has(c.id));
+      kids.filter(c => !zOf(c)).forEach(draw);
+      if (has(p.id)) {
+        if (left) { ctx.save(); ctx.translate(p.w, 0); ctx.scale(-1, 1); ctx.drawImage(get(p.id), 0, 0); ctx.restore(); }
+        else ctx.drawImage(get(p.id), 0, 0);
+      }
+      kids.filter(c => zOf(c)).forEach(draw);
+      ctx.restore();
+    };
+    parts.filter(p => !p.parent).forEach(draw);
     ctx.restore();
     return { s, ox, oy, L };
   };

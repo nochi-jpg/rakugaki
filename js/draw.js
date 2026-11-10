@@ -61,7 +61,8 @@
       const img = o.ctx.getImageData(0, 0, w, h).data, k0 = (y0 * w + x0) * 4;
       const tr = img[k0], tg = img[k0 + 1], tb = img[k0 + 2], ta = img[k0 + 3], [fr, fg, fb] = RG.hexRgb(hex);
       if (ta > 250 && Math.abs(tr - fr) + Math.abs(tg - fg) + Math.abs(tb - fb) < 12) return null;
-      const T = 100, seen = new Uint8Array(w * h);
+      // 色の ちがいは きびしめに 見る（近い色の線で かこんだ所だけを ぬれるように）。ふちの にじみは ぬるときに 1ピクセル ひろげて うめる
+      const T = 48, seen = new Uint8Array(w * h);
       const ok = q => {
         if (seen[q]) return false; const k = q * 4;
         if (ta < 40) return img[k + 3] < 110;   // 透明な所から ぬるとき：うすい所まで
