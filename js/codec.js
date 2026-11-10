@@ -50,11 +50,12 @@
     m.r5.forEach(v => w.vu(v)); m.r4.forEach(v => w.vu(v));
     parts.filter(p => p.parent && !p.free).forEach(p => { const a = (m.adj && m.adj[p.id]) || [0, 0, p.z]; w.u8(a[0] + 32); w.u8(a[1] + 32); w.u8(a[2] == null ? p.z : a[2]); });
     w.u8(m.motion || 0);
-    for (let i = 0; i < 3; i++) w.u8((m.gems && m.gems[i]) || 0);
+    for (let i = 0; i < 3; i++) w.u8(0);   // 前の 形式の ほうせき（いまは 使わない。場所だけ のこす）
     w.str(m.creator.name); w.u32(m.creator.id); w.u8(m.grade); w.vu(m.date);
     // じゆうパーツ（スライム）：こ数 →（わく番号・しゅるい・x・y・重なり）
     const fr = Object.keys(m.free || {}).filter(k => m.free[k]);
     w.u8(fr.length); fr.forEach(k => { const f = m.free[k]; w.u8(+k); w.u8(f.k); w.vu(f.x); w.vu(f.y); w.u8(f.z ? 1 : 0); });
+    w.vu(m.gem || 0);      // つけている ほうせき（1つ。0＝なし）
     return seal(w);
   };
   RG.decodeMon = function (bytes) {
@@ -69,6 +70,7 @@
     m.creator = { name: r.str(), id: r.u32() }; m.grade = r.u8(); m.date = r.vu();
     m.free = {};
     if (r.i < r.b.length) { const n = r.u8(); for (let i = 0; i < n; i++) { const k = r.u8(), f = { k: r.u8(), x: Math.min(290, Math.max(30, r.vu())), y: Math.min(210, Math.max(30, r.vu())), z: r.u8() ? 1 : 0 }; if (k >= 1 && k <= RG.FREE_MAX && RG.FREE_KINDS[f.k]) m.free[k] = f; } }
+    m.gem = r.i < r.b.length ? r.vu() : 0;
     return m;
   };
 
@@ -77,18 +79,20 @@
     const w = new W();
     MAGIC.forEach(x => w.u8(x)); w.u8(FMT); w.u8(2);
     w.str(p.name); w.u32(p.id); w.u8(p.grade); w.vu(p.coins);
-    w.u8((p.gems || []).length); (p.gems || []).forEach(g => w.u8(g));
+    w.u8(0);               // 前の 形式の ほうせき（いまは 使わない。場所だけ のこす）
     let mask = 0; RG.SHAPE_ORDER.forEach((s, i) => { if (p.shapes.includes(s)) mask |= 1 << i; }); w.u8(mask);
     w.u8(p.slots); w.vu(p.day || 0); w.u8(p.doneA || 0); w.u8(p.doneB || 0); w.u8(p.bonus || 0); w.u8(p.tutorial ? 1 : 0);
     w.u8(p.bought || 0);   // きょう おみせで 買った わく（ビット）
+    w.u8((p.gems || []).length); (p.gems || []).forEach(g => w.vu(g));   // もっている ほうせき
     return seal(w);
   };
   RG.decodePlayer = function (bytes) {
     const r = open(bytes, 2), p = { name: r.str(), id: r.u32(), grade: r.u8(), coins: r.vu() };
-    const n = r.u8(); p.gems = []; for (let i = 0; i < n; i++) p.gems.push(r.u8());
+    const n0 = r.u8(); for (let i = 0; i < n0; i++) r.u8(); p.gems = [];
     const mask = r.u8(); p.shapes = RG.SHAPE_ORDER.filter((s, i) => mask & (1 << i));
     p.slots = r.u8(); p.day = r.vu(); p.doneA = r.u8(); p.doneB = r.u8(); p.bonus = r.u8(); p.tutorial = !!r.u8();
     p.bought = r.i < r.b.length ? r.u8() : 0;
+    if (r.i < r.b.length) { const n = r.u8(); for (let i = 0; i < n; i++) p.gems.push(r.vu()); }
     return p;
   };
 })(window.RG);

@@ -2,7 +2,7 @@
 window.RG = window.RG || {};
 (function (RG) {
   'use strict';
-  RG.VERSION = '0.5.0';
+  RG.VERSION = '0.6.0';
   RG.JR = 24;            // 関節の丸の半径
   RG.ADJ_MAX = 20;       // くみたてで ずらせる はば（関節の丸の中まで）
   RG.GUIDE_IN = 6;       // ガイド（描ける範囲）は わくの 6px 内がわ
@@ -250,7 +250,7 @@ window.RG = window.RG || {};
     const has = pid => !!get(pid), L = RG.layout(m, has);
     if (!L.order.length) return null;
     const s = Math.min(bw / L.w, bh / L.h, opt.maxScale || 9), left = m.face === 1, pose = opt.pose || null;
-    const ox = bx + (bw - L.w * s) / 2, oy = by + (bh - L.h * s) / 2, parts = RG.partsFor(m);
+    const ox = bx + (bw - L.w * s) / 2, oy = opt.bottom ? by + bh - L.h * s : by + (bh - L.h * s) / 2, parts = RG.partsFor(m);   // opt.bottom＝足もとを わくの 下に そろえる
     const zOf = p => { const a = !p.free && m.adj && m.adj[p.id]; return a && a[2] != null ? a[2] : p.z; };
     ctx.save();
     if (opt.flip) { ctx.translate(bx * 2 + bw, 0); ctx.scale(-1, 1); }

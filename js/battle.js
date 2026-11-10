@@ -7,9 +7,9 @@
   const TIME = 60;                 // とく時間・みる時間（びょう）
   const HP = 1500, DMG_BASE = 80, DMG_K = 0.04, CRIT = 0.05, CRIT_MUL = 1.5, LOCK = 3;
   const CPU = [{ name: 'よわい', iv: 8, acc: 0.6 }, { name: 'ふつう', iv: 6, acc: 0.7 }, { name: 'つよい', iv: 4.5, acc: 0.8 }, { name: 'とてもつよい', iv: 3.5, acc: 0.9 }];
-  // CPUの つよさごとの、ほうせきが 出る 確率 と、上位（200・300コインの もの）が 出る 確率
-  const DROP = [0.2, 0.35, 0.5, 0.7], DROP200 = [0, 0.1, 0.25, 0.35], DROP300 = [0, 0, 0.05, 0.15];
-  B.CONST = { TIME, HP, DMG_BASE, DMG_K, CRIT, CRIT_MUL, LOCK, CPU, DROP, DROP200, DROP300 };
+  // CPUの つよさごとの、ほうせきが 出る 確率 と、ひく 回数（何回か ひいて いちばん いいものを もらう）
+  const DROP = [0.2, 0.35, 0.5, 0.7], DROP_ROLLS = [1, 1, 2, 3];
+  B.CONST = { TIME, HP, DMG_BASE, DMG_K, CRIT, CRIT_MUL, LOCK, CPU, DROP, DROP_ROLLS };
   // テストのとき 時間を 早送りできる（RG.timeScale）
   const now = () => performance.now() * (RG.timeScale || 1) / 1000;
   const wait = s => new Promise(r => setTimeout(r, s * 1000 / (RG.timeScale || 1)));
@@ -144,83 +144,166 @@
   }
   B.simulate = simulate;
 
-  // =============== みる（シークバーで 殴り合い）===============
+  // =============== みる（3Dの ステージで 殴り合い。シークバーつき）===============
   const hill = (u, a, b) => (u <= a || u >= b) ? 0 : Math.sin(Math.PI * (u - a) / (b - a));
-  // 白黒の 手書きの 地面（おくゆきの ある 線）
-  function groundCanvas() {
-    const c = RG.mkCanvas(1280, 720), x = c.getContext('2d'); let seed = 7;
-    const r = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647 - 0.5; };
-    const wob = (x0, y0, x1, y1, col, w) => { x.strokeStyle = col; x.lineWidth = w; x.lineCap = 'round'; x.beginPath(); const n = 14; for (let i = 0; i <= n; i++) { const px = x0 + (x1 - x0) * i / n + r() * 5, py = y0 + (y1 - y0) * i / n + r() * 5; i ? x.lineTo(px, py) : x.moveTo(px, py); } x.stroke(); };
-    x.fillStyle = '#fff'; x.fillRect(0, 0, 1280, 720);
-    const HZ = 330;
-    wob(-10, HZ, 1290, HZ, '#111', 3.5);
-    for (const gx of [-900, -380, 60, 420, 860, 1220, 1660, 2180]) wob(640 + (gx - 640) * 0.08, HZ + 6, gx, 730, '#c4c4c8', 2.5);
-    for (const gy of [366, 418, 496, 600]) wob(-10, gy, 1290, gy, '#c4c4c8', 2.5);
-    // とおくの 山と くも、くさ
-    x.strokeStyle = '#111'; x.lineWidth = 3; x.lineJoin = 'round';
-    x.beginPath(); x.moveTo(60, HZ); x.lineTo(210 + r() * 8, 214); x.lineTo(300, 270); x.lineTo(380 + r() * 8, 236); x.lineTo(500, HZ); x.stroke();
-    x.beginPath(); x.moveTo(820, HZ); x.lineTo(960 + r() * 8, 240); x.lineTo(1040, 286); x.lineTo(1120, 250); x.lineTo(1230, HZ); x.stroke();
-    for (const [cx, cy] of [[180, 120], [640, 86], [1090, 132]]) { x.beginPath(); x.arc(cx - 38, cy + 8, 22, Math.PI * 0.6, Math.PI * 1.6); x.arc(cx, cy - 8, 32, Math.PI, Math.PI * 2); x.arc(cx + 40, cy + 8, 22, Math.PI * 1.4, Math.PI * 0.4); x.closePath(); x.stroke(); }
-    for (const [gx, gy] of [[90, 640], [330, 560], [560, 680], [760, 590], [1010, 660], [1200, 560], [470, 440], [900, 430]]) for (const d of [-12, 0, 12]) { x.beginPath(); x.moveTo(gx + d, gy); x.quadraticCurveTo(gx + d * 1.4, gy - 18, gx + d * 2 + r() * 6, gy - 30 - Math.abs(r()) * 14); x.stroke(); }
-    return c;
+  const SPEEDS = [1, 1.5, 2, 3];
+  // ---- 3D：せかいの 座標（x＝右、y＝上、z＝おく）を がめんに うつす ----
+  // カメラは「見る点（tx,ty,tz）」の まわりを、きょり dist・よこの かくど yaw・たての かくど pitch で まわる
+  const FOCAL = 780, CXS = 640, CYS = 380, DEG = Math.PI / 180;
+  function makeCam(c) {
+    const cp = Math.cos(c.pitch), px = c.tx + c.dist * Math.sin(c.yaw) * cp, py = c.ty + c.dist * Math.sin(c.pitch), pz = c.tz - c.dist * Math.cos(c.yaw) * cp;
+    let fx = c.tx - px, fy = c.ty - py, fz = c.tz - pz; const fl = Math.hypot(fx, fy, fz); fx /= fl; fy /= fl; fz /= fl;
+    let rx = fz, rz = -fx; const rl = Math.hypot(rx, rz) || 1; rx /= rl; rz /= rl;      // 右＝上×前
+    const ux = fy * rz, uy = fz * rx - fx * rz, uz = -fy * rx;                          // 上＝前×右
+    return {
+      // かえり値：[がめんx, がめんy, おくゆき]。おくゆきが 0.2 より 小さい（カメラの うしろ）ときは null
+      pr(x, y, z) { const dx = x - px, dy = y - py, dz = z - pz, Z = dx * fx + dy * fy + dz * fz; if (Z < 0.2) return null; return [CXS + FOCAL * (dx * rx + dz * rz) / Z + c.sx, CYS - FOCAL * (dx * ux + dy * uy + dz * uz) / Z + c.sy, Z]; },
+    };
   }
-  let GROUND = null;
+  // ステージの 線（手書きの ゆれを つけた、せかいの 座標の 点の ならび）。1回だけ 作る
+  let STAGE = null;
+  function buildStage() {
+    let seed = 11; const r = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647 - 0.5; };
+    const line = (x0, z0, x1, z1, n) => { const p = []; for (let i = 0; i <= n; i++) p.push([x0 + (x1 - x0) * i / n + r() * 0.12, 0, z0 + (z1 - z0) * i / n + r() * 0.12]); return p; };
+    const grid = [], ring = [], ring2 = [], tufts = [], rocks = [], mounts = [], clouds = [];
+    for (let x = -14; x <= 14; x += 2) grid.push(line(x, -9, x, 16, 12));
+    for (let z = -9; z <= 16; z += 2.5) grid.push(line(-14, z, 14, z, 14));
+    for (let i = 0; i <= 44; i++) { const a = i / 44 * Math.PI * 2; ring.push([Math.cos(a) * 5.2 + r() * 0.1, 0, Math.sin(a) * 3.4 + r() * 0.1]); ring2.push([Math.cos(a) * 5.6 + r() * 0.14, 0, Math.sin(a) * 3.8 + r() * 0.14]); }
+    for (let i = 0; i < 26; i++) { const a = r() * 6.3 * 2, d = 6.4 + Math.abs(r()) * 14; tufts.push([Math.cos(a) * d, Math.sin(a) * d * 0.8 + 2, 0.5 + Math.abs(r()) * 0.6]); }
+    for (let i = 0; i < 7; i++) { const a = r() * 6.3 * 2, d = 7 + Math.abs(r()) * 9; rocks.push([Math.cos(a) * d, Math.sin(a) * d * 0.8 + 3, 0.5 + Math.abs(r()) * 0.7]); }
+    for (let i = 0; i < 9; i++) { const a = (i / 9) * Math.PI * 2 + r() * 0.3; mounts.push([Math.sin(a) * 70, Math.cos(a) * 70, 12 + Math.abs(r()) * 16, 9 + Math.abs(r()) * 10]); }   // x, z, はば, 高さ
+    for (let i = 0; i < 7; i++) { const a = (i / 7) * Math.PI * 2 + r(); clouds.push([Math.sin(a) * 60, 20 + Math.abs(r()) * 12, Math.cos(a) * 60, 5 + Math.abs(r()) * 4]); }
+    return { grid, ring, ring2, tufts, rocks, mounts, clouds };
+  }
+  function drawStage(ctx, cam) {
+    STAGE = STAGE || buildStage();
+    ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, 1280, 720);
+    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    const poly = (pts, close) => { let on = false; ctx.beginPath(); for (const p of pts) { const q = cam.pr(p[0], p[1], p[2]); if (!q) { on = false; continue; } on ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1]); on = true; } if (close) ctx.closePath(); ctx.stroke(); };
+    // とおくの 山と くも
+    ctx.strokeStyle = '#111'; ctx.lineWidth = 3; ctx.fillStyle = '#fff';
+    for (const m of STAGE.mounts) {
+      const a = cam.pr(m[0], 0, m[1]), t = cam.pr(m[0], m[3], m[1]); if (!a || !t) continue;
+      const w = m[2] * FOCAL / a[2];
+      ctx.beginPath(); ctx.moveTo(a[0] - w, a[1]); ctx.lineTo(a[0] - w * 0.2, t[1]); ctx.lineTo(a[0] + w * 0.15, a[1] - (a[1] - t[1]) * 0.55); ctx.lineTo(a[0] + w * 0.5, a[1] - (a[1] - t[1]) * 0.8); ctx.lineTo(a[0] + w, a[1]); ctx.fill(); ctx.stroke();
+    }
+    for (const c of STAGE.clouds) {
+      const q = cam.pr(c[0], c[1], c[2]); if (!q) continue; const w = c[3] * FOCAL / q[2];
+      ctx.beginPath(); ctx.arc(q[0] - w * 0.5, q[1] + w * 0.1, w * 0.3, Math.PI * 0.6, Math.PI * 1.6); ctx.arc(q[0], q[1] - w * 0.12, w * 0.42, Math.PI, Math.PI * 2); ctx.arc(q[0] + w * 0.52, q[1] + w * 0.1, w * 0.3, Math.PI * 1.4, Math.PI * 0.4); ctx.closePath(); ctx.fill(); ctx.stroke();
+    }
+    // 地面：ます目（うすい線）と リング（黒い線）。地平線より 下を 白く ぬって、山の すそを かくす
+    const far = cam.pr(cam.fx0, 0, cam.fz0);
+    if (far) { ctx.fillStyle = '#fff'; ctx.fillRect(0, far[1], 1280, 720 - far[1]); ctx.strokeStyle = '#111'; ctx.lineWidth = 3.5; ctx.beginPath(); ctx.moveTo(-10, far[1] + 2); ctx.lineTo(1290, far[1] - 2); ctx.stroke(); }
+    ctx.strokeStyle = '#cfcfd4'; ctx.lineWidth = 2.2; for (const g of STAGE.grid) poly(g);
+    ctx.strokeStyle = '#111'; ctx.lineWidth = 3.5; poly(STAGE.ring, true);
+    ctx.setLineDash([10, 9]); ctx.lineWidth = 2.5; poly(STAGE.ring2, true); ctx.setLineDash([]);
+  }
+  // 地面に 立っている 小さな もの（くさ・いし）。おくの ものから 描くために まとめて わたす
+  function props(cam) {
+    const out = [];
+    for (const t of STAGE.tufts) { const q = cam.pr(t[0], 0, t[1]); if (q) out.push({ z: q[2], draw(ctx) { const h = t[2] * FOCAL / q[2]; ctx.strokeStyle = '#111'; ctx.lineWidth = Math.max(1.5, 3.2 * 6 / q[2]); for (const d of [-0.3, 0, 0.3]) { ctx.beginPath(); ctx.moveTo(q[0] + d * h * 0.5, q[1]); ctx.quadraticCurveTo(q[0] + d * h * 0.9, q[1] - h * 0.6, q[0] + d * h * 1.5, q[1] - h * (1 - Math.abs(d))); ctx.stroke(); } } }); }
+    for (const t of STAGE.rocks) { const q = cam.pr(t[0], 0, t[1]); if (q) out.push({ z: q[2], draw(ctx) { const w = t[2] * FOCAL / q[2]; ctx.strokeStyle = '#111'; ctx.fillStyle = '#fff'; ctx.lineWidth = Math.max(1.5, 3.2 * 6 / q[2]); ctx.beginPath(); ctx.moveTo(q[0] - w, q[1]); ctx.lineTo(q[0] - w * 0.6, q[1] - w * 0.7); ctx.lineTo(q[0] + w * 0.3, q[1] - w * 0.85); ctx.lineTo(q[0] + w, q[1]); ctx.closePath(); ctx.fill(); ctx.stroke(); } }); }
+    return out;
+  }
   // F＝[じぶん, あいて]（{m, get, name, owner, stats, hits}）、sim＝simulate の かえり値。おわったら resolve
   function watch(F, sim) {
     return new Promise(res => {
-      GROUND = GROUND || groundCanvas();
       const mk = (cls, f, i) => `<div class="hp ${cls} box"><p><b>${esc(f.name)}</b><span>${esc(f.owner)}</span></p><div class="hpbar"><i id="hp${i}"></i></div><em id="hpn${i}">${f.maxHp}</em></div>`;
       const marks = F.map((f, i) => f.hits.map(h => `<i class="mk ${i ? 'e' : 'p'}" style="left:${h.t / TIME * 100}%"></i>`).join('')).join('');
       UI.show('watch', `<canvas id="bcv" width="1280" height="720"></canvas>${mk('l', F[0], 0)}${mk('r', F[1], 1)}
         <div class="seek box"><i id="skfill"></i>${marks}<u id="skhead"></u></div>
         <div class="sklegend"><span><i class="mk p"></i>${esc(F[0].owner)}</span><span><i class="mk e"></i>${esc(F[1].owner)}</span></div>
-        <button class="btn spd" data-a="spd" id="spd">はやさ ×1</button><div class="bend hide box" id="bend">しあい しゅうりょう！</div>`, {
-        spd(b) { speed = speed === 1 ? 1.5 : 1; b.textContent = speed === 1 ? 'はやさ ×1' : 'はやさ ×1.5'; b.classList.toggle('on', speed !== 1); },
+        <button class="btn spd${B.speed ? ' on' : ''}" data-a="spd" id="spd">はやさ ×${SPEEDS[B.speed || 0]}</button><div class="bend hide box" id="bend"></div>`, {
+        spd(b) { B.speed = ((B.speed || 0) + 1) % SPEEDS.length; b.textContent = 'はやさ ×' + SPEEDS[B.speed]; b.classList.toggle('on', B.speed > 0); },
       });
-      const cv = document.getElementById('bcv'), ctx = cv.getContext('2d');
-      let speed = 1, T = 0, clk = 0, last = now(), ei = 0, ended = 0;
+      const cv = document.getElementById('bcv'), ctx = cv.getContext('2d'), bend = document.getElementById('bend');
+      const font = getComputedStyle(stage).fontFamily;
+      let T = 0, clk = 0, last = now(), ei = 0, ended = 0, shake = 0;
+      const INTRO = 3.0, X0 = [-2.4, 2.4];
       const st = F.map((f, i) => ({ act: 'idle', at: 0, hp: f.maxHp, flip: i === 0 ? f.m.face === 1 : f.m.face !== 1 }));
       const pend = [], pops = [];
-      const BOX = [[150, 250, 330, 300], [800, 250, 330, 300]];
       const set = (i, a) => { st[i].act = a; st[i].at = clk; };
+      // カメラ：cam＝いまの 位置、goal＝めざす 位置（なめらかに 近づく）
+      const cam = { tx: 0, ty: 1.3, tz: 0, dist: 17, yaw: -70 * DEG, pitch: 30 * DEG, sx: 0, sy: 0 }, goal = Object.assign({}, cam);
+      let focus = null;   // こうげき中の ちゅうもく：{ who, until, crit }
+      const direct = () => {
+        if (clk < INTRO) {                       // はじまり：ぐるっと まわりこんで 2ひきを うつす
+          const u = clk / INTRO;
+          if (u < 0.34) Object.assign(goal, { tx: X0[0], ty: 1.3, tz: 0, dist: 6.2, yaw: (-50 + 60 * u) * DEG, pitch: 9 * DEG });
+          else if (u < 0.68) Object.assign(goal, { tx: X0[1], ty: 1.3, tz: 0, dist: 6.2, yaw: (50 - 60 * (u - 0.34)) * DEG, pitch: 9 * DEG });
+          else Object.assign(goal, { tx: 0, ty: 1.35, tz: 0, dist: 9.6, yaw: 0, pitch: 11 * DEG });
+          return 3.2;
+        }
+        if (ended) {                             // おわり：かった ほうに よって ゆっくり まわる
+          const w = sim.winner, e = clk - ended;
+          Object.assign(goal, { tx: w < 0 ? 0 : X0[w] * 0.85, ty: 1.4, tz: 0, dist: w < 0 ? 10 : 6.4, yaw: (w === 1 ? -1 : 1) * (-24 + 16 * e) * DEG, pitch: 8 * DEG });
+          return 2.2;
+        }
+        if (focus && clk < focus.until) {        // こうげき：こうげきする ほうに よって、すこし うしろへ まわりこむ
+          const s = focus.who ? 1 : -1, u = 1 - (focus.until - clk) / focus.len;
+          Object.assign(goal, { tx: s * (1.5 - 2.3 * hill(u, 0.1, 1)), ty: 1.35, tz: 0, dist: focus.crit ? 5.8 : 6.8, yaw: s * (26 - 20 * u) * DEG, pitch: 7 * DEG });
+          return 5.5;
+        }
+        focus = null;                            // ふだん：2ひきを 見ながら ゆっくり ゆれる
+        Object.assign(goal, { tx: 0, ty: 1.35, tz: 0, dist: 9.4, yaw: 10 * Math.sin(clk * 0.45) * DEG, pitch: (10 + 2 * Math.sin(clk * 0.3)) * DEG });
+        return 2.6;
+      };
       const loop = () => {
         if (RG.screen !== 'watch') return;
-        const n = now(), dt = Math.max(0, Math.min(0.1 * (RG.timeScale || 1), n - last)) * speed; last = n; clk += dt;
-        if (!ended) {
+        const speed = SPEEDS[B.speed || 0], n = now(), dt = Math.max(0, Math.min(0.1 * (RG.timeScale || 1), n - last)) * speed; last = n; clk += dt;
+        // ---- しあいを すすめる ----
+        if (clk >= INTRO && !ended) {
           T = Math.min(sim.end, T + dt);
-          while (ei < sim.events.length && sim.events[ei].t <= T) { const e = sim.events[ei++]; set(e.who, 'attack'); pend.push({ at: clk + RG.motionDur(F[e.who].m.shape, F[e.who].m.motion || 0, 'attack') * 0.5, e }); }
+          while (ei < sim.events.length && sim.events[ei].t <= T) {
+            const e = sim.events[ei++], d = RG.motionDur(F[e.who].m.shape, F[e.who].m.motion || 0, 'attack');
+            set(e.who, 'attack'); pend.push({ at: clk + d * 0.5, e });
+            focus = { who: e.who, until: clk + d + 0.35, len: d + 0.35, crit: e.crit };
+          }
         }
         for (let k = pend.length - 1; k >= 0; k--) {
           if (clk < pend[k].at) continue;
           const e = pend.splice(k, 1)[0].e, to = 1 - e.who;
           st[to].hp = e.hp; if (st[to].act !== 'lose') set(to, e.hp <= 0 ? 'lose' : 'damage');
-          pops.push({ i: to, text: '-' + e.dmg, crit: e.crit, at: clk }); beep(e.crit ? 'crit' : 'hit');
+          pops.push({ i: to, text: '-' + e.dmg, crit: e.crit, at: clk }); beep(e.crit ? 'crit' : 'hit'); shake = e.crit ? 1 : 0.55;
           document.getElementById('hp' + to).style.width = (e.hp / F[to].maxHp * 100) + '%'; document.getElementById('hpn' + to).textContent = e.hp;
         }
-        if (!ended && T >= sim.end && !pend.length && ei >= sim.events.length) {
-          ended = clk;
+        if (!ended && clk >= INTRO && T >= sim.end && !pend.length && ei >= sim.events.length) {
+          ended = clk; focus = null;
           F.forEach((f, i) => { if (sim.winner < 0) return; if (i === sim.winner) set(i, 'win'); else if (st[i].act !== 'lose') set(i, 'lose'); });
-          document.getElementById('bend').classList.remove('hide'); beep('end');
-          setTimeout(() => { if (RG.screen === 'watch') res(); }, 2800 / (RG.timeScale || 1));
+          bend.textContent = 'しあい しゅうりょう！'; bend.classList.remove('hide'); beep('end');
+          setTimeout(() => { if (RG.screen === 'watch') res(); }, 3400 / (RG.timeScale || 1));
         }
+        // はじまりの 文字
+        if (clk < INTRO) { const t = clk < INTRO * 0.68 ? 'よーい…' : 'はじめ！'; if (bend.textContent !== t) { bend.textContent = t; bend.classList.remove('hide'); beep('tick'); } }
+        else if (!ended && !bend.classList.contains('hide')) bend.classList.add('hide');
         document.getElementById('skfill').style.width = document.getElementById('skhead').style.left = (T / TIME * 100) + '%';
+        // ---- カメラ ----
+        const k = 1 - Math.exp(-dt * direct());
+        for (const key of ['tx', 'ty', 'tz', 'dist', 'yaw', 'pitch']) cam[key] += (goal[key] - cam[key]) * k;
+        shake *= Math.exp(-dt * 7); cam.sx = shake * 16 * Math.sin(clk * 70); cam.sy = shake * 12 * Math.cos(clk * 83);
+        const C = makeCam(cam); C.fx0 = cam.tx - Math.sin(cam.yaw) * 400; C.fz0 = cam.tz + Math.cos(cam.yaw) * 400;
         // ---- 描く ----
-        ctx.drawImage(GROUND, 0, 0);
-        const order = st[1].act === 'attack' ? [0, 1] : [1, 0];
-        for (const i of order) {
-          const f = F[i], s = st[i], t = clk - s.at, d = RG.motionDur(f.m.shape, f.m.motion || 0, s.act);
+        drawStage(ctx, C);
+        const items = props(C);
+        F.forEach((f, i) => {
+          const s = st[i], t = clk - s.at, d = RG.motionDur(f.m.shape, f.m.motion || 0, s.act);
           if (d && s.act !== 'lose' && t > d) { s.act = 'idle'; s.at = clk; }
-          const u = d ? Math.min(1, t / d) : 0, off = s.act === 'attack' ? 250 * hill(u, 0.1, 1) * (i ? -1 : 1) : 0, b = BOX[i];
-          ctx.strokeStyle = '#999'; ctx.lineWidth = 2.5; ctx.setLineDash([6, 6]); ctx.beginPath(); ctx.ellipse(b[0] + b[2] / 2 + off, b[1] + b[3] - 4, 120, 20, 0, 0, 7); ctx.stroke(); ctx.setLineDash([]);
-          RG.drawMon(ctx, f.m, f.get, b[0] + off, b[1], b[2], b[3], { maxScale: 1.1, pose: RG.poseFor(f.m, s.act, clk - s.at), flip: s.flip });
-        }
-        ctx.textAlign = 'center'; ctx.lineJoin = 'round';
-        for (let k = pops.length - 1; k >= 0; k--) {
-          const p = pops[k], a = (clk - p.at) / 0.9; if (a >= 1) { pops.splice(k, 1); continue; }
-          const b = BOX[p.i], px = b[0] + b[2] / 2, py = b[1] + 40 - 70 * a;
-          ctx.globalAlpha = 1 - a * a; ctx.font = (p.crit ? 92 : 66) + 'px ' + getComputedStyle(stage).fontFamily;
-          ctx.lineWidth = 10; ctx.strokeStyle = '#fff'; ctx.strokeText(p.text, px, py); ctx.fillStyle = '#111'; ctx.fillText(p.text, px, py);
-          if (p.crit) { ctx.font = '40px ' + getComputedStyle(stage).fontFamily; ctx.strokeText('かいしん！', px, py - 84); ctx.fillText('かいしん！', px, py - 84); }
+          const u = d ? Math.min(1, t / d) : 0, wx = X0[i] + (s.act === 'attack' ? 3.3 * hill(u, 0.1, 1) * (i ? -1 : 1) : 0);
+          const q = C.pr(wx, 0, 0); if (!q) return; s.q = q;
+          items.push({ z: q[2] - (s.act === 'attack' ? 0.5 : 0), draw(c2) {
+            const sc = FOCAL / q[2], bw = 3.3 * sc, bh = 3.0 * sc;
+            c2.strokeStyle = '#888'; c2.lineWidth = 2.5; c2.setLineDash([6, 6]); c2.beginPath(); c2.ellipse(q[0], q[1], 1.25 * sc, 1.25 * sc * Math.max(0.12, Math.sin(cam.pitch) * 1.6), 0, 0, 7); c2.stroke(); c2.setLineDash([]);
+            RG.drawMon(c2, f.m, f.get, q[0] - bw / 2, q[1] - bh, bw, bh, { maxScale: 9, bottom: true, pose: RG.poseFor(f.m, s.act, clk - s.at), flip: s.flip });
+          } });
+        });
+        items.sort((a, b) => b.z - a.z).forEach(it => it.draw(ctx));
+        ctx.textAlign = 'center';
+        for (let n2 = pops.length - 1; n2 >= 0; n2--) {
+          const p = pops[n2], a = (clk - p.at) / 0.9; if (a >= 1) { pops.splice(n2, 1); continue; }
+          const q = st[p.i].q; if (!q) continue; const sc = FOCAL / q[2], px = q[0], py = q[1] - 3.1 * sc - 60 * a, fs = (p.crit ? 96 : 68) * Math.min(1.5, Math.max(0.7, sc / 70));
+          ctx.globalAlpha = 1 - a * a; ctx.font = fs + 'px ' + font;
+          ctx.lineWidth = fs * 0.16; ctx.strokeStyle = '#fff'; ctx.strokeText(p.text, px, py); ctx.fillStyle = '#111'; ctx.fillText(p.text, px, py);
+          if (p.crit) { ctx.font = fs * 0.45 + 'px ' + font; ctx.strokeText('かいしん！', px, py - fs * 0.95); ctx.fillText('かいしん！', px, py - fs * 0.95); }
           ctx.globalAlpha = 1;
         }
         requestAnimationFrame(loop);
@@ -296,7 +379,7 @@
     const cpu = dummyMon();
     RG.items.owners();
     const F = [
-      { m, get: UI.getter(m), name: m.name, owner: pl.name, stats: RG.stats(m, pl.grade), hits, fx: RG.gemFx(m.gems, pl.grade) },
+      { m, get: UI.getter(m), name: m.name, owner: pl.name, stats: RG.stats(m, pl.grade), hits, fx: RG.gemFx(m.gem, pl.grade) },
       { m: cpu.m, get: cpu.get, name: cpu.m.name, owner: 'コンピューター（' + CPU[P.cpu].name + '）', stats: RG.stats(cpu.m, pl.grade), hits: cpuHits(P.cpu, n, subj < 0 ? -1 : rnd(n)) },
     ];
     const sim = simulate(F);
@@ -306,10 +389,10 @@
     if (sim.winner === 0) {
       pl.coins += 100; if (P.mode === 'A') pl.doneA = 1; else pl.doneB |= 1 << P.subj;
       RG.app.save(); note = 'コイン +100！';
-      if (Math.random() < DROP[P.cpu]) {
-        const t = RG.items.rollGem(Math.random, pl.grade, DROP200[P.cpu], DROP300[P.cpu]);
-        await UI.tell(`${RG.gemIcon(t)}<br>ほうせきを みつけた！<br>「${RG.GEMS[t].name}」<br><span class="note">${RG.gemText(t, pl.grade)}</span>`);
-        if (await RG.items.give(t)) note += `　ほうせき「${RG.GEMS[t].name}」を てにいれた！`;
+      if (RG.gemsOn() && Math.random() < DROP[P.cpu]) {
+        const t = RG.items.rollBest(Math.random, DROP_ROLLS[P.cpu]);
+        await UI.tell(`${RG.gemIcon(t)}<br>ほうせきを みつけた！<br>「${RG.gemName(t)}」<br><span class="note">${RG.gemText(t)}</span>`);
+        if (await RG.items.give(t)) note += `　「${RG.gemName(t)}」を てにいれた！`;
       }
     }
     result(F, sim, { vs: false, note, again: sim.winner === 0 ? B.practice : runPractice });
@@ -356,8 +439,8 @@
       const h1 = await solve({ who: who[1], grade: g, subj: subj[1] }); if (!h1) return UI.home();
       RG.items.owners();
       const F = [
-        { m, get: UI.getter(m), name: m.name, owner: who[0], stats: RG.stats(m, g), hits: h0, fx: RG.gemFx(m.gems, g) },
-        { m: foe.m, get: foe.get, name: foe.m.name, owner: who[1], stats: RG.stats(foe.m, g), hits: h1, fx: RG.gemFx(foe.m.gems, g) },
+        { m, get: UI.getter(m), name: m.name, owner: who[0], stats: RG.stats(m, g), hits: h0, fx: RG.gemFx(m.gem, g) },
+        { m: foe.m, get: foe.get, name: foe.m.name, owner: who[1], stats: RG.stats(foe.m, g), hits: h1, fx: RG.gemFx(foe.m.gem, g) },
       ];
       const sim = simulate(F);
       await UI.tell('ふたりで がめんを みよう！');

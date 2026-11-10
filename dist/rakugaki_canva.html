@@ -164,9 +164,9 @@ button{font:inherit;color:inherit;cursor:pointer;background:none;border:0}
 .bsetb{position:absolute;left:50px;top:96px;width:1180px;display:flex;flex-direction:column;gap:14px}
 .brow{display:flex;align-items:center;gap:16px}
 .brow>span{width:150px;font-size:26px;flex:none;text-align:right}
-.brow>div{display:flex;gap:12px;flex-wrap:nowrap}
-.btn.bo{min-width:0;width:190px;height:62px;padding:0 6px;font-size:24px}
-.btn.bo.w{width:290px}
+.brow>div{display:flex;gap:12px;flex-wrap:nowrap;width:1010px}
+.btn.bo{min-width:0;flex:0 1 190px;width:190px;height:62px;padding:0 4px;font-size:24px}
+.btn.bo.w{width:290px;flex-basis:290px}
 .btn.bm{min-width:0;width:150px;height:112px;padding:4px;flex-direction:column;gap:0;font-size:20px}
 .btn.bm b{font-weight:normal}.btn.bm canvas{width:120px;height:70px}
 .btn.bm.on{background:#fff;color:var(--ink);outline:5px solid var(--ink);outline-offset:-1px}
@@ -233,21 +233,21 @@ button{font:inherit;color:inherit;cursor:pointer;background:none;border:0}
 .vmode{position:absolute;left:50px;top:560px}
 
 /* ===== ほうせき・おみせ ===== */
-.gem{width:56px;height:56px;flex:none}.gem text{font-family:var(--hand)}
+.gem{width:56px;height:62px;flex:none}.gem text{font-family:var(--hand)}
 .btn.gcell{min-width:0;width:74px;height:74px;padding:0;box-shadow:2px 3px 0 var(--ink);border-radius:14px 18px 13px 17px}
 .btn.gcell.on{background:#fff;color:var(--ink);outline:5px solid var(--ink);outline-offset:-1px}
-.gslots{display:flex;align-items:center;gap:14px;height:78px}.gslots span{width:150px;font-size:26px}
+.gslots{display:flex;align-items:center;gap:14px;height:78px}.gslots span{width:150px;font-size:26px}.gslots em{font-style:normal;font-size:22px}
 .gcount{position:absolute;right:30px;top:24px;padding:6px 26px;font-size:28px}
 .ggrid{position:absolute;left:40px;top:108px;width:850px;display:grid;grid-template-columns:repeat(5,1fr);gap:14px}
-.gcell.big{width:auto;height:136px;flex-direction:column;gap:0;font-size:17px}
-.gcell.big .gem{width:84px;height:84px}.gcell.big em{font-style:normal;height:24px;line-height:24px;max-width:150px;overflow:hidden;white-space:nowrap}
+.gcell.big{width:auto;height:136px;padding-top:4px;flex-direction:column;gap:0;font-size:17px}
+.gcell.big .gem{width:84px;height:92px}.gcell.big em{font-style:normal;height:24px;line-height:24px;max-width:150px;overflow:hidden;white-space:nowrap}
 .gcell.none{border-style:dashed;border-color:#bbb;border-radius:14px 18px 13px 17px}
 .gside{position:absolute;left:920px;top:108px;width:330px;height:586px;padding:18px;display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center}
-.gside .gem{width:130px;height:130px}.gside h3{font-size:30px;font-weight:normal;line-height:1.2}.gside p{font-size:22px;line-height:1.35}
+.gside .gem{width:130px;height:143px}.gside h3{font-size:30px;font-weight:normal;line-height:1.2}.gside p{font-size:22px;line-height:1.35}
 .gside .col{margin-top:auto;width:100%}.gside .btn{width:100%}
 .gnone{margin:auto;color:#666}
 .gpick{display:grid;grid-template-columns:repeat(10,1fr);gap:8px}.gpick .eq{border-style:dashed}
-.mbox>.gem{width:110px;height:110px}.mtext .gem{width:110px;height:110px}
+.mbox>.gem{width:110px;height:121px}.mtext .gem{width:110px;height:121px}
 .glist{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:820px}
 .btn.grow{min-width:0;height:78px;padding:0 12px;justify-content:flex-start;gap:10px;text-align:left}
 .grow span{display:flex;flex-direction:column;flex:1;overflow:hidden;line-height:1.2}.grow b{font-size:21px;font-weight:normal;white-space:nowrap}.grow em{font-style:normal;font-size:14px;color:#555;white-space:normal}
@@ -257,12 +257,15 @@ button{font:inherit;color:inherit;cursor:pointer;background:none;border:0}
 .tenshu{width:220px;height:286px}.skeeper .bubble{width:380px;flex:none;min-height:96px;max-height:110px;justify-content:center;text-align:center;font-size:23px}
 .sgrid{position:absolute;left:460px;top:120px;width:790px;display:grid;grid-template-columns:repeat(4,182px);gap:22px 20px}
 .btn.scell{min-width:0;width:182px;height:182px;padding:6px;flex-direction:column;gap:6px;font-size:22px}
-.scell .gem{width:104px;height:104px}.scell b{font-weight:normal}
+.scell .gem{width:100px;height:110px}.scell b{font-weight:normal}
 .sico{font-style:normal;height:104px;display:flex;align-items:center;justify-content:center;font-size:30px;border:3px dashed var(--ink);border-radius:16px;width:150px}
 .scell.sold{opacity:.4;border-style:dashed;box-shadow:none}
 .bleft{position:absolute;left:60px;bottom:34px;font-size:24px}.bleft b{font-size:32px;font-weight:normal}
 .btn.bo small{font-size:14px;margin-left:4px}
 .dgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.dgrid .btn{min-width:0;font-size:18px;height:46px;padding:0 4px;align-self:auto}
+
+.hsmall.three{grid-template-columns:repeat(3,1fr)}
+.sgrid:empty{display:none}
 </style>
 </head>
 <body>
@@ -12680,7 +12683,7 @@ window.RG.ASSETS = {"decide": "data:audio/mpeg;base64,//uwTAAAAAAAAAAAAAAAAAAAAA
 window.RG = window.RG || {};
 (function (RG) {
   'use strict';
-  RG.VERSION = '0.5.0';
+  RG.VERSION = '0.6.0';
   RG.JR = 24;            // 関節の丸の半径
   RG.ADJ_MAX = 20;       // くみたてで ずらせる はば（関節の丸の中まで）
   RG.GUIDE_IN = 6;       // ガイド（描ける範囲）は わくの 6px 内がわ
@@ -12928,7 +12931,7 @@ window.RG = window.RG || {};
     const has = pid => !!get(pid), L = RG.layout(m, has);
     if (!L.order.length) return null;
     const s = Math.min(bw / L.w, bh / L.h, opt.maxScale || 9), left = m.face === 1, pose = opt.pose || null;
-    const ox = bx + (bw - L.w * s) / 2, oy = by + (bh - L.h * s) / 2, parts = RG.partsFor(m);
+    const ox = bx + (bw - L.w * s) / 2, oy = opt.bottom ? by + bh - L.h * s : by + (bh - L.h * s) / 2, parts = RG.partsFor(m);   // opt.bottom＝足もとを わくの 下に そろえる
     const zOf = p => { const a = !p.free && m.adj && m.adj[p.id]; return a && a[2] != null ? a[2] : p.z; };
     ctx.save();
     if (opt.flip) { ctx.translate(bx * 2 + bw, 0); ctx.scale(-1, 1); }
@@ -15633,11 +15636,12 @@ window.RG.QDB = [
     m.r5.forEach(v => w.vu(v)); m.r4.forEach(v => w.vu(v));
     parts.filter(p => p.parent && !p.free).forEach(p => { const a = (m.adj && m.adj[p.id]) || [0, 0, p.z]; w.u8(a[0] + 32); w.u8(a[1] + 32); w.u8(a[2] == null ? p.z : a[2]); });
     w.u8(m.motion || 0);
-    for (let i = 0; i < 3; i++) w.u8((m.gems && m.gems[i]) || 0);
+    for (let i = 0; i < 3; i++) w.u8(0);   // 前の 形式の ほうせき（いまは 使わない。場所だけ のこす）
     w.str(m.creator.name); w.u32(m.creator.id); w.u8(m.grade); w.vu(m.date);
     // じゆうパーツ（スライム）：こ数 →（わく番号・しゅるい・x・y・重なり）
     const fr = Object.keys(m.free || {}).filter(k => m.free[k]);
     w.u8(fr.length); fr.forEach(k => { const f = m.free[k]; w.u8(+k); w.u8(f.k); w.vu(f.x); w.vu(f.y); w.u8(f.z ? 1 : 0); });
+    w.vu(m.gem || 0);      // つけている ほうせき（1つ。0＝なし）
     return seal(w);
   };
   RG.decodeMon = function (bytes) {
@@ -15652,6 +15656,7 @@ window.RG.QDB = [
     m.creator = { name: r.str(), id: r.u32() }; m.grade = r.u8(); m.date = r.vu();
     m.free = {};
     if (r.i < r.b.length) { const n = r.u8(); for (let i = 0; i < n; i++) { const k = r.u8(), f = { k: r.u8(), x: Math.min(290, Math.max(30, r.vu())), y: Math.min(210, Math.max(30, r.vu())), z: r.u8() ? 1 : 0 }; if (k >= 1 && k <= RG.FREE_MAX && RG.FREE_KINDS[f.k]) m.free[k] = f; } }
+    m.gem = r.i < r.b.length ? r.vu() : 0;
     return m;
   };
 
@@ -15660,18 +15665,20 @@ window.RG.QDB = [
     const w = new W();
     MAGIC.forEach(x => w.u8(x)); w.u8(FMT); w.u8(2);
     w.str(p.name); w.u32(p.id); w.u8(p.grade); w.vu(p.coins);
-    w.u8((p.gems || []).length); (p.gems || []).forEach(g => w.u8(g));
+    w.u8(0);               // 前の 形式の ほうせき（いまは 使わない。場所だけ のこす）
     let mask = 0; RG.SHAPE_ORDER.forEach((s, i) => { if (p.shapes.includes(s)) mask |= 1 << i; }); w.u8(mask);
     w.u8(p.slots); w.vu(p.day || 0); w.u8(p.doneA || 0); w.u8(p.doneB || 0); w.u8(p.bonus || 0); w.u8(p.tutorial ? 1 : 0);
     w.u8(p.bought || 0);   // きょう おみせで 買った わく（ビット）
+    w.u8((p.gems || []).length); (p.gems || []).forEach(g => w.vu(g));   // もっている ほうせき
     return seal(w);
   };
   RG.decodePlayer = function (bytes) {
     const r = open(bytes, 2), p = { name: r.str(), id: r.u32(), grade: r.u8(), coins: r.vu() };
-    const n = r.u8(); p.gems = []; for (let i = 0; i < n; i++) p.gems.push(r.u8());
+    const n0 = r.u8(); for (let i = 0; i < n0; i++) r.u8(); p.gems = [];
     const mask = r.u8(); p.shapes = RG.SHAPE_ORDER.filter((s, i) => mask & (1 << i));
     p.slots = r.u8(); p.day = r.vu(); p.doneA = r.u8(); p.doneB = r.u8(); p.bonus = r.u8(); p.tutorial = !!r.u8();
     p.bought = r.i < r.b.length ? r.u8() : 0;
+    if (r.i < r.b.length) { const n = r.u8(); for (let i = 0; i < n; i++) p.gems.push(r.vu()); }
     return p;
   };
 })(window.RG);
@@ -16616,7 +16623,7 @@ window.RG.QDB = [
         const f = await pickFile(); if (!f) return;
         const p = RG.readPlayerPNG(await RG.fileToCanvas(f));
         if (S.player && !(await ask(`いまの データ（${esc(S.player.name)}）を「${esc(p.name)}」の データに かえるよ。いい？<br><span class="note">モンスターは そのまま のこるよ</span>`))) return;
-        S.player = p; S.mons.forEach(m => { m.gems = [0, 0, 0]; }); save(); await tell(`「${esc(p.name)}」の データを よみこんだよ。<br><span class="note">モンスターは 1たいずつ PNGから よみこんでね</span>`); home();
+        S.player = p; S.mons.forEach(m => { m.gem = 0; }); save(); await tell(`「${esc(p.name)}」の データを よみこんだよ。<br><span class="note">モンスターは 1たいずつ PNGから よみこんでね</span>`); home();
       },
     });
   }
@@ -16653,7 +16660,7 @@ window.RG.QDB = [
     const bonus = RG.items.loginBonus();
     show('home', `<div class="hname box">${esc(S.player.name)}　${S.player.grade}ねんせい</div><div class="hcoin box">コイン　${S.player.coins}</div>
       <div class="hbig"><button class="btn huge" data-a="prac"><b>まいにち れんしゅう</b><span>きょうの のこり ${RG.items.left()}かい</span></button><button class="btn huge" data-a="vs"><b>ともだちと たいせん</b><span>1だいで ふたりで あそぶ</span></button></div>
-      <div class="hsmall"><button class="btn" data-a="chars">キャラクター</button><button class="btn" data-a="gems">ほうせき</button><button class="btn" data-a="shop">おみせ</button><button class="btn" data-a="set">せってい</button></div>`, {
+      <div class="hsmall${RG.gemsOn() ? '' : ' three'}"><button class="btn" data-a="chars">キャラクター</button>${RG.gemsOn() ? '<button class="btn" data-a="gems">ほうせき</button>' : ''}<button class="btn" data-a="shop">おみせ</button><button class="btn" data-a="set">せってい</button></div>`, {
       chars() { chars(); }, set() { settings(); }, prac() { RG.battle.practice(); }, vs() { RG.battle.versus(); }, gems() { RG.items.gemScreen(); }, shop() { RG.items.shop(); },
     });
     if (bonus) toast('ログインボーナス！ コイン +100');
@@ -16682,14 +16689,14 @@ window.RG.QDB = [
     const old = S.mons.findIndex(m => m.id === q.id);
     if (old >= 0) { if (!(await ask(`「${esc(S.mons[old].name)}」は もう いるよ。うわがき する？`))) return; }
     else if (S.mons.length >= S.player.slots) return tell('わくが いっぱいだよ。<br>どれかを PNGで だしてから にがしてね');
-    const m = { id: q.id, name: q.name, shape: q.shape, face: q.face, parts: {}, adj: q.adj, free: q.free || {}, motion: q.motion, gems: [0, 0, 0], r5: q.r5, r4: q.r4, creator: q.creator, grade: q.grade, date: q.date };
+    const m = { id: q.id, name: q.name, shape: q.shape, face: q.face, parts: {}, adj: q.adj, free: q.free || {}, motion: q.motion, gem: 0, r5: q.r5, r4: q.r4, creator: q.creator, grade: q.grade, date: q.date };
     for (const pid in r.parts) m.parts[pid] = r.parts[pid].toDataURL('image/png');
     CACHE[m.id] = r.parts;
     if (old >= 0) S.mons[old] = m; else S.mons.push(m);
     save();
     const notes = [];
     if (r.blurry) notes.push('すこし ぼやけて よみこんだよ');
-    if (q.gems.some(g => g)) notes.push('ほうせきは はずれたよ');
+    if (q.gem) notes.push('ほうせきは はずれたよ');
     if (!isMine(m)) notes.push(`うみのおやは ${esc(m.creator.name)}さん。えは なおせないよ`);
     await tell(`「${esc(m.name)}」が なかまに なったよ！` + (notes.length ? `<br><span class="note">${notes.join('<br>')}</span>` : ''));
     chars();
@@ -16712,7 +16719,7 @@ window.RG.QDB = [
       <div class="dbtns"><button class="btn${mine ? '' : ' off'}" data-a="edit">なおす</button><button class="btn strong" data-a="png">PNGで だす</button><button class="btn" data-a="bye">にがす</button></div>
       ${mine ? '' : '<p class="note">えを なおせるのは うみのおや だけだよ</p>'}</div>`, {
       back() { chars(); },
-      async gslot(b) { if (await RG.items.slotTap(m, +b.dataset.k)) detail(m); },
+      async gslot() { if (await RG.items.slotTap(m)) detail(m); },
       edit() { startMake({ shape: m.shape, edit: m }); },
       async png() { await showPNG(RG.buildMonPNG(m, getter(m)), fileName(m), `「${esc(m.name)}」の PNG`); },
       async bye() {
@@ -16919,7 +16926,7 @@ window.RG.QDB = [
   }
   function finish() {
     const ratio = RG.colorRatio(Object.values(D.parts)), e = D.edit;
-    const m = e || { id: RG.newId(), gems: [0, 0, 0], creator: { name: S.player.name, id: S.player.id }, date: RG.today() };
+    const m = e || { id: RG.newId(), gem: 0, creator: { name: S.player.name, id: S.player.id }, date: RG.today() };
     Object.assign(m, { name: D.name, shape: D.shape, face: D.face, adj: D.adj, free: D.free, motion: D.motion, r5: ratio.r5, r4: ratio.r4, grade: S.player.grade, parts: {} });
     for (const pid in D.parts) m.parts[pid] = D.parts[pid].toDataURL('image/png');
     CACHE[m.id] = D.parts;
@@ -16949,7 +16956,7 @@ window.RG.QDB = [
       ver() { verTap++; if (verTap >= 7) { verTap = 0; RG.debug = !RG.debug; settings(); } },
       t4() { p.coins += 1000; save(); toast('コイン +1000'); },
       t5() { p.day = -1; RG.items.rollDay(); toast('きょうの かいすうと おみせを もどしたよ'); },
-      async t6() { for (let i = 0; i < 3; i++) await RG.items.give(RG.items.rollGem(Math.random, p.grade, 0.3, 0.1)); toast('ほうせきを 3こ もらったよ'); },
+      async t6() { for (let i = 0; i < 3; i++) await RG.items.give(RG.items.rollGem(Math.random)); toast('ほうせきを 3こ もらったよ'); },
       back() { home(); }, grade() { setupGrade(p.name, true); },
       async pp() { await showPNG(RG.buildPlayerPNG(p), `rakugaki_player_${p.name}.png`, 'プレイヤーデータの PNG'); },
       all() { return exportAll(); },
@@ -16980,74 +16987,80 @@ window.RG.QDB = [
   const I = RG.items = {};
   const S = () => RG.app.S, P = () => RG.app.S.player;
 
-  // ---- ほうせきの しゅるい ----
-  // ★ 番号は QRに 入るので 変えない（足すときは うしろに）。price＝おみせの ねだん（100＝きほん、200・300＝上位）
-  // fx： s＝教科番号の ならび（ダメージ +v）／hp＝HP +／crit＝かいしんりつ +／cmul＝かいしんの ばいりつ +／def＝うける ダメージ −／back＝HPが 半分以下のとき ダメージ +
-  // 同じ こうかを かさねたときは 足し算
-  const G = (name, mark, price, fx) => ({ name, mark, price, fx });
-  RG.GEMS = {
-    1: G('こくごの いし', 'こ', 100, { s: [0], v: 0.10 }),
-    2: G('さんすうの いし', 'さ', 100, { s: [1], v: 0.10 }),
-    3: G('しゃかいの いし', 'し', 100, { s: [2], v: 0.10 }),
-    4: G('りかの いし', 'り', 100, { s: [3], v: 0.10 }),
-    5: G('えいごの いし', 'え', 100, { s: [4], v: 0.10 }),
-    6: G('たいりょくの いし', 'た', 100, { hp: 0.10 }),
-    7: G('かいしんの いし', 'か', 100, { crit: 0.05 }),
-    8: G('するどい いし', 'す', 100, { cmul: 0.3 }),
-    9: G('まもりの いし', 'ま', 100, { def: 0.08 }),
-    11: G('こくごと さんすうの いし', 'こさ', 200, { s: [0, 1], v: 0.10 }),
-    12: G('さんすうと りかの いし', 'さり', 200, { s: [1, 3], v: 0.10 }),
-    13: G('りかと しゃかいの いし', 'りし', 200, { s: [3, 2], v: 0.10 }),
-    14: G('しゃかいと えいごの いし', 'しえ', 200, { s: [2, 4], v: 0.10 }),
-    15: G('えいごと こくごの いし', 'えこ', 200, { s: [4, 0], v: 0.10 }),
-    16: G('おおきな たいりょくの いし', 'た＋', 200, { hp: 0.20 }),
-    17: G('おおきな かいしんの いし', 'か＋', 200, { crit: 0.10 }),
-    18: G('にじの いし', 'にじ', 300, { s: [0, 1, 2, 3, 4], v: 0.10 }),
-    19: G('おおきな まもりの いし', 'ま＋', 300, { def: 0.15 }),
-    20: G('ぎゃくてんの いし', 'ぎ', 300, { back: 0.25 }),
-  };
+  // ---- ほうせき（SPEC 8。ver 0.6.0 で 作りなおし）----
+  // ほうせき＝しゅるい（kind）＋ つよさ a（＋1〜＋10）＋ ふたつめの つよさ b（ふくごうの いし だけ）。＋1 で 1%
+  // 番号（id）＝ kind×121 ＋ a×11 ＋ b。★ kind の 番号は QRに 入るので 変えない（足すときは うしろに）
+  const AB = ['こく', 'さん', 'しゃ', 'りか', 'えい'], FULL = ['こくご', 'さんすう', 'しゃかい', 'りか', 'えいご'], MK = ['こ', 'さ', 'し', 'り', 'え'];
+  const KIND = {};
+  FULL.forEach((n, i) => { KIND[1 + i] = { type: 's', s: [i], base: n + 'の', mark: MK[i] }; });
+  KIND[6] = { type: 'crit', base: 'かいしんの', mark: 'か' };
+  KIND[7] = { type: 'hp', base: 'たいりょくの', mark: 'た' };
+  KIND[8] = { type: 'def', base: 'まもりの', mark: 'ま' };
+  KIND[9] = { type: 'cmul', base: 'するどい', mark: 'す' };
+  KIND[10] = { type: 'back', base: 'ぎゃくてんの', mark: 'ぎ' };
+  KIND[11] = { type: 'rainbow', base: 'にじの', mark: 'にじ', max: 4 };
+  { let k = 12; for (let i = 0; i < 5; i++) for (let j = i + 1; j < 5; j++) KIND[k++] = { type: 'ss', s: [i, j], base: AB[i] + AB[j] + 'の', mark: MK[i] + MK[j], two: true }; }   // 国算社理英の順（「さんこく」は ない）
+  FULL.forEach((n, i) => { KIND[22 + i] = { type: 'shp', s: [i], base: AB[i] + 'たいの', mark: MK[i] + 'た', two: true }; });
+  FULL.forEach((n, i) => { KIND[27 + i] = { type: 'sdef', s: [i], base: AB[i] + 'まもの', mark: MK[i] + 'ま', two: true }; });
   RG.GEM_MAX = 20;
-  const pct = v => Math.round(v * 100) + '%';
-  // せつめい文（学年で 教科の よび名が 変わる）
-  RG.gemText = function (id, grade) {
-    const g = RG.GEMS[id]; if (!g) return '';
-    const f = g.fx, names = grade <= 2 ? RG.SUBJ4 : RG.SUBJ5;
-    if (f.s) {
-      if (f.s.length >= 5) return `ぜんぶの きょうかの ダメージ +${pct(f.v)}`;
-      const ok = f.s.filter(i => i < names.length).map(i => names[i]);
-      return ok.length ? `${ok.join('・')}の ダメージ +${pct(f.v)}` + (ok.length < f.s.length ? '（えいごは 3ねんせいから）' : '') : 'えいごの ダメージが あがる（3ねんせいから つかえるよ）';
-    }
-    if (f.hp) return `HP +${pct(f.hp)}`;
-    if (f.crit) return `かいしんが でやすく なる（+${pct(f.crit)}）`;
-    if (f.cmul) return `かいしんの ダメージが 1.5ばい → ${(1.5 + f.cmul).toFixed(1)}ばい`;
-    if (f.def) return `うける ダメージ -${pct(f.def)}`;
-    if (f.back) return `HPが はんぶん いかの とき、ダメージ +${pct(f.back)}`;
-    return '';
+  RG.gemId = (kind, a, b) => kind * 121 + a * 11 + (b || 0);
+  // 番号 → 中身。おかしな番号は null
+  RG.gem = function (id) {
+    const kind = Math.floor(id / 121), a = Math.floor(id % 121 / 11), b = id % 11, K = KIND[kind];
+    if (!K || a < 1 || a > (K.max || 10) || (K.two ? b < 1 : b !== 0)) return null;
+    const N = RG.SUBJ5, lv = '＋' + a + (K.two ? '＋' + b : '');
+    const total = K.type === 'rainbow' ? a * 5 : a + b;         // 合計値（にじは 5教科ぶん）。ねだんと 出やすさを 決める
+    const fx = { subj: [0, 0, 0, 0, 0], hp: 0, crit: 0, cmul: 0, def: 0, back: 0 }; let text;
+    if (K.type === 's') { fx.subj[K.s[0]] = a / 100; text = `${N[K.s[0]]}の ダメージ +${a}%`; }
+    else if (K.type === 'ss') { fx.subj[K.s[0]] = a / 100; fx.subj[K.s[1]] = b / 100; text = `${N[K.s[0]]}の ダメージ +${a}%、${N[K.s[1]]}の ダメージ +${b}%`; }
+    else if (K.type === 'shp') { fx.subj[K.s[0]] = a / 100; fx.hp = b / 100; text = `${N[K.s[0]]}の ダメージ +${a}%、HP +${b}%`; }
+    else if (K.type === 'sdef') { fx.subj[K.s[0]] = a / 100; fx.def = b / 100; text = `${N[K.s[0]]}の ダメージ +${a}%、うける ダメージ -${b}%`; }
+    else if (K.type === 'crit') { fx.crit = a / 100; text = `かいしんが でやすく なる（+${a}%）`; }
+    else if (K.type === 'hp') { fx.hp = a / 100; text = `HP +${a}%`; }
+    else if (K.type === 'def') { fx.def = a / 100; text = `うける ダメージ -${a}%`; }
+    else if (K.type === 'cmul') { fx.cmul = a * 0.03; text = `かいしんの ダメージ 1.5ばい → ${(1.5 + a * 0.03).toFixed(2)}ばい`; }
+    else if (K.type === 'back') { fx.back = (10 + a) / 100; text = `HPが はんぶん いかの とき、ダメージ +${10 + a}%`; }
+    else { fx.subj = fx.subj.map(() => a / 100); text = `ぜんぶの きょうかの ダメージ +${a}%`; }
+    return { id, kind, a, b, name: K.base + ' いし' + lv, mark: K.mark, lv, total, price: total * 50, text, fx };
   };
-  // 白黒の 手書きの ほうせき（中の 文字で しゅるいが わかる）
+  RG.gemName = id => { const g = RG.gem(id); return g ? g.name : ''; };
+  RG.gemText = id => { const g = RG.gem(id); return g ? g.text : ''; };
+  // ほうせきは 3年生から（1・2年生モードでは つかえない）
+  RG.gemsOn = () => !!(P() && P().grade >= 3);
+  // 白黒の 手書きの ほうせき（中の ひらがなで しゅるい、下の 数字で つよさが わかる）
   RG.gemIcon = function (id) {
-    const g = RG.GEMS[id], m = g ? g.mark : '？', fs = m.length > 1 ? 15 : 22;
-    return `<svg class="gem" viewBox="0 0 60 60"><g fill="#fff" stroke="#111" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"><path d="M17 8 L44 7 L55 22 L30 54 L5 23 Z"/><path d="M5 23 L55 22 M17 8 L22 22 L30 54 M44 7 L38 22 L30 54" stroke-width="1.6" fill="none"/></g><rect x="13" y="14" width="34" height="20" rx="6" fill="#fff"/><text x="30" y="${m.length > 1 ? 30 : 32}" text-anchor="middle" font-size="${fs}" fill="#111">${m}</text></svg>`;
+    const g = RG.gem(id), m = g ? g.mark : '？', fs = m.length > 1 ? 15 : 22;
+    return `<svg class="gem" viewBox="0 0 60 66"><g fill="#fff" stroke="#111" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"><path d="M17 5 L44 4 L55 18 L30 48 L5 19 Z"/><path d="M5 19 L55 18 M17 5 L22 18 L30 48 M44 4 L38 18 L30 48" stroke-width="1.6" fill="none"/></g><rect x="13" y="10" width="34" height="19" rx="6" fill="#fff"/><text x="30" y="${m.length > 1 ? 25 : 27}" text-anchor="middle" font-size="${fs}" fill="#111">${m}</text><text x="30" y="64" text-anchor="middle" font-size="15" fill="#111">${g ? g.lv : ''}</text></svg>`;
   };
-  // つけている ほうせき（番号の ならび）の こうかを 足しあわせる
-  RG.gemFx = function (list, grade) {
-    const n = grade <= 2 ? 4 : 5, fx = { subj: [0, 0, 0, 0, 0], hp: 0, crit: 0, cmul: 0, def: 0, back: 0 };
-    for (const id of (list || [])) {
-      const g = RG.GEMS[id]; if (!g) continue; const f = g.fx;
-      if (f.s) f.s.forEach(i => { if (i < n) fx.subj[i] += f.v; });
-      for (const k of ['hp', 'crit', 'cmul', 'def', 'back']) if (f[k]) fx[k] += f[k];
-    }
-    return fx;
+  // つけている ほうせきの こうか。1・2年生は こうかなし
+  const NOFX = { subj: [0, 0, 0, 0, 0], hp: 0, crit: 0, cmul: 0, def: 0, back: 0 };
+  RG.gemFx = function (id, grade) { const g = grade >= 3 && id ? RG.gem(id) : null; return g ? g.fx : NOFX; };
+
+  // ---- 出やすさ：合計値が 大きいほど 出にくい（20＝0.05、19＝0.1 … 10＝11、9＝12 … 1＝20 の わりあい）----
+  const WEIGHT = { 20: 0.05, 19: 0.1, 18: 0.2, 17: 0.4, 16: 0.8, 15: 1.3, 14: 2, 13: 6, 12: 8, 11: 10, 10: 11, 9: 12, 8: 13, 7: 14, 6: 15, 5: 16, 4: 17, 3: 18, 2: 19, 1: 20 };
+  const BY_TOTAL = {};
+  for (const k in KIND) { const K = KIND[k]; for (let a = 1; a <= (K.max || 10); a++) for (let b = K.two ? 1 : 0; b <= (K.two ? 10 : 0); b++) { const g = RG.gem(RG.gemId(+k, a, b)); (BY_TOTAL[g.total] = BY_TOTAL[g.total] || []).push(g.id); } }
+  const WSUM = Object.values(WEIGHT).reduce((x, y) => x + y, 0);
+  I.WEIGHT = WEIGHT; I.BY_TOTAL = BY_TOTAL; I.WSUM = WSUM;
+  // ほうせきを 1つ ひく（r＝0〜1の 乱数を 返す 関数）。まず 合計値を 決め、その 合計値の いしから 1つ
+  I.rollGem = function (r) {
+    let x = r() * WSUM, total = 1;
+    for (let t = 20; t >= 1; t--) { x -= WEIGHT[t]; if (x < 0) { total = t; break; } }
+    const list = BY_TOTAL[total]; return list[Math.floor(r() * list.length)];
   };
+  // n回 ひいて、合計値が いちばん 大きいもの（つよい あいてほど いいものが 出やすい）
+  I.rollBest = function (r, n) { let best = 0; for (let i = 0; i < n; i++) { const t = I.rollGem(r); if (!best || RG.gem(t).total > RG.gem(best).total) best = t; } return best; };
 
   // ---- もちもの ----
-  // p.gems＝もっている ほうせきの 番号の ならび（つけている ものも ふくむ）。m.gems＝そのモンスターが つけている 番号（0＝なし）×3
+  // p.gems＝もっている ほうせきの 番号の ならび（つけている ものも ふくむ）。m.gem＝そのモンスターが つけている 番号（0＝なし。1たいに 1つ）
   // かえり値：p.gems と 同じ ならびで、つけている モンスター（なければ null）
   I.owners = function () {
-    const p = P(), own = p.gems.map(() => null);
+    const p = P(); p.gems = (p.gems || []).filter(t => RG.gem(t));        // 前の 形式の ほうせき（ver 0.5.0）は なくなる
+    const own = p.gems.map(() => null);
     for (const m of S().mons) {
-      m.gems = [0, 1, 2].map(i => (m.gems && m.gems[i]) || 0);
-      m.gems.forEach((g, k) => { if (!g) return; const i = p.gems.findIndex((t, j) => t === g && !own[j]); if (i >= 0) own[i] = m; else m.gems[k] = 0; });   // もっていない ほうせきは はずす
+      delete m.gems; m.gem = RG.gem(m.gem) ? m.gem : 0;
+      if (!m.gem) continue;
+      const i = p.gems.findIndex((t, j) => t === m.gem && !own[j]); if (i >= 0) own[i] = m; else m.gem = 0;   // もっていない ほうせきは はずす
     }
     return own;
   };
@@ -17057,37 +17070,37 @@ window.RG.QDB = [
     const p = P();
     if (p.gems.length < RG.GEM_MAX) { p.gems.push(t); RG.app.save(); return true; }
     const own = I.owners();
-    const pick = await new Promise(res => UI.modal(`<p class="mtext s">ほうせきが いっぱい（${RG.GEM_MAX}こ）だよ。<br>「${RG.GEMS[t].name}」を もらうなら、すてる ほうせきを えらんでね</p>
-      <div class="gpick">${p.gems.map((g, i) => `<button class="btn gcell${own[i] ? ' eq' : ''}" data-a="p" data-i="${i}" title="${RG.GEMS[g].name}">${RG.gemIcon(g)}</button>`).join('')}</div>
+    const pick = await new Promise(res => UI.modal(`<p class="mtext s">ほうせきが いっぱい（${RG.GEM_MAX}こ）だよ。<br>「${RG.gemName(t)}」を もらうなら、すてる ほうせきを えらんでね</p>
+      <div class="gpick">${p.gems.map((g, i) => `<button class="btn gcell${own[i] ? ' eq' : ''}" data-a="p" data-i="${i}" title="${RG.gemName(g)}">${RG.gemIcon(g)}</button>`).join('')}</div>
       <div class="row c"><button class="btn" data-a="n">もらわない</button></div>`, { p(b) { UI.closeModal(); res(+b.dataset.i); }, n() { UI.closeModal(); res(-1); } }));
     if (pick < 0) return false;
     await discard(pick, true); p.gems.push(t); RG.app.save(); return true;
   };
   async function discard(i, quiet) {
     const p = P(), own = I.owners(), m = own[i];
-    if (m) { const k = m.gems.indexOf(p.gems[i]); if (k >= 0) m.gems[k] = 0; }
+    if (m) m.gem = 0;
     p.gems.splice(i, 1); RG.app.save();
     if (m) await UI.tell('この ほうせきを そうびしている モンスターが いたよ。<br>そうびが はずれたよ');
     else if (!quiet) UI.toast('すてたよ');
   }
-  // m の わく k に、番号 t の ほうせきを つける（あいている ものが あるとき）
-  I.equip = function (m, k, t) { if (freeOf(t) < 1) return false; m.gems[k] = t; RG.app.save(); return true; };
-  I.unequip = function (m, k) { m.gems[k] = 0; RG.app.save(); };
-  // キャラクター画面の ほうせきの わく（3つ）
-  I.slotsHTML = m => `<div class="gslots"><span>ほうせき</span>${[0, 1, 2].map(k => `<button class="btn gcell" data-a="gslot" data-k="${k}">${m.gems && m.gems[k] ? RG.gemIcon(m.gems[k]) : '<i class="plus2">＋</i>'}</button>`).join('')}</div>`;
+  // m に 番号 t の ほうせきを つける（あいている ものが あるとき。前の ほうせきは はずれる）
+  I.equip = function (m, t) { if (freeOf(t) < 1) return false; m.gem = t; RG.app.save(); return true; };
+  I.unequip = function (m) { m.gem = 0; RG.app.save(); };
+  // キャラクター画面の ほうせきの わく（1つ）。1・2年生は 出さない
+  I.slotsHTML = m => !RG.gemsOn() ? '' : `<div class="gslots"><span>ほうせき</span><button class="btn gcell" data-a="gslot">${m.gem ? RG.gemIcon(m.gem) : '<i class="plus2">＋</i>'}</button><em>${m.gem ? RG.gemName(m.gem) : 'つけていない'}</em></div>`;
   // わくを おした：ついていれば 中身を 見て はずす、あいていれば えらんで つける。かわったら true
-  I.slotTap = async function (m, k) {
-    I.owners(); const p = P(), cur = m.gems[k];
+  I.slotTap = async function (m) {
+    I.owners(); const p = P(), cur = m.gem;
     if (cur) {
-      const off = await new Promise(res => UI.modal(`${RG.gemIcon(cur)}<p class="mtext">${RG.GEMS[cur].name}</p><p class="mtext s">${RG.gemText(cur, p.grade)}</p><div class="row c"><button class="btn" data-a="n">とじる</button><button class="btn strong" data-a="y">はずす</button></div>`, { y() { UI.closeModal(); res(true); }, n() { UI.closeModal(); res(false); } }));
-      if (off) I.unequip(m, k); return off;
+      const off = await new Promise(res => UI.modal(`${RG.gemIcon(cur)}<p class="mtext">${RG.gemName(cur)}</p><p class="mtext s">${RG.gemText(cur)}</p><div class="row c"><button class="btn" data-a="n">とじる</button><button class="btn strong" data-a="y">はずす</button></div>`, { y() { UI.closeModal(); res(true); }, n() { UI.closeModal(); res(false); } }));
+      if (off) I.unequip(m); return off;
     }
     const types = [...new Set(p.gems)].filter(t => freeOf(t) > 0).sort((a, b) => a - b);
     if (!types.length) { await UI.tell(p.gems.length ? 'あいている ほうせきが ないよ。<br>ほかの モンスターから はずしてね' : 'まだ ほうせきを もっていないよ。<br>れんしゅうで かつか、おみせで かおう'); return false; }
-    const t = await new Promise(res => UI.modal(`<p class="mtext s">どの ほうせきを つける？</p><div class="glist">${types.map(t => `<button class="btn grow" data-a="t" data-t="${t}">${RG.gemIcon(t)}<span><b>${RG.GEMS[t].name}</b><em>${RG.gemText(t, p.grade)}</em></span><u>×${freeOf(t)}</u></button>`).slice(0, 8).join('')}</div>
+    const t = await new Promise(res => UI.modal(`<p class="mtext s">どの ほうせきを つける？</p><div class="glist">${types.map(t => `<button class="btn grow" data-a="t" data-t="${t}">${RG.gemIcon(t)}<span><b>${RG.gemName(t)}</b><em>${RG.gemText(t)}</em></span><u>×${freeOf(t)}</u></button>`).slice(0, 8).join('')}</div>
       ${types.length > 8 ? '<p class="note">ほかの ほうせきは「ほうせき」の がめんから つけられるよ</p>' : ''}<div class="row c"><button class="btn" data-a="n">やめる</button></div>`, { t(b) { UI.closeModal(); res(+b.dataset.t); }, n() { UI.closeModal(); res(0); } }));
     if (!t) return false;
-    I.equip(m, k, t); return true;
+    I.equip(m, t); return true;
   };
 
   // ---- 1日の ながれ ----
@@ -17113,23 +17126,22 @@ window.RG.QDB = [
   // =============== ほうせきの がめん ===============
   let gsel = 0;
   I.gemScreen = function () {
+    if (!RG.gemsOn()) return UI.tell('ほうせきは 3ねんせいから つかえるよ');
     const p = P(), own = I.owners(); if (gsel >= p.gems.length) gsel = Math.max(0, p.gems.length - 1);
     const cells = []; for (let i = 0; i < RG.GEM_MAX; i++) cells.push(i < p.gems.length ? `<button class="btn gcell big${i === gsel ? ' on' : ''}" data-a="sel" data-i="${i}">${RG.gemIcon(p.gems[i])}<em>${own[i] ? esc(own[i].name) : ''}</em></button>` : '<div class="gcell big none box"></div>');
     const t = p.gems[gsel], m = own[gsel];
     UI.show('gems', `<h1 class="ttl">ほうせき</h1><button class="btn backbtn" data-a="back">もどる</button><div class="gcount box">${p.gems.length} / ${RG.GEM_MAX}</div>
       <div class="ggrid">${cells.join('')}</div>
-      <div class="gside box">${t ? `${RG.gemIcon(t)}<h3>${RG.GEMS[t].name}</h3><p>${RG.gemText(t, p.grade)}</p><p class="note">${m ? `「${esc(m.name)}」が つけているよ` : 'だれも つけていないよ'}</p>
+      <div class="gside box">${t ? `${RG.gemIcon(t)}<h3>${RG.gemName(t)}</h3><p>${RG.gemText(t)}</p><p class="note">${m ? `「${esc(m.name)}」が つけているよ` : 'だれも つけていないよ'}</p>
         <div class="col"><button class="btn strong" data-a="${m ? 'off' : 'on'}">${m ? 'はずす' : 'モンスターに つける'}</button><button class="btn" data-a="del">すてる</button></div>` : '<p class="gnone">まだ ほうせきを<br>もっていないよ。<br>れんしゅうで かつか、<br>おみせで かおう</p>'}</div>`, {
       back() { UI.home(); }, sel(b) { gsel = +b.dataset.i; I.gemScreen(); },
-      off() { const k = m.gems.indexOf(t); if (k >= 0) I.unequip(m, k); I.gemScreen(); },
+      off() { I.unequip(m); I.gemScreen(); },
       async on() {
         const mons = S().mons; if (!mons.length) return UI.tell('さきに モンスターを つくろう');
-        const i = await new Promise(res => UI.modal(`<p class="mtext s">どの モンスターに つける？</p><div class="row c wrap">${mons.map((x, i) => `<button class="btn mpick" data-a="m" data-i="${i}"><b>${esc(x.name)}</b><em>${x.gems.filter(g => g).length} / 3</em></button>`).join('')}</div><div class="row c"><button class="btn" data-a="n">やめる</button></div>`, { m(b) { UI.closeModal(); res(+b.dataset.i); }, n() { UI.closeModal(); res(-1); } }));
-        if (i < 0) return; const x = mons[i], k = x.gems.indexOf(0);
-        if (k < 0) return UI.tell(`「${esc(x.name)}」は もう 3つ つけているよ。<br>さきに どれかを はずしてね`);
-        I.equip(x, k, t); I.gemScreen();
+        const i = await new Promise(res => UI.modal(`<p class="mtext s">どの モンスターに つける？</p><div class="row c wrap">${mons.map((x, i) => `<button class="btn mpick" data-a="m" data-i="${i}"><b>${esc(x.name)}</b><em>${x.gem ? 'いまの いしと いれかえ' : 'つけていない'}</em></button>`).join('')}</div><div class="row c"><button class="btn" data-a="n">やめる</button></div>`, { m(b) { UI.closeModal(); res(+b.dataset.i); }, n() { UI.closeModal(); res(-1); } }));
+        if (i < 0) return; I.equip(mons[i], t); I.gemScreen();
       },
-      async del() { if (await UI.ask(`「${RG.GEMS[t].name}」を すてるよ。もとには もどせないよ`, 'すてる')) { await discard(gsel); I.gemScreen(); } },
+      async del() { if (await UI.ask(`「${RG.gemName(t)}」を すてるよ。もとには もどせないよ`, 'すてる')) { await discard(gsel); I.gemScreen(); } },
     });
   };
 
@@ -17137,31 +17149,32 @@ window.RG.QDB = [
   const EXPAND_PRICE = [0, 0, 50, 100, 150, 200, 300];   // n わく目の ねだん
   const SHAPE_PRICE = 200;
   function rng(seed) { let a = seed >>> 0; return () => { a = (a + 0x6D2B79F5) >>> 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
-  const byPrice = (price, grade) => Object.keys(RG.GEMS).map(Number).filter(t => RG.GEMS[t].price === price && !(grade <= 2 && RG.GEMS[t].fx.s && RG.GEMS[t].fx.s.every(i => i >= 4)));
-  // ほうせきを 1つ ひく。w200・w300＝上位が 出る 確率
-  I.rollGem = function (r, grade, w200, w300) { const x = r(), list = byPrice(x < w300 ? 300 : x < w300 + w200 ? 200 : 100, grade); return list[Math.floor(r() * list.length)]; };
-  // きょうの 品ぞろえ（8こ）。日付と プレイヤーで 決まる（開きなおしても 同じ）
+  // きょうの 品ぞろえ。日付と プレイヤーで 決まる（開きなおしても 同じ）。かえり値の i＝わくの番号（買ったかどうかの きろくに 使う）
+  // 3年生から：ほうせき6＋かくちょう＋くみたて。1・2年生：かくちょうと くみたて だけ
   I.stock = function () {
     const p = P(); I.rollDay();
-    const r = rng(p.day * 7919 + p.id), gems = []; for (let i = 0; i < 8; i++) gems.push(I.rollGem(r, p.grade, 0.2, 0.05));
-    const next = RG.SHAPE_ORDER.find(k => !p.shapes.includes(k));
-    const st = gems.map(t => ({ kind: 'gem', t, name: RG.GEMS[t].name, text: RG.gemText(t, p.grade), price: RG.GEMS[t].price }));
-    if (p.slots < 6) st[6] = { kind: 'slot', name: 'かくちょう', text: `モンスターの わくが ${p.slots + 1}つに ふえる`, price: EXPAND_PRICE[p.slots + 1] };
-    if (next) st[7] = { kind: 'shape', k: next, name: `くみたて「${RG.SHAPE_NAMES[next]}」`, text: `「${RG.SHAPE_NAMES[next]}」の からだを つくれるように なる`, price: SHAPE_PRICE };
+    const r = rng(p.day * 7919 + p.id), gems = []; for (let i = 0; i < 8; i++) gems.push(I.rollGem(r));
+    const next = RG.SHAPE_ORDER.find(k => !p.shapes.includes(k)), st = [];
+    const gemItem = (t, i) => { const g = RG.gem(t); return { i, kind: 'gem', t, name: g.name, text: g.text, price: g.price }; };
+    if (RG.gemsOn()) for (let i = 0; i < 6; i++) st.push(gemItem(gems[i], i));
+    if (p.slots < 6) st.push({ i: 6, kind: 'slot', name: 'かくちょう', text: `モンスターの わくが ${p.slots + 1}つに ふえる`, price: EXPAND_PRICE[p.slots + 1] });
+    else if (RG.gemsOn()) st.push(gemItem(gems[6], 6));
+    if (next) st.push({ i: 7, kind: 'shape', k: next, name: `くみたて「${RG.SHAPE_NAMES[next]}」`, text: `「${RG.SHAPE_NAMES[next]}」の からだを つくれるように なる`, price: SHAPE_PRICE });
+    else if (RG.gemsOn()) st.push(gemItem(gems[7], 7));
     return st;
   };
   const TENSHU = `<svg class="tenshu" viewBox="0 0 200 260"><g fill="#fff" stroke="#111" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"><path d="M40 250 Q36 150 100 150 Q164 150 160 250 Z"/><path d="M70 190 L130 190 L126 250 L74 250 Z"/><circle cx="100" cy="92" r="58"/><path d="M48 70 Q100 8 152 70 Q100 52 48 70 Z"/></g><g fill="#111"><circle cx="80" cy="96" r="5"/><circle cx="120" cy="96" r="5"/></g><path d="M82 118 Q100 134 118 118" fill="none" stroke="#111" stroke-width="4" stroke-linecap="round"/></svg>`;
   I.shop = function (say) {
     const p = P(), st = I.stock();
     UI.show('shop', `<h1 class="ttl">おみせ</h1><button class="btn backbtn" data-a="back">もどる</button><div class="hcoin box">コイン　${p.coins}</div>
-      <div class="skeeper">${TENSHU}<div class="box bubble">${say || 'いらっしゃい！<br>しなものは まいにち かわるよ'}</div></div>
-      <div class="sgrid">${st.map((it, i) => {
-        const sold = p.bought >> i & 1;
-        return `<button class="btn scell${sold ? ' sold' : ''}" data-a="it" data-i="${i}">${it.kind === 'gem' ? RG.gemIcon(it.t) : `<i class="sico">${it.kind === 'slot' ? '＋わく' : esc(RG.SHAPE_NAMES[it.k])}</i>`}<b>${sold ? 'うりきれ' : it.price + 'コイン'}</b></button>`;
+      <div class="skeeper">${TENSHU}<div class="box bubble">${say || (st.length ? 'いらっしゃい！<br>しなものは まいにち かわるよ' : 'きょうは もう うるものが ないよ。<br>また きてね')}</div></div>
+      <div class="sgrid">${st.map((it, n) => {
+        const sold = p.bought >> it.i & 1;
+        return `<button class="btn scell${sold ? ' sold' : ''}" data-a="it" data-i="${n}">${it.kind === 'gem' ? RG.gemIcon(it.t) : `<i class="sico">${it.kind === 'slot' ? '＋わく' : esc(RG.SHAPE_NAMES[it.k])}</i>`}<b>${sold ? 'うりきれ' : it.price + 'コイン'}</b></button>`;
       }).join('')}</div>`, {
       back() { UI.home(); },
       async it(b) {
-        const i = +b.dataset.i, it = st[i]; if (p.bought >> i & 1) return;
+        const it = st[+b.dataset.i], i = it.i; if (p.bought >> i & 1) return;
         const buy = await new Promise(res => UI.modal(`${it.kind === 'gem' ? RG.gemIcon(it.t) : ''}<p class="mtext">${it.name}</p><p class="mtext s">${it.text}</p><p class="mtext s">${it.price}コイン（もっている コイン：${p.coins}）</p>
           <div class="row c"><button class="btn" data-a="n">やめる</button><button class="btn strong${p.coins < it.price ? ' off' : ''}" data-a="y">かう</button></div>${p.coins < it.price ? '<p class="note">コインが たりないよ</p>' : ''}`, { y() { UI.closeModal(); res(true); }, n() { UI.closeModal(); res(false); } }));
         if (!buy || p.coins < it.price) return;
@@ -17186,9 +17199,9 @@ window.RG.QDB = [
   const TIME = 60;                 // とく時間・みる時間（びょう）
   const HP = 1500, DMG_BASE = 80, DMG_K = 0.04, CRIT = 0.05, CRIT_MUL = 1.5, LOCK = 3;
   const CPU = [{ name: 'よわい', iv: 8, acc: 0.6 }, { name: 'ふつう', iv: 6, acc: 0.7 }, { name: 'つよい', iv: 4.5, acc: 0.8 }, { name: 'とてもつよい', iv: 3.5, acc: 0.9 }];
-  // CPUの つよさごとの、ほうせきが 出る 確率 と、上位（200・300コインの もの）が 出る 確率
-  const DROP = [0.2, 0.35, 0.5, 0.7], DROP200 = [0, 0.1, 0.25, 0.35], DROP300 = [0, 0, 0.05, 0.15];
-  B.CONST = { TIME, HP, DMG_BASE, DMG_K, CRIT, CRIT_MUL, LOCK, CPU, DROP, DROP200, DROP300 };
+  // CPUの つよさごとの、ほうせきが 出る 確率 と、ひく 回数（何回か ひいて いちばん いいものを もらう）
+  const DROP = [0.2, 0.35, 0.5, 0.7], DROP_ROLLS = [1, 1, 2, 3];
+  B.CONST = { TIME, HP, DMG_BASE, DMG_K, CRIT, CRIT_MUL, LOCK, CPU, DROP, DROP_ROLLS };
   // テストのとき 時間を 早送りできる（RG.timeScale）
   const now = () => performance.now() * (RG.timeScale || 1) / 1000;
   const wait = s => new Promise(r => setTimeout(r, s * 1000 / (RG.timeScale || 1)));
@@ -17323,83 +17336,166 @@ window.RG.QDB = [
   }
   B.simulate = simulate;
 
-  // =============== みる（シークバーで 殴り合い）===============
+  // =============== みる（3Dの ステージで 殴り合い。シークバーつき）===============
   const hill = (u, a, b) => (u <= a || u >= b) ? 0 : Math.sin(Math.PI * (u - a) / (b - a));
-  // 白黒の 手書きの 地面（おくゆきの ある 線）
-  function groundCanvas() {
-    const c = RG.mkCanvas(1280, 720), x = c.getContext('2d'); let seed = 7;
-    const r = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647 - 0.5; };
-    const wob = (x0, y0, x1, y1, col, w) => { x.strokeStyle = col; x.lineWidth = w; x.lineCap = 'round'; x.beginPath(); const n = 14; for (let i = 0; i <= n; i++) { const px = x0 + (x1 - x0) * i / n + r() * 5, py = y0 + (y1 - y0) * i / n + r() * 5; i ? x.lineTo(px, py) : x.moveTo(px, py); } x.stroke(); };
-    x.fillStyle = '#fff'; x.fillRect(0, 0, 1280, 720);
-    const HZ = 330;
-    wob(-10, HZ, 1290, HZ, '#111', 3.5);
-    for (const gx of [-900, -380, 60, 420, 860, 1220, 1660, 2180]) wob(640 + (gx - 640) * 0.08, HZ + 6, gx, 730, '#c4c4c8', 2.5);
-    for (const gy of [366, 418, 496, 600]) wob(-10, gy, 1290, gy, '#c4c4c8', 2.5);
-    // とおくの 山と くも、くさ
-    x.strokeStyle = '#111'; x.lineWidth = 3; x.lineJoin = 'round';
-    x.beginPath(); x.moveTo(60, HZ); x.lineTo(210 + r() * 8, 214); x.lineTo(300, 270); x.lineTo(380 + r() * 8, 236); x.lineTo(500, HZ); x.stroke();
-    x.beginPath(); x.moveTo(820, HZ); x.lineTo(960 + r() * 8, 240); x.lineTo(1040, 286); x.lineTo(1120, 250); x.lineTo(1230, HZ); x.stroke();
-    for (const [cx, cy] of [[180, 120], [640, 86], [1090, 132]]) { x.beginPath(); x.arc(cx - 38, cy + 8, 22, Math.PI * 0.6, Math.PI * 1.6); x.arc(cx, cy - 8, 32, Math.PI, Math.PI * 2); x.arc(cx + 40, cy + 8, 22, Math.PI * 1.4, Math.PI * 0.4); x.closePath(); x.stroke(); }
-    for (const [gx, gy] of [[90, 640], [330, 560], [560, 680], [760, 590], [1010, 660], [1200, 560], [470, 440], [900, 430]]) for (const d of [-12, 0, 12]) { x.beginPath(); x.moveTo(gx + d, gy); x.quadraticCurveTo(gx + d * 1.4, gy - 18, gx + d * 2 + r() * 6, gy - 30 - Math.abs(r()) * 14); x.stroke(); }
-    return c;
+  const SPEEDS = [1, 1.5, 2, 3];
+  // ---- 3D：せかいの 座標（x＝右、y＝上、z＝おく）を がめんに うつす ----
+  // カメラは「見る点（tx,ty,tz）」の まわりを、きょり dist・よこの かくど yaw・たての かくど pitch で まわる
+  const FOCAL = 780, CXS = 640, CYS = 380, DEG = Math.PI / 180;
+  function makeCam(c) {
+    const cp = Math.cos(c.pitch), px = c.tx + c.dist * Math.sin(c.yaw) * cp, py = c.ty + c.dist * Math.sin(c.pitch), pz = c.tz - c.dist * Math.cos(c.yaw) * cp;
+    let fx = c.tx - px, fy = c.ty - py, fz = c.tz - pz; const fl = Math.hypot(fx, fy, fz); fx /= fl; fy /= fl; fz /= fl;
+    let rx = fz, rz = -fx; const rl = Math.hypot(rx, rz) || 1; rx /= rl; rz /= rl;      // 右＝上×前
+    const ux = fy * rz, uy = fz * rx - fx * rz, uz = -fy * rx;                          // 上＝前×右
+    return {
+      // かえり値：[がめんx, がめんy, おくゆき]。おくゆきが 0.2 より 小さい（カメラの うしろ）ときは null
+      pr(x, y, z) { const dx = x - px, dy = y - py, dz = z - pz, Z = dx * fx + dy * fy + dz * fz; if (Z < 0.2) return null; return [CXS + FOCAL * (dx * rx + dz * rz) / Z + c.sx, CYS - FOCAL * (dx * ux + dy * uy + dz * uz) / Z + c.sy, Z]; },
+    };
   }
-  let GROUND = null;
+  // ステージの 線（手書きの ゆれを つけた、せかいの 座標の 点の ならび）。1回だけ 作る
+  let STAGE = null;
+  function buildStage() {
+    let seed = 11; const r = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647 - 0.5; };
+    const line = (x0, z0, x1, z1, n) => { const p = []; for (let i = 0; i <= n; i++) p.push([x0 + (x1 - x0) * i / n + r() * 0.12, 0, z0 + (z1 - z0) * i / n + r() * 0.12]); return p; };
+    const grid = [], ring = [], ring2 = [], tufts = [], rocks = [], mounts = [], clouds = [];
+    for (let x = -14; x <= 14; x += 2) grid.push(line(x, -9, x, 16, 12));
+    for (let z = -9; z <= 16; z += 2.5) grid.push(line(-14, z, 14, z, 14));
+    for (let i = 0; i <= 44; i++) { const a = i / 44 * Math.PI * 2; ring.push([Math.cos(a) * 5.2 + r() * 0.1, 0, Math.sin(a) * 3.4 + r() * 0.1]); ring2.push([Math.cos(a) * 5.6 + r() * 0.14, 0, Math.sin(a) * 3.8 + r() * 0.14]); }
+    for (let i = 0; i < 26; i++) { const a = r() * 6.3 * 2, d = 6.4 + Math.abs(r()) * 14; tufts.push([Math.cos(a) * d, Math.sin(a) * d * 0.8 + 2, 0.5 + Math.abs(r()) * 0.6]); }
+    for (let i = 0; i < 7; i++) { const a = r() * 6.3 * 2, d = 7 + Math.abs(r()) * 9; rocks.push([Math.cos(a) * d, Math.sin(a) * d * 0.8 + 3, 0.5 + Math.abs(r()) * 0.7]); }
+    for (let i = 0; i < 9; i++) { const a = (i / 9) * Math.PI * 2 + r() * 0.3; mounts.push([Math.sin(a) * 70, Math.cos(a) * 70, 12 + Math.abs(r()) * 16, 9 + Math.abs(r()) * 10]); }   // x, z, はば, 高さ
+    for (let i = 0; i < 7; i++) { const a = (i / 7) * Math.PI * 2 + r(); clouds.push([Math.sin(a) * 60, 20 + Math.abs(r()) * 12, Math.cos(a) * 60, 5 + Math.abs(r()) * 4]); }
+    return { grid, ring, ring2, tufts, rocks, mounts, clouds };
+  }
+  function drawStage(ctx, cam) {
+    STAGE = STAGE || buildStage();
+    ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, 1280, 720);
+    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    const poly = (pts, close) => { let on = false; ctx.beginPath(); for (const p of pts) { const q = cam.pr(p[0], p[1], p[2]); if (!q) { on = false; continue; } on ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1]); on = true; } if (close) ctx.closePath(); ctx.stroke(); };
+    // とおくの 山と くも
+    ctx.strokeStyle = '#111'; ctx.lineWidth = 3; ctx.fillStyle = '#fff';
+    for (const m of STAGE.mounts) {
+      const a = cam.pr(m[0], 0, m[1]), t = cam.pr(m[0], m[3], m[1]); if (!a || !t) continue;
+      const w = m[2] * FOCAL / a[2];
+      ctx.beginPath(); ctx.moveTo(a[0] - w, a[1]); ctx.lineTo(a[0] - w * 0.2, t[1]); ctx.lineTo(a[0] + w * 0.15, a[1] - (a[1] - t[1]) * 0.55); ctx.lineTo(a[0] + w * 0.5, a[1] - (a[1] - t[1]) * 0.8); ctx.lineTo(a[0] + w, a[1]); ctx.fill(); ctx.stroke();
+    }
+    for (const c of STAGE.clouds) {
+      const q = cam.pr(c[0], c[1], c[2]); if (!q) continue; const w = c[3] * FOCAL / q[2];
+      ctx.beginPath(); ctx.arc(q[0] - w * 0.5, q[1] + w * 0.1, w * 0.3, Math.PI * 0.6, Math.PI * 1.6); ctx.arc(q[0], q[1] - w * 0.12, w * 0.42, Math.PI, Math.PI * 2); ctx.arc(q[0] + w * 0.52, q[1] + w * 0.1, w * 0.3, Math.PI * 1.4, Math.PI * 0.4); ctx.closePath(); ctx.fill(); ctx.stroke();
+    }
+    // 地面：ます目（うすい線）と リング（黒い線）。地平線より 下を 白く ぬって、山の すそを かくす
+    const far = cam.pr(cam.fx0, 0, cam.fz0);
+    if (far) { ctx.fillStyle = '#fff'; ctx.fillRect(0, far[1], 1280, 720 - far[1]); ctx.strokeStyle = '#111'; ctx.lineWidth = 3.5; ctx.beginPath(); ctx.moveTo(-10, far[1] + 2); ctx.lineTo(1290, far[1] - 2); ctx.stroke(); }
+    ctx.strokeStyle = '#cfcfd4'; ctx.lineWidth = 2.2; for (const g of STAGE.grid) poly(g);
+    ctx.strokeStyle = '#111'; ctx.lineWidth = 3.5; poly(STAGE.ring, true);
+    ctx.setLineDash([10, 9]); ctx.lineWidth = 2.5; poly(STAGE.ring2, true); ctx.setLineDash([]);
+  }
+  // 地面に 立っている 小さな もの（くさ・いし）。おくの ものから 描くために まとめて わたす
+  function props(cam) {
+    const out = [];
+    for (const t of STAGE.tufts) { const q = cam.pr(t[0], 0, t[1]); if (q) out.push({ z: q[2], draw(ctx) { const h = t[2] * FOCAL / q[2]; ctx.strokeStyle = '#111'; ctx.lineWidth = Math.max(1.5, 3.2 * 6 / q[2]); for (const d of [-0.3, 0, 0.3]) { ctx.beginPath(); ctx.moveTo(q[0] + d * h * 0.5, q[1]); ctx.quadraticCurveTo(q[0] + d * h * 0.9, q[1] - h * 0.6, q[0] + d * h * 1.5, q[1] - h * (1 - Math.abs(d))); ctx.stroke(); } } }); }
+    for (const t of STAGE.rocks) { const q = cam.pr(t[0], 0, t[1]); if (q) out.push({ z: q[2], draw(ctx) { const w = t[2] * FOCAL / q[2]; ctx.strokeStyle = '#111'; ctx.fillStyle = '#fff'; ctx.lineWidth = Math.max(1.5, 3.2 * 6 / q[2]); ctx.beginPath(); ctx.moveTo(q[0] - w, q[1]); ctx.lineTo(q[0] - w * 0.6, q[1] - w * 0.7); ctx.lineTo(q[0] + w * 0.3, q[1] - w * 0.85); ctx.lineTo(q[0] + w, q[1]); ctx.closePath(); ctx.fill(); ctx.stroke(); } }); }
+    return out;
+  }
   // F＝[じぶん, あいて]（{m, get, name, owner, stats, hits}）、sim＝simulate の かえり値。おわったら resolve
   function watch(F, sim) {
     return new Promise(res => {
-      GROUND = GROUND || groundCanvas();
       const mk = (cls, f, i) => `<div class="hp ${cls} box"><p><b>${esc(f.name)}</b><span>${esc(f.owner)}</span></p><div class="hpbar"><i id="hp${i}"></i></div><em id="hpn${i}">${f.maxHp}</em></div>`;
       const marks = F.map((f, i) => f.hits.map(h => `<i class="mk ${i ? 'e' : 'p'}" style="left:${h.t / TIME * 100}%"></i>`).join('')).join('');
       UI.show('watch', `<canvas id="bcv" width="1280" height="720"></canvas>${mk('l', F[0], 0)}${mk('r', F[1], 1)}
         <div class="seek box"><i id="skfill"></i>${marks}<u id="skhead"></u></div>
         <div class="sklegend"><span><i class="mk p"></i>${esc(F[0].owner)}</span><span><i class="mk e"></i>${esc(F[1].owner)}</span></div>
-        <button class="btn spd" data-a="spd" id="spd">はやさ ×1</button><div class="bend hide box" id="bend">しあい しゅうりょう！</div>`, {
-        spd(b) { speed = speed === 1 ? 1.5 : 1; b.textContent = speed === 1 ? 'はやさ ×1' : 'はやさ ×1.5'; b.classList.toggle('on', speed !== 1); },
+        <button class="btn spd${B.speed ? ' on' : ''}" data-a="spd" id="spd">はやさ ×${SPEEDS[B.speed || 0]}</button><div class="bend hide box" id="bend"></div>`, {
+        spd(b) { B.speed = ((B.speed || 0) + 1) % SPEEDS.length; b.textContent = 'はやさ ×' + SPEEDS[B.speed]; b.classList.toggle('on', B.speed > 0); },
       });
-      const cv = document.getElementById('bcv'), ctx = cv.getContext('2d');
-      let speed = 1, T = 0, clk = 0, last = now(), ei = 0, ended = 0;
+      const cv = document.getElementById('bcv'), ctx = cv.getContext('2d'), bend = document.getElementById('bend');
+      const font = getComputedStyle(stage).fontFamily;
+      let T = 0, clk = 0, last = now(), ei = 0, ended = 0, shake = 0;
+      const INTRO = 3.0, X0 = [-2.4, 2.4];
       const st = F.map((f, i) => ({ act: 'idle', at: 0, hp: f.maxHp, flip: i === 0 ? f.m.face === 1 : f.m.face !== 1 }));
       const pend = [], pops = [];
-      const BOX = [[150, 250, 330, 300], [800, 250, 330, 300]];
       const set = (i, a) => { st[i].act = a; st[i].at = clk; };
+      // カメラ：cam＝いまの 位置、goal＝めざす 位置（なめらかに 近づく）
+      const cam = { tx: 0, ty: 1.3, tz: 0, dist: 17, yaw: -70 * DEG, pitch: 30 * DEG, sx: 0, sy: 0 }, goal = Object.assign({}, cam);
+      let focus = null;   // こうげき中の ちゅうもく：{ who, until, crit }
+      const direct = () => {
+        if (clk < INTRO) {                       // はじまり：ぐるっと まわりこんで 2ひきを うつす
+          const u = clk / INTRO;
+          if (u < 0.34) Object.assign(goal, { tx: X0[0], ty: 1.3, tz: 0, dist: 6.2, yaw: (-50 + 60 * u) * DEG, pitch: 9 * DEG });
+          else if (u < 0.68) Object.assign(goal, { tx: X0[1], ty: 1.3, tz: 0, dist: 6.2, yaw: (50 - 60 * (u - 0.34)) * DEG, pitch: 9 * DEG });
+          else Object.assign(goal, { tx: 0, ty: 1.35, tz: 0, dist: 9.6, yaw: 0, pitch: 11 * DEG });
+          return 3.2;
+        }
+        if (ended) {                             // おわり：かった ほうに よって ゆっくり まわる
+          const w = sim.winner, e = clk - ended;
+          Object.assign(goal, { tx: w < 0 ? 0 : X0[w] * 0.85, ty: 1.4, tz: 0, dist: w < 0 ? 10 : 6.4, yaw: (w === 1 ? -1 : 1) * (-24 + 16 * e) * DEG, pitch: 8 * DEG });
+          return 2.2;
+        }
+        if (focus && clk < focus.until) {        // こうげき：こうげきする ほうに よって、すこし うしろへ まわりこむ
+          const s = focus.who ? 1 : -1, u = 1 - (focus.until - clk) / focus.len;
+          Object.assign(goal, { tx: s * (1.5 - 2.3 * hill(u, 0.1, 1)), ty: 1.35, tz: 0, dist: focus.crit ? 5.8 : 6.8, yaw: s * (26 - 20 * u) * DEG, pitch: 7 * DEG });
+          return 5.5;
+        }
+        focus = null;                            // ふだん：2ひきを 見ながら ゆっくり ゆれる
+        Object.assign(goal, { tx: 0, ty: 1.35, tz: 0, dist: 9.4, yaw: 10 * Math.sin(clk * 0.45) * DEG, pitch: (10 + 2 * Math.sin(clk * 0.3)) * DEG });
+        return 2.6;
+      };
       const loop = () => {
         if (RG.screen !== 'watch') return;
-        const n = now(), dt = Math.max(0, Math.min(0.1 * (RG.timeScale || 1), n - last)) * speed; last = n; clk += dt;
-        if (!ended) {
+        const speed = SPEEDS[B.speed || 0], n = now(), dt = Math.max(0, Math.min(0.1 * (RG.timeScale || 1), n - last)) * speed; last = n; clk += dt;
+        // ---- しあいを すすめる ----
+        if (clk >= INTRO && !ended) {
           T = Math.min(sim.end, T + dt);
-          while (ei < sim.events.length && sim.events[ei].t <= T) { const e = sim.events[ei++]; set(e.who, 'attack'); pend.push({ at: clk + RG.motionDur(F[e.who].m.shape, F[e.who].m.motion || 0, 'attack') * 0.5, e }); }
+          while (ei < sim.events.length && sim.events[ei].t <= T) {
+            const e = sim.events[ei++], d = RG.motionDur(F[e.who].m.shape, F[e.who].m.motion || 0, 'attack');
+            set(e.who, 'attack'); pend.push({ at: clk + d * 0.5, e });
+            focus = { who: e.who, until: clk + d + 0.35, len: d + 0.35, crit: e.crit };
+          }
         }
         for (let k = pend.length - 1; k >= 0; k--) {
           if (clk < pend[k].at) continue;
           const e = pend.splice(k, 1)[0].e, to = 1 - e.who;
           st[to].hp = e.hp; if (st[to].act !== 'lose') set(to, e.hp <= 0 ? 'lose' : 'damage');
-          pops.push({ i: to, text: '-' + e.dmg, crit: e.crit, at: clk }); beep(e.crit ? 'crit' : 'hit');
+          pops.push({ i: to, text: '-' + e.dmg, crit: e.crit, at: clk }); beep(e.crit ? 'crit' : 'hit'); shake = e.crit ? 1 : 0.55;
           document.getElementById('hp' + to).style.width = (e.hp / F[to].maxHp * 100) + '%'; document.getElementById('hpn' + to).textContent = e.hp;
         }
-        if (!ended && T >= sim.end && !pend.length && ei >= sim.events.length) {
-          ended = clk;
+        if (!ended && clk >= INTRO && T >= sim.end && !pend.length && ei >= sim.events.length) {
+          ended = clk; focus = null;
           F.forEach((f, i) => { if (sim.winner < 0) return; if (i === sim.winner) set(i, 'win'); else if (st[i].act !== 'lose') set(i, 'lose'); });
-          document.getElementById('bend').classList.remove('hide'); beep('end');
-          setTimeout(() => { if (RG.screen === 'watch') res(); }, 2800 / (RG.timeScale || 1));
+          bend.textContent = 'しあい しゅうりょう！'; bend.classList.remove('hide'); beep('end');
+          setTimeout(() => { if (RG.screen === 'watch') res(); }, 3400 / (RG.timeScale || 1));
         }
+        // はじまりの 文字
+        if (clk < INTRO) { const t = clk < INTRO * 0.68 ? 'よーい…' : 'はじめ！'; if (bend.textContent !== t) { bend.textContent = t; bend.classList.remove('hide'); beep('tick'); } }
+        else if (!ended && !bend.classList.contains('hide')) bend.classList.add('hide');
         document.getElementById('skfill').style.width = document.getElementById('skhead').style.left = (T / TIME * 100) + '%';
+        // ---- カメラ ----
+        const k = 1 - Math.exp(-dt * direct());
+        for (const key of ['tx', 'ty', 'tz', 'dist', 'yaw', 'pitch']) cam[key] += (goal[key] - cam[key]) * k;
+        shake *= Math.exp(-dt * 7); cam.sx = shake * 16 * Math.sin(clk * 70); cam.sy = shake * 12 * Math.cos(clk * 83);
+        const C = makeCam(cam); C.fx0 = cam.tx - Math.sin(cam.yaw) * 400; C.fz0 = cam.tz + Math.cos(cam.yaw) * 400;
         // ---- 描く ----
-        ctx.drawImage(GROUND, 0, 0);
-        const order = st[1].act === 'attack' ? [0, 1] : [1, 0];
-        for (const i of order) {
-          const f = F[i], s = st[i], t = clk - s.at, d = RG.motionDur(f.m.shape, f.m.motion || 0, s.act);
+        drawStage(ctx, C);
+        const items = props(C);
+        F.forEach((f, i) => {
+          const s = st[i], t = clk - s.at, d = RG.motionDur(f.m.shape, f.m.motion || 0, s.act);
           if (d && s.act !== 'lose' && t > d) { s.act = 'idle'; s.at = clk; }
-          const u = d ? Math.min(1, t / d) : 0, off = s.act === 'attack' ? 250 * hill(u, 0.1, 1) * (i ? -1 : 1) : 0, b = BOX[i];
-          ctx.strokeStyle = '#999'; ctx.lineWidth = 2.5; ctx.setLineDash([6, 6]); ctx.beginPath(); ctx.ellipse(b[0] + b[2] / 2 + off, b[1] + b[3] - 4, 120, 20, 0, 0, 7); ctx.stroke(); ctx.setLineDash([]);
-          RG.drawMon(ctx, f.m, f.get, b[0] + off, b[1], b[2], b[3], { maxScale: 1.1, pose: RG.poseFor(f.m, s.act, clk - s.at), flip: s.flip });
-        }
-        ctx.textAlign = 'center'; ctx.lineJoin = 'round';
-        for (let k = pops.length - 1; k >= 0; k--) {
-          const p = pops[k], a = (clk - p.at) / 0.9; if (a >= 1) { pops.splice(k, 1); continue; }
-          const b = BOX[p.i], px = b[0] + b[2] / 2, py = b[1] + 40 - 70 * a;
-          ctx.globalAlpha = 1 - a * a; ctx.font = (p.crit ? 92 : 66) + 'px ' + getComputedStyle(stage).fontFamily;
-          ctx.lineWidth = 10; ctx.strokeStyle = '#fff'; ctx.strokeText(p.text, px, py); ctx.fillStyle = '#111'; ctx.fillText(p.text, px, py);
-          if (p.crit) { ctx.font = '40px ' + getComputedStyle(stage).fontFamily; ctx.strokeText('かいしん！', px, py - 84); ctx.fillText('かいしん！', px, py - 84); }
+          const u = d ? Math.min(1, t / d) : 0, wx = X0[i] + (s.act === 'attack' ? 3.3 * hill(u, 0.1, 1) * (i ? -1 : 1) : 0);
+          const q = C.pr(wx, 0, 0); if (!q) return; s.q = q;
+          items.push({ z: q[2] - (s.act === 'attack' ? 0.5 : 0), draw(c2) {
+            const sc = FOCAL / q[2], bw = 3.3 * sc, bh = 3.0 * sc;
+            c2.strokeStyle = '#888'; c2.lineWidth = 2.5; c2.setLineDash([6, 6]); c2.beginPath(); c2.ellipse(q[0], q[1], 1.25 * sc, 1.25 * sc * Math.max(0.12, Math.sin(cam.pitch) * 1.6), 0, 0, 7); c2.stroke(); c2.setLineDash([]);
+            RG.drawMon(c2, f.m, f.get, q[0] - bw / 2, q[1] - bh, bw, bh, { maxScale: 9, bottom: true, pose: RG.poseFor(f.m, s.act, clk - s.at), flip: s.flip });
+          } });
+        });
+        items.sort((a, b) => b.z - a.z).forEach(it => it.draw(ctx));
+        ctx.textAlign = 'center';
+        for (let n2 = pops.length - 1; n2 >= 0; n2--) {
+          const p = pops[n2], a = (clk - p.at) / 0.9; if (a >= 1) { pops.splice(n2, 1); continue; }
+          const q = st[p.i].q; if (!q) continue; const sc = FOCAL / q[2], px = q[0], py = q[1] - 3.1 * sc - 60 * a, fs = (p.crit ? 96 : 68) * Math.min(1.5, Math.max(0.7, sc / 70));
+          ctx.globalAlpha = 1 - a * a; ctx.font = fs + 'px ' + font;
+          ctx.lineWidth = fs * 0.16; ctx.strokeStyle = '#fff'; ctx.strokeText(p.text, px, py); ctx.fillStyle = '#111'; ctx.fillText(p.text, px, py);
+          if (p.crit) { ctx.font = fs * 0.45 + 'px ' + font; ctx.strokeText('かいしん！', px, py - fs * 0.95); ctx.fillText('かいしん！', px, py - fs * 0.95); }
           ctx.globalAlpha = 1;
         }
         requestAnimationFrame(loop);
@@ -17475,7 +17571,7 @@ window.RG.QDB = [
     const cpu = dummyMon();
     RG.items.owners();
     const F = [
-      { m, get: UI.getter(m), name: m.name, owner: pl.name, stats: RG.stats(m, pl.grade), hits, fx: RG.gemFx(m.gems, pl.grade) },
+      { m, get: UI.getter(m), name: m.name, owner: pl.name, stats: RG.stats(m, pl.grade), hits, fx: RG.gemFx(m.gem, pl.grade) },
       { m: cpu.m, get: cpu.get, name: cpu.m.name, owner: 'コンピューター（' + CPU[P.cpu].name + '）', stats: RG.stats(cpu.m, pl.grade), hits: cpuHits(P.cpu, n, subj < 0 ? -1 : rnd(n)) },
     ];
     const sim = simulate(F);
@@ -17485,10 +17581,10 @@ window.RG.QDB = [
     if (sim.winner === 0) {
       pl.coins += 100; if (P.mode === 'A') pl.doneA = 1; else pl.doneB |= 1 << P.subj;
       RG.app.save(); note = 'コイン +100！';
-      if (Math.random() < DROP[P.cpu]) {
-        const t = RG.items.rollGem(Math.random, pl.grade, DROP200[P.cpu], DROP300[P.cpu]);
-        await UI.tell(`${RG.gemIcon(t)}<br>ほうせきを みつけた！<br>「${RG.GEMS[t].name}」<br><span class="note">${RG.gemText(t, pl.grade)}</span>`);
-        if (await RG.items.give(t)) note += `　ほうせき「${RG.GEMS[t].name}」を てにいれた！`;
+      if (RG.gemsOn() && Math.random() < DROP[P.cpu]) {
+        const t = RG.items.rollBest(Math.random, DROP_ROLLS[P.cpu]);
+        await UI.tell(`${RG.gemIcon(t)}<br>ほうせきを みつけた！<br>「${RG.gemName(t)}」<br><span class="note">${RG.gemText(t)}</span>`);
+        if (await RG.items.give(t)) note += `　「${RG.gemName(t)}」を てにいれた！`;
       }
     }
     result(F, sim, { vs: false, note, again: sim.winner === 0 ? B.practice : runPractice });
@@ -17535,8 +17631,8 @@ window.RG.QDB = [
       const h1 = await solve({ who: who[1], grade: g, subj: subj[1] }); if (!h1) return UI.home();
       RG.items.owners();
       const F = [
-        { m, get: UI.getter(m), name: m.name, owner: who[0], stats: RG.stats(m, g), hits: h0, fx: RG.gemFx(m.gems, g) },
-        { m: foe.m, get: foe.get, name: foe.m.name, owner: who[1], stats: RG.stats(foe.m, g), hits: h1, fx: RG.gemFx(foe.m.gems, g) },
+        { m, get: UI.getter(m), name: m.name, owner: who[0], stats: RG.stats(m, g), hits: h0, fx: RG.gemFx(m.gem, g) },
+        { m: foe.m, get: foe.get, name: foe.m.name, owner: who[1], stats: RG.stats(foe.m, g), hits: h1, fx: RG.gemFx(foe.m.gem, g) },
       ];
       const sim = simulate(F);
       await UI.tell('ふたりで がめんを みよう！');

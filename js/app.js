@@ -196,7 +196,7 @@
         const f = await pickFile(); if (!f) return;
         const p = RG.readPlayerPNG(await RG.fileToCanvas(f));
         if (S.player && !(await ask(`いまの データ（${esc(S.player.name)}）を「${esc(p.name)}」の データに かえるよ。いい？<br><span class="note">モンスターは そのまま のこるよ</span>`))) return;
-        S.player = p; S.mons.forEach(m => { m.gems = [0, 0, 0]; }); save(); await tell(`「${esc(p.name)}」の データを よみこんだよ。<br><span class="note">モンスターは 1たいずつ PNGから よみこんでね</span>`); home();
+        S.player = p; S.mons.forEach(m => { m.gem = 0; }); save(); await tell(`「${esc(p.name)}」の データを よみこんだよ。<br><span class="note">モンスターは 1たいずつ PNGから よみこんでね</span>`); home();
       },
     });
   }
@@ -233,7 +233,7 @@
     const bonus = RG.items.loginBonus();
     show('home', `<div class="hname box">${esc(S.player.name)}　${S.player.grade}ねんせい</div><div class="hcoin box">コイン　${S.player.coins}</div>
       <div class="hbig"><button class="btn huge" data-a="prac"><b>まいにち れんしゅう</b><span>きょうの のこり ${RG.items.left()}かい</span></button><button class="btn huge" data-a="vs"><b>ともだちと たいせん</b><span>1だいで ふたりで あそぶ</span></button></div>
-      <div class="hsmall"><button class="btn" data-a="chars">キャラクター</button><button class="btn" data-a="gems">ほうせき</button><button class="btn" data-a="shop">おみせ</button><button class="btn" data-a="set">せってい</button></div>`, {
+      <div class="hsmall${RG.gemsOn() ? '' : ' three'}"><button class="btn" data-a="chars">キャラクター</button>${RG.gemsOn() ? '<button class="btn" data-a="gems">ほうせき</button>' : ''}<button class="btn" data-a="shop">おみせ</button><button class="btn" data-a="set">せってい</button></div>`, {
       chars() { chars(); }, set() { settings(); }, prac() { RG.battle.practice(); }, vs() { RG.battle.versus(); }, gems() { RG.items.gemScreen(); }, shop() { RG.items.shop(); },
     });
     if (bonus) toast('ログインボーナス！ コイン +100');
@@ -262,14 +262,14 @@
     const old = S.mons.findIndex(m => m.id === q.id);
     if (old >= 0) { if (!(await ask(`「${esc(S.mons[old].name)}」は もう いるよ。うわがき する？`))) return; }
     else if (S.mons.length >= S.player.slots) return tell('わくが いっぱいだよ。<br>どれかを PNGで だしてから にがしてね');
-    const m = { id: q.id, name: q.name, shape: q.shape, face: q.face, parts: {}, adj: q.adj, free: q.free || {}, motion: q.motion, gems: [0, 0, 0], r5: q.r5, r4: q.r4, creator: q.creator, grade: q.grade, date: q.date };
+    const m = { id: q.id, name: q.name, shape: q.shape, face: q.face, parts: {}, adj: q.adj, free: q.free || {}, motion: q.motion, gem: 0, r5: q.r5, r4: q.r4, creator: q.creator, grade: q.grade, date: q.date };
     for (const pid in r.parts) m.parts[pid] = r.parts[pid].toDataURL('image/png');
     CACHE[m.id] = r.parts;
     if (old >= 0) S.mons[old] = m; else S.mons.push(m);
     save();
     const notes = [];
     if (r.blurry) notes.push('すこし ぼやけて よみこんだよ');
-    if (q.gems.some(g => g)) notes.push('ほうせきは はずれたよ');
+    if (q.gem) notes.push('ほうせきは はずれたよ');
     if (!isMine(m)) notes.push(`うみのおやは ${esc(m.creator.name)}さん。えは なおせないよ`);
     await tell(`「${esc(m.name)}」が なかまに なったよ！` + (notes.length ? `<br><span class="note">${notes.join('<br>')}</span>` : ''));
     chars();
@@ -292,7 +292,7 @@
       <div class="dbtns"><button class="btn${mine ? '' : ' off'}" data-a="edit">なおす</button><button class="btn strong" data-a="png">PNGで だす</button><button class="btn" data-a="bye">にがす</button></div>
       ${mine ? '' : '<p class="note">えを なおせるのは うみのおや だけだよ</p>'}</div>`, {
       back() { chars(); },
-      async gslot(b) { if (await RG.items.slotTap(m, +b.dataset.k)) detail(m); },
+      async gslot() { if (await RG.items.slotTap(m)) detail(m); },
       edit() { startMake({ shape: m.shape, edit: m }); },
       async png() { await showPNG(RG.buildMonPNG(m, getter(m)), fileName(m), `「${esc(m.name)}」の PNG`); },
       async bye() {
@@ -499,7 +499,7 @@
   }
   function finish() {
     const ratio = RG.colorRatio(Object.values(D.parts)), e = D.edit;
-    const m = e || { id: RG.newId(), gems: [0, 0, 0], creator: { name: S.player.name, id: S.player.id }, date: RG.today() };
+    const m = e || { id: RG.newId(), gem: 0, creator: { name: S.player.name, id: S.player.id }, date: RG.today() };
     Object.assign(m, { name: D.name, shape: D.shape, face: D.face, adj: D.adj, free: D.free, motion: D.motion, r5: ratio.r5, r4: ratio.r4, grade: S.player.grade, parts: {} });
     for (const pid in D.parts) m.parts[pid] = D.parts[pid].toDataURL('image/png');
     CACHE[m.id] = D.parts;
@@ -529,7 +529,7 @@
       ver() { verTap++; if (verTap >= 7) { verTap = 0; RG.debug = !RG.debug; settings(); } },
       t4() { p.coins += 1000; save(); toast('コイン +1000'); },
       t5() { p.day = -1; RG.items.rollDay(); toast('きょうの かいすうと おみせを もどしたよ'); },
-      async t6() { for (let i = 0; i < 3; i++) await RG.items.give(RG.items.rollGem(Math.random, p.grade, 0.3, 0.1)); toast('ほうせきを 3こ もらったよ'); },
+      async t6() { for (let i = 0; i < 3; i++) await RG.items.give(RG.items.rollGem(Math.random)); toast('ほうせきを 3こ もらったよ'); },
       back() { home(); }, grade() { setupGrade(p.name, true); },
       async pp() { await showPNG(RG.buildPlayerPNG(p), `rakugaki_player_${p.name}.png`, 'プレイヤーデータの PNG'); },
       all() { return exportAll(); },

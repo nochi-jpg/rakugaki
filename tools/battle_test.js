@@ -110,10 +110,15 @@ let fails = 0; const ok = (c, msg) => { console.log((c ? 'OK   ' : 'FAIL ') + ms
   // せいかいを おしつづける
   const answer = async () => { for (;;) { const r = await pg.evaluate(() => { if (window.RG.screen !== 'solve') return 'end'; const q = window.RG.battle._q, b = document.querySelector(`.qc[data-i="${q.ans}"]`); if (b && !document.getElementById('qready')) b.click(); return ''; }); if (r) break; await pg.waitForTimeout(40); } };
   await answer();
-  await pg.waitForFunction(() => window.RG.screen === 'watch'); await pg.evaluate(() => { window.RG.timeScale = 3; });
-  await pg.waitForTimeout(1500); await shot('watch'); await act('spd');
+  await pg.waitForFunction(() => window.RG.screen === 'watch'); await pg.evaluate(() => { window.RG.timeScale = 1; });
+  await pg.waitForTimeout(500); await shot('watch_intro1'); await pg.waitForTimeout(1300); await shot('watch_intro2');
+  await pg.waitForFunction(() => document.getElementById('bend').classList.contains('hide'), null, { timeout: 20000 });
+  await pg.waitForTimeout(350); await shot('watch_attack'); await pg.waitForTimeout(500); await shot('watch_attack2');
+  for (const x of ['1.5', '2', '3']) { await act('spd'); ok(await pg.evaluate(x => document.getElementById('spd').textContent === 'はやさ ×' + x, x), 'はやさ ×' + x); }
+  await pg.waitForTimeout(900); await shot('watch_x3');
   await pg.evaluate(() => { window.RG.timeScale = 20; });
-  await pg.waitForFunction(() => !document.getElementById('bend').classList.contains('hide'), null, { timeout: 60000 }); await shot('watch_end');
+  await pg.waitForFunction(() => document.getElementById('bend').textContent.includes('しゅうりょう'), null, { timeout: 60000 }); await pg.evaluate(() => { window.RG.timeScale = 1; }); await pg.waitForTimeout(1200); await shot('watch_end');
+  await pg.evaluate(() => { window.RG.timeScale = 20; });
   // ほうせきが 出たら まどが 出る（確率なので 出ない ことも ある）
   await pg.waitForFunction(() => window.RG.screen === 'result' || document.querySelector('.modal'), null, { timeout: 30000 });
   if (await pg.evaluate(() => !!document.querySelector('.modal'))) { await shot('drop'); await act('y'); }
@@ -148,11 +153,11 @@ let fails = 0; const ok = (c, msg) => { console.log((c ? 'OK   ' : 'FAIL ') + ms
   const sim = await pg.evaluate(() => { const RG = window.RG, st = [{ v: 1000 }, { v: 0 }]; const r = RG.battle.simulate([{ stats: st, hits: [{ t: 1, s: 0 }, { t: 2, s: 1 }] }, { stats: st, hits: [] }]); return r.events.map(e => e.dmg + (e.crit ? 'c' : '')); });
   ok(/^(120|180c),(80|120c)$/.test(sim.join(',')), 'ダメージ：属性値1000で 120、0で 80（会心は 1.5倍）→ ' + sim.join(','));
   // ---- おみせ・ほうせき ----
-  await pg.evaluate(() => { const RG = window.RG, p = RG.app.S.player; RG.timeScale = 1; p.grade = 5; p.gems = []; p.coins = 1000; p.slots = 2; p.shapes = ['slime', 'yotsu']; p.day = -1; RG.app.S.mons.forEach(m => { m.gems = [0, 0, 0]; }); RG.app.save(); });
+  await pg.evaluate(() => { const RG = window.RG, p = RG.app.S.player; RG.timeScale = 1; p.grade = 5; p.gems = []; p.coins = 3000; p.slots = 2; p.shapes = ['slime', 'yotsu']; p.day = -1; RG.app.S.mons.forEach(m => { m.gem = 0; }); RG.app.save(); });
   await pg.evaluate(() => window.RG.ui.closeModal()); await pg.evaluate(() => window.RG.ui.home());
   await act('shop'); await shot('shop');
   const st = await pg.evaluate(() => window.RG.items.stock().map(x => x.kind + ':' + x.price));
-  ok(st.length === 8 && st[6] === 'slot:100' && st[7] === 'shape:200' && st.slice(0, 6).every(x => /^gem:(100|200|300)$/.test(x)), 'おみせ：ほうせき6＋かくちょう＋くみたて（' + st.join(' ') + '）');
+  ok(st.length === 8 && st[6] === 'slot:100' && st[7] === 'shape:200' && st.slice(0, 6).every(x => /^gem:\d+$/.test(x) && +x.slice(4) % 50 === 0 && +x.slice(4) <= 1000), 'おみせ：ほうせき6＋かくちょう＋くみたて（' + st.join(' ') + '）');
   await tap('.scell[data-i="0"]'); await shot('shop_buy'); await act('y'); await pg.waitForTimeout(100);
   await tap('.scell[data-i="6"]'); await act('y'); await pg.waitForTimeout(100);
   await tap('.scell[data-i="7"]'); await act('y'); await pg.waitForTimeout(100); await shot('shop_after');
@@ -160,32 +165,49 @@ let fails = 0; const ok = (c, msg) => { console.log((c ? 'OK   ' : 'FAIL ') + ms
   ok(sh.gems === 1 && sh.slots === 3 && sh.shapes === 'slime,yotsu,tori' && sh.bought === 0b11000001 && sh.again, `おみせ：かうと ほうせき${sh.gems}こ・わく${sh.slots}・からだ ${sh.shapes}・のこり ${sh.coins}コイン`);
   ok(await pg.evaluate(() => document.querySelector('.scell[data-i="0"]').classList.contains('sold')), 'おみせ：かった ものは うりきれ');
   await act('back');
-  // ほうせきを もらって つける
-  await pg.evaluate(async () => { const RG = window.RG; RG.app.S.player.gems = []; for (const t of [1, 11, 6, 1, 20]) await RG.items.give(t); });
+  // なまえ・ねだん・出やすさ
+  const gm = await pg.evaluate(() => {
+    const RG = window.RG, I = RG.items, g = (k, a, b) => RG.gem(RG.gemId(k, a, b)), n = x => x.name + '=' + x.price;
+    let s = 1; const r = () => { s = (s * 16807) % 2147483647; return s / 2147483647; }, c = {}; for (let i = 0; i < 300000; i++) { const t = RG.gem(I.rollGem(r)).total; c[t] = (c[t] || 0) + 1; }
+    let mono = true; for (let t = 1; t < 20; t++) if ((c[t] || 0) < (c[t + 1] || 0)) mono = false;
+    return { names: [n(g(1, 1)), n(g(12, 1, 2)), n(g(22, 3, 1)), n(g(27, 1, 2)), n(g(11, 4)), n(g(10, 10)), n(g(6, 1)), n(g(21, 10, 10))].join(' / '), bad: [RG.gem(5), g(11, 5), g(1, 3, 2), g(12, 3, 0)].every(x => x === null), kinds: Object.values(I.BY_TOTAL).reduce((a, l) => a + l.length, 0), mono, back: g(10, 10).fx.back, rain: g(11, 4).fx.subj.join() };
+  });
+  ok(gm.names === 'こくごの いし＋1=50 / こくさんの いし＋1＋2=150 / こくたいの いし＋3＋1=200 / こくまもの いし＋1＋2=150 / にじの いし＋4=1000 / ぎゃくてんの いし＋10=500 / かいしんの いし＋1=50 / りかえいの いし＋10＋10=1000' && gm.bad && gm.mono && gm.back === 0.2 && gm.rain === '0.04,0.04,0.04,0.04,0.04',
+    `ほうせき：${gm.kinds}しゅるい。なまえと ねだん（${gm.names}）。合計値が 大きいほど 出にくい`);
+  // ほうせきを もらって つける（1たいに 1つ）
+  const G = await pg.evaluate(async () => { const RG = window.RG, id = RG.gemId, list = [id(1, 10), id(12, 5, 5), id(7, 10), id(1, 10), id(10, 3)]; RG.app.S.player.gems = []; for (const t of list) await RG.items.give(t); return list; });
   await act('gems'); await shot('gems');
   await tap('.gcell[data-i="1"]'); await act('on'); await shot('gems_pick'); await tap('.modal [data-i="0"]'); await shot('gems_equipped');
-  ok(await pg.evaluate(() => window.RG.app.S.mons[0].gems.join(',') === '11,0,0'), 'ほうせき：ほうせきの がめんから つけられる');
-  await act('back'); await act('chars'); await tap('[data-a="open"][data-i="0"]'); await shot('detail_gems');
-  await tap('.gcell[data-k="1"]'); await shot('detail_gem_choose'); await tap('.modal [data-t="1"]'); await pg.waitForTimeout(100);
-  await tap('.gcell[data-k="2"]'); await tap('.modal [data-t="6"]'); await pg.waitForTimeout(100); await shot('detail_gems_3');
-  const fx = await pg.evaluate(() => { const RG = window.RG, m = RG.app.S.mons[0], f = RG.gemFx(m.gems, 5); const st = [{ v: 1000 }, { v: 0 }]; let crit = 0, d = []; for (let i = 0; i < 40; i++) { const r = RG.battle.simulate([{ stats: st, hits: [{ t: 1, s: 0 }], fx: f }, { stats: st, hits: [] }]); if (!r.events[0].crit) d.push(r.events[0].dmg); } return { gems: m.gems.join(','), subj0: f.subj[0], hp: f.hp, dmg: d[0], own: RG.items.owners().filter(x => x).length }; });
-  ok(fx.gems === '11,1,6' && Math.abs(fx.subj0 - 0.2) < 1e-9 && fx.hp === 0.1 && fx.dmg === 144 && fx.own === 3, `ほうせき：こうかは 足し算（国語 +20%・HP +10%。ダメージ 120 → ${fx.dmg}）`);
-  // PNGに 出すと そうびが 入り、手持ちに 読みこむと はずれる
-  const gq = await pg.evaluate(() => { const RG = window.RG, m = RG.app.S.mons[0]; return RG.decodeMon(RG.encodeMon(m)).gems.join(','); });
-  ok(gq === '11,1,6', 'ほうせき：モンスターの QRに そうびが 入る');
+  ok(await pg.evaluate(t => window.RG.app.S.mons[0].gem === t, G[1]), 'ほうせき：ほうせきの がめんから つけられる');
+  await tap('.gcell[data-i="0"]'); await act('on'); await tap('.modal [data-i="0"]');
+  ok(await pg.evaluate(t => window.RG.app.S.mons[0].gem === t && window.RG.items.owners().filter(x => x).length === 1, G[0]), 'ほうせき：1たいに 1つ（べつの いしを つけると いれかわる）');
+  await act('back'); await act('chars'); await tap('[data-a="open"][data-i="0"]'); await shot('detail_gem');
+  await act('gslot'); await shot('detail_gem_off'); await act('y'); await pg.waitForTimeout(100);
+  await act('gslot'); await shot('detail_gem_choose'); await tap(`.modal [data-t="${G[1]}"]`); await pg.waitForTimeout(100);
+  const fx = await pg.evaluate(() => { const RG = window.RG, m = RG.app.S.mons[0], f = RG.gemFx(m.gem, 5), st = [{ v: 1000 }, { v: 0 }], d = []; for (let i = 0; i < 40; i++) { const r = RG.battle.simulate([{ stats: st, hits: [{ t: 1, s: 0 }], fx: f }, { stats: st, hits: [] }]); if (!r.events[0].crit) d.push(r.events[0].dmg); } const hp = RG.battle.simulate([{ stats: st, hits: [], fx: RG.gemFx(RG.gemId(7, 10), 5) }, { stats: st, hits: [] }]).hp[0]; return { dmg: d[0], hp, low: RG.gemFx(m.gem, 2).subj[0] }; });
+  ok(fx.dmg === 126 && fx.hp === 1650 && fx.low === 0, `ほうせき：こくさん＋5＋5で 国語の ダメージ 120 → ${fx.dmg}、たいりょく＋10で HP ${fx.hp}。1・2年生では こうかなし`);
+  const gq = await pg.evaluate(() => { const RG = window.RG, m = RG.app.S.mons[0]; return RG.decodeMon(RG.encodeMon(m)).gem === m.gem; });
+  ok(gq, 'ほうせき：モンスターの QRに そうびが 入る');
   // そうび中の ほうせきを すてる
   await act('back'); await act('back'); await act('gems'); await tap('.gcell[data-i="1"]'); await act('del'); await act('y'); await pg.waitForSelector('.modal .mtext');
-  ok(await pg.evaluate(() => document.querySelector('.modal .mtext').textContent.includes('そうびが はずれたよ') && window.RG.app.S.mons[0].gems.join(',') === '0,1,6'), 'ほうせき：そうび中を すてると はずれて おしらせ'); await shot('gems_discard'); await act('y');
+  ok(await pg.evaluate(() => document.querySelector('.modal .mtext').textContent.includes('そうびが はずれたよ') && window.RG.app.S.mons[0].gem === 0), 'ほうせき：そうび中を すてると はずれて おしらせ'); await shot('gems_discard'); await act('y');
   // 20こ いっぱいの とき
-  await pg.evaluate(() => { const p = window.RG.app.S.player; while (p.gems.length < 20) p.gems.push(2); window.RG.items.give(3); });
+  await pg.evaluate(() => { const RG = window.RG, p = RG.app.S.player; while (p.gems.length < 20) p.gems.push(RG.gemId(2, 1)); RG.items.give(RG.gemId(3, 9)); });
   await pg.waitForSelector('.gpick'); await shot('gems_full'); await tap('.gpick [data-i="19"]'); await pg.waitForTimeout(100);
-  ok(await pg.evaluate(() => { const g = window.RG.app.S.player.gems; return g.length === 20 && g[19] === 3; }), 'ほうせき：21こめは どれかを すてて もらう');
+  ok(await pg.evaluate(() => { const RG = window.RG, g = RG.app.S.player.gems; return g.length === 20 && g[19] === RG.gemId(3, 9); }), 'ほうせき：21こめは どれかを すてて もらう');
   // プレイヤーデータ
   const pq = await pg.evaluate(() => { const RG = window.RG, p = RG.app.S.player, q = RG.decodePlayer(RG.encodePlayer(p)); return q.gems.join() === p.gems.join() && q.coins === p.coins && q.bought === p.bought && q.day === p.day && q.shapes.join() === p.shapes.join(); });
   ok(pq, 'プレイヤーデータ：ほうせき・コイン・きょうの きろくが QRに 入る');
   // 日付が かわると もどる
   const dy = await pg.evaluate(() => { const RG = window.RG, p = RG.app.S.player; p.day -= 1; p.doneA = 1; p.doneB = 3; p.bonus = 1; const c = p.coins; const got = RG.items.loginBonus(); return got && p.coins === c + 100 && RG.items.left() === 6 && p.bought === 0; });
   ok(dy, '1日の ながれ：日付が かわると のこり6かい・ログインボーナス・おみせが 入れかわる');
+  // 1・2年生：ほうせきは なし。おみせは わくと からだ だけ
+  await act('back'); await pg.evaluate(() => { const RG = window.RG; RG.app.S.player.grade = 2; RG.ui.home(); });
+  await shot('home_grade2');
+  ok(await pg.evaluate(() => !document.querySelector('[data-a="gems"]') && window.RG.items.stock().map(x => x.kind).join() === 'slot,shape'), '1・2年生：ホームに「ほうせき」が なく、おみせは かくちょうと くみたて だけ');
+  await act('shop'); await shot('shop_grade2'); await act('back');
+  await act('chars'); await tap('[data-a="open"][data-i="0"]'); ok(await pg.evaluate(() => !document.querySelector('.gslots')), '1・2年生：キャラクターに ほうせきの わくが 出ない'); await act('back'); await act('back');
+  await pg.evaluate(() => { const RG = window.RG; RG.app.S.player.grade = 6; RG.ui.home(); }); await act('prac'); await shot('bset_grade6');
   await act('back'); await pg.evaluate(() => { window.RG.debug = true; }); await act('set'); await shot('settings_debug');
   ok(!errs.length, 'エラーなし' + (errs.length ? ' → ' + errs.join(' | ') : ''));
   await br.close(); console.log(fails ? `\n${fails}こ しっぱい` : '\nぜんぶ OK'); process.exit(fails ? 1 : 0);

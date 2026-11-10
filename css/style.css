@@ -156,9 +156,9 @@ button{font:inherit;color:inherit;cursor:pointer;background:none;border:0}
 .bsetb{position:absolute;left:50px;top:96px;width:1180px;display:flex;flex-direction:column;gap:14px}
 .brow{display:flex;align-items:center;gap:16px}
 .brow>span{width:150px;font-size:26px;flex:none;text-align:right}
-.brow>div{display:flex;gap:12px;flex-wrap:nowrap}
-.btn.bo{min-width:0;width:190px;height:62px;padding:0 6px;font-size:24px}
-.btn.bo.w{width:290px}
+.brow>div{display:flex;gap:12px;flex-wrap:nowrap;width:1010px}
+.btn.bo{min-width:0;flex:0 1 190px;width:190px;height:62px;padding:0 4px;font-size:24px}
+.btn.bo.w{width:290px;flex-basis:290px}
 .btn.bm{min-width:0;width:150px;height:112px;padding:4px;flex-direction:column;gap:0;font-size:20px}
 .btn.bm b{font-weight:normal}.btn.bm canvas{width:120px;height:70px}
 .btn.bm.on{background:#fff;color:var(--ink);outline:5px solid var(--ink);outline-offset:-1px}
@@ -225,21 +225,21 @@ button{font:inherit;color:inherit;cursor:pointer;background:none;border:0}
 .vmode{position:absolute;left:50px;top:560px}
 
 /* ===== ほうせき・おみせ ===== */
-.gem{width:56px;height:56px;flex:none}.gem text{font-family:var(--hand)}
+.gem{width:56px;height:62px;flex:none}.gem text{font-family:var(--hand)}
 .btn.gcell{min-width:0;width:74px;height:74px;padding:0;box-shadow:2px 3px 0 var(--ink);border-radius:14px 18px 13px 17px}
 .btn.gcell.on{background:#fff;color:var(--ink);outline:5px solid var(--ink);outline-offset:-1px}
-.gslots{display:flex;align-items:center;gap:14px;height:78px}.gslots span{width:150px;font-size:26px}
+.gslots{display:flex;align-items:center;gap:14px;height:78px}.gslots span{width:150px;font-size:26px}.gslots em{font-style:normal;font-size:22px}
 .gcount{position:absolute;right:30px;top:24px;padding:6px 26px;font-size:28px}
 .ggrid{position:absolute;left:40px;top:108px;width:850px;display:grid;grid-template-columns:repeat(5,1fr);gap:14px}
-.gcell.big{width:auto;height:136px;flex-direction:column;gap:0;font-size:17px}
-.gcell.big .gem{width:84px;height:84px}.gcell.big em{font-style:normal;height:24px;line-height:24px;max-width:150px;overflow:hidden;white-space:nowrap}
+.gcell.big{width:auto;height:136px;padding-top:4px;flex-direction:column;gap:0;font-size:17px}
+.gcell.big .gem{width:84px;height:92px}.gcell.big em{font-style:normal;height:24px;line-height:24px;max-width:150px;overflow:hidden;white-space:nowrap}
 .gcell.none{border-style:dashed;border-color:#bbb;border-radius:14px 18px 13px 17px}
 .gside{position:absolute;left:920px;top:108px;width:330px;height:586px;padding:18px;display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center}
-.gside .gem{width:130px;height:130px}.gside h3{font-size:30px;font-weight:normal;line-height:1.2}.gside p{font-size:22px;line-height:1.35}
+.gside .gem{width:130px;height:143px}.gside h3{font-size:30px;font-weight:normal;line-height:1.2}.gside p{font-size:22px;line-height:1.35}
 .gside .col{margin-top:auto;width:100%}.gside .btn{width:100%}
 .gnone{margin:auto;color:#666}
 .gpick{display:grid;grid-template-columns:repeat(10,1fr);gap:8px}.gpick .eq{border-style:dashed}
-.mbox>.gem{width:110px;height:110px}.mtext .gem{width:110px;height:110px}
+.mbox>.gem{width:110px;height:121px}.mtext .gem{width:110px;height:121px}
 .glist{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:820px}
 .btn.grow{min-width:0;height:78px;padding:0 12px;justify-content:flex-start;gap:10px;text-align:left}
 .grow span{display:flex;flex-direction:column;flex:1;overflow:hidden;line-height:1.2}.grow b{font-size:21px;font-weight:normal;white-space:nowrap}.grow em{font-style:normal;font-size:14px;color:#555;white-space:normal}
@@ -249,9 +249,12 @@ button{font:inherit;color:inherit;cursor:pointer;background:none;border:0}
 .tenshu{width:220px;height:286px}.skeeper .bubble{width:380px;flex:none;min-height:96px;max-height:110px;justify-content:center;text-align:center;font-size:23px}
 .sgrid{position:absolute;left:460px;top:120px;width:790px;display:grid;grid-template-columns:repeat(4,182px);gap:22px 20px}
 .btn.scell{min-width:0;width:182px;height:182px;padding:6px;flex-direction:column;gap:6px;font-size:22px}
-.scell .gem{width:104px;height:104px}.scell b{font-weight:normal}
+.scell .gem{width:100px;height:110px}.scell b{font-weight:normal}
 .sico{font-style:normal;height:104px;display:flex;align-items:center;justify-content:center;font-size:30px;border:3px dashed var(--ink);border-radius:16px;width:150px}
 .scell.sold{opacity:.4;border-style:dashed;box-shadow:none}
 .bleft{position:absolute;left:60px;bottom:34px;font-size:24px}.bleft b{font-size:32px;font-weight:normal}
 .btn.bo small{font-size:14px;margin-left:4px}
 .dgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.dgrid .btn{min-width:0;font-size:18px;height:46px;padding:0 4px;align-self:auto}
+
+.hsmall.three{grid-template-columns:repeat(3,1fr)}
+.sgrid:empty{display:none}
