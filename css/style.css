@@ -1,0 +1,140 @@
+/* らくがき学習バトル：白黒の 手書き風。色が付くのは モンスターだけ */
+:root{
+  --hand:'しねきゃぷしょん','cinecaption','Yomogi','Hiragino Maru Gothic ProN','BIZ UDPGothic','Meiryo',sans-serif;
+  --kyo:'UD デジタル 教科書体 N-B','UD Digi Kyokasho N-B','UD デジタル 教科書体 NK-B','Klee One','Hiragino Maru Gothic ProN','BIZ UDPGothic','Meiryo',sans-serif;
+  --ink:#111; --wob:255px 18px 225px 18px/18px 225px 18px 255px; --wob2:18px 225px 18px 255px/255px 18px 225px 18px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;overflow:hidden;background:#fff;color:var(--ink);font-family:var(--hand);
+  -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:manipulation;overscroll-behavior:none;position:fixed;inset:0}
+#stage{position:absolute;left:0;top:0;width:1280px;height:720px;transform-origin:0 0;overflow:hidden;background:#fff;font-size:26px;line-height:1.35}
+button{font:inherit;color:inherit;cursor:pointer;background:none;border:0}
+.hide{display:none!important}
+.box,.btn{border:3px solid var(--ink);border-radius:var(--wob);background:#fff}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-width:150px;height:60px;padding:0 22px;font-size:26px;white-space:nowrap;
+  box-shadow:3px 4px 0 var(--ink);transition:transform .05s}
+.btn:nth-child(even){border-radius:var(--wob2)}
+.btn:active{transform:translate(2px,3px);box-shadow:1px 1px 0 var(--ink)}
+.btn.strong{background:var(--ink);color:#fff;box-shadow:3px 4px 0 #888}
+.btn.big{height:84px;font-size:34px;min-width:300px}
+.btn.off{opacity:.3;pointer-events:none}
+.btn.on{background:var(--ink);color:#fff}
+.row{display:flex;gap:16px;align-items:center}.row.c{justify-content:center}
+.col{display:flex;flex-direction:column;gap:14px}.col.c{align-items:center}
+.note{font-size:20px;color:#555}
+.ttl{position:absolute;left:0;right:0;top:18px;text-align:center;font-size:44px;font-weight:normal;pointer-events:none}
+.backbtn{position:absolute;left:24px;top:20px;min-width:130px;height:54px;font-size:24px}
+.ver{position:absolute;right:16px;bottom:10px;font-size:18px;color:#777}
+.donebtn{position:absolute;right:24px;bottom:20px;width:300px;height:76px;font-size:34px}
+.okbtn{position:absolute;right:40px;bottom:28px;width:300px;height:76px;font-size:32px}
+
+/* えふでちゃん と ふきだし */
+.efude{width:74px;height:90px;flex:none}
+.guide{position:absolute;left:180px;top:14px;width:920px;height:104px;display:flex;align-items:center;gap:14px}
+.bubble{flex:1;min-height:72px;max-height:100px;padding:8px 22px;font-size:25px;line-height:1.3;display:flex;align-items:center;overflow:hidden}
+
+/* まど */
+.modal{position:absolute;inset:0;background:rgba(255,255,255,.82);display:flex;align-items:center;justify-content:center;z-index:50}
+.mbox{max-width:900px;min-width:520px;padding:30px 36px;display:flex;flex-direction:column;gap:20px;align-items:center;box-shadow:5px 6px 0 var(--ink)}
+.mtext{font-size:30px;text-align:center;line-height:1.5}.mtext.s{font-size:26px}
+.pngview{width:640px;height:360px;object-fit:contain;border:2px dashed #999;background:repeating-conic-gradient(#e4e4e8 0 25%,#fff 0 50%) 0 0/24px 24px;-webkit-touch-callout:default}
+.toast{position:absolute;left:50%;bottom:110px;transform:translateX(-50%);padding:12px 30px;font-size:26px;z-index:60;box-shadow:3px 4px 0 var(--ink);white-space:nowrap}
+
+/* タイトル */
+.tlogo{position:absolute;left:0;right:0;top:110px;display:flex;flex-direction:column;align-items:center;gap:14px}
+.tl1{font-size:120px;padding:4px 60px;line-height:1.25;box-shadow:6px 7px 0 var(--ink)}
+.tl2{font-size:56px;letter-spacing:.12em}
+.tbtns{position:absolute;left:0;right:0;top:450px}
+
+/* かな入力 */
+.namebox{position:absolute;left:300px;top:128px;width:680px;height:86px;display:flex;align-items:center;justify-content:center;gap:10px}
+.namebox b,.namebox u{width:64px;height:64px;font-size:52px;line-height:64px;text-align:center;font-weight:normal;text-decoration:none;border-bottom:3px solid var(--ink)}
+.kana{position:absolute;left:160px;top:232px;width:960px;display:grid;grid-template-columns:repeat(10,1fr);gap:10px 8px}
+.kana i{height:62px}
+.btn.k{min-width:0;height:62px;padding:0;font-size:34px;box-shadow:2px 3px 0 var(--ink)}
+.kctl{position:absolute;left:40px;bottom:28px;gap:12px}
+.kctl .btn{min-width:124px;height:76px;padding:0 14px}
+
+/* がくねん・むき・からだ */
+.grades{position:absolute;left:190px;top:210px;width:900px;display:grid;grid-template-columns:repeat(3,1fr);gap:40px 30px}
+.btn.g{min-width:0;height:150px;font-size:44px}
+.faces{position:absolute;left:140px;top:220px;width:1000px;display:flex;gap:60px;justify-content:center}
+.btn.fc{width:440px;height:340px;flex-direction:column;font-size:44px;font-weight:normal}
+.arrow{font-size:150px;line-height:1}
+.shapes{position:absolute;left:90px;top:170px;width:1100px;display:grid;grid-template-columns:repeat(4,1fr);gap:30px}
+.shp{height:220px;min-width:0;flex-direction:column;font-size:36px;font-weight:normal}
+.shp.locked,.card.locked{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;border-style:dashed;color:#888;border-color:#999}
+.shp b,.card b{font-weight:normal}.shp span,.card.locked span{font-size:20px}
+
+/* ホーム */
+.hname{position:absolute;left:30px;top:24px;padding:8px 26px;font-size:30px}
+.hcoin{position:absolute;right:30px;top:24px;padding:8px 26px;font-size:30px;min-width:240px;text-align:center}
+.hbig{position:absolute;left:80px;top:140px;width:1120px;display:flex;gap:60px}
+.btn.huge{flex:1;height:330px;flex-direction:column;font-size:52px;box-shadow:6px 7px 0 var(--ink)}
+.btn.huge b{font-weight:normal}.btn.huge span{font-size:24px;color:#777}
+.hsmall{position:absolute;left:80px;top:540px;width:1120px;display:grid;grid-template-columns:repeat(4,1fr);gap:40px}
+.hsmall .btn{min-width:0;height:110px;font-size:34px}
+
+/* キャラクター */
+.cards{position:absolute;left:50px;top:100px;width:1180px;display:grid;grid-template-columns:repeat(3,1fr);gap:20px 26px}
+.card{height:250px;min-width:0;padding:6px;flex-direction:column;gap:2px;font-size:30px}
+.card canvas{width:340px;height:190px}
+.card.empty{border-style:dashed}.plus{font-size:90px;line-height:1}
+.foot{position:absolute;left:0;right:0;bottom:18px}
+.dprev{position:absolute;left:40px;top:128px;width:600px;height:480px;display:flex;align-items:center;justify-content:center;
+  background:#fff}
+.scr-detail .dprev{top:104px}
+.dinfo{position:absolute;left:680px;top:128px;width:560px;display:flex;flex-direction:column;gap:12px;font-size:26px}
+.scr-detail .dinfo{top:104px}
+.dinfo h2{font-size:52px;font-weight:normal;line-height:1.1}
+.stats{display:flex;flex-direction:column;gap:9px;margin:8px 0}
+.st{display:flex;align-items:center;gap:12px;height:38px}
+.st span{width:150px;font-size:26px}.st i{flex:1;height:26px;border:3px solid var(--ink);border-radius:var(--wob)}
+.st em{display:block;height:100%;background:repeating-linear-gradient(-55deg,#111 0 3px,#fff 3px 7px)}
+.st b{width:70px;text-align:right;font-weight:normal}
+.dbtns{display:flex;gap:14px;margin-top:8px}.dbtns .btn{flex:1;min-width:0;padding:0 8px}
+
+/* おえかき */
+.dhead{position:absolute;left:12px;top:6px;width:1256px;height:66px;display:flex;align-items:center;gap:12px}
+.dhead .efude{width:50px;height:60px}
+.dhead .bubble{min-height:58px;max-height:62px;font-size:19px;line-height:1.3;padding:3px 16px}
+.dhead .btn{min-width:110px;height:52px;font-size:22px}
+.dir{flex:none;width:200px;height:52px;display:flex;align-items:center;justify-content:center;font-size:24px}
+.tools{position:absolute;left:12px;top:80px;width:240px;overflow:hidden;height:628px;padding:12px 10px;display:flex;flex-direction:column;gap:11px;border-radius:14px 22px 16px 20px}
+.trow{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.trow.two{grid-template-columns:repeat(2,1fr)}
+.btn.t{min-width:0;height:58px;padding:0 1px;font-size:16px;letter-spacing:-.04em;box-shadow:2px 3px 0 var(--ink);border-width:2.5px;gap:3px}
+.btn.t.sz{flex-direction:column;gap:2px;font-size:14px}.btn.t.sz i{background:currentColor;border-radius:50%}
+.btn.t.wide{font-size:22px;height:56px;padding:0 18px;letter-spacing:0}
+.pal{display:grid;gap:5px}.pal.simple{grid-template-columns:repeat(4,1fr)}.pal.pro{grid-template-columns:repeat(6,1fr);grid-auto-flow:column;grid-template-rows:repeat(8,1fr);gap:3px}
+.sw{height:52px;border:2.5px solid var(--ink);border-radius:12px 16px 12px 15px}
+.pal.pro .sw{height:34px;border-width:1.5px;border-radius:6px}
+.sw.on{outline:4px solid var(--ink);outline-offset:1px;position:relative;z-index:1}
+.paper{position:absolute;left:262px;top:80px;width:726px;height:546px;border-radius:8px 12px 9px 13px;overflow:hidden}
+.paper canvas{width:720px;height:540px;display:block;touch-action:none;cursor:crosshair}
+.vrow{position:absolute;left:262px;top:640px;width:726px;display:flex;gap:12px;justify-content:center}
+.vrow .btn{flex:1}
+.plist{position:absolute;left:1000px;top:80px;width:268px;display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.btn.pt{min-width:0;height:124px;padding:4px;flex-direction:column;gap:0;font-size:19px;box-shadow:2px 3px 0 var(--ink);line-height:1.15}
+.btn.pt canvas{width:100px;height:64px;background:repeating-conic-gradient(#e4e4e8 0 25%,#fff 0 50%) 0 0/16px 16px;border-radius:6px}
+.btn.pt b{font-weight:normal}.btn.pt span{font-size:14px;opacity:.7}
+.btn.pt.on{background:#fff;color:var(--ink);outline:5px solid var(--ink);outline-offset:-1px}
+.btn.pt.has span::after{content:'・かいた'}
+.scr-draw .donebtn{right:12px;bottom:12px;width:268px;height:66px}
+
+/* くみたて・モーション */
+.kprev{position:absolute;left:40px;top:128px;width:680px;height:540px;display:flex;align-items:center;justify-content:center;
+  background:repeating-conic-gradient(#eeeef1 0 25%,#fff 0 50%) 0 0/40px 40px}
+.kside{position:absolute;left:750px;top:128px;width:500px;display:flex;flex-direction:column;gap:16px}
+.klist{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.klist .btn{font-size:20px;height:50px}
+.pad{display:grid;grid-template-areas:". u ." "l . r" ". d .";grid-template-columns:repeat(3,120px);gap:8px;justify-content:center}
+.pad .btn{height:58px;font-size:22px}
+.kside .row{justify-content:center}
+.mprev{position:absolute;left:60px;top:128px;width:560px;height:460px;display:flex;align-items:center;justify-content:center}
+.mlist{position:absolute;left:680px;top:140px;width:520px;display:flex;flex-direction:column;gap:24px;align-items:stretch}
+.mlist .btn{height:96px;font-size:40px}
+
+/* せってい */
+.setgrid{position:absolute;left:60px;top:110px;width:1160px;display:grid;grid-template-columns:1fr 1fr;gap:22px}
+.sc{padding:14px 22px;display:flex;flex-direction:column;gap:10px;min-height:150px}
+.sc h3{font-size:28px;font-weight:normal;border-bottom:3px dashed var(--ink);padding-bottom:4px}
+.sc .btn{height:52px;font-size:24px;align-self:flex-start}
