@@ -5,7 +5,7 @@
 
 ## いまの状態
 
-ver 0.7.0：キャラづくり＋PNG/QR、モーション、バトル（CPU戦・対人戦）、宝石・コイン・おみせまで、ひととおり遊べる。
+ver 0.8.0：キャラづくり＋PNG/QR、モーション、バトル（CPU戦・対人戦）、宝石・コイン・おみせまで、ひととおり遊べる。
 
 - はじめて設定（なまえ・がくねん）→ スライムのチュートリアル
 - キャラづくり：スライム・よつあし・とり・さかな・えきたい・ロボット・にそくの7体形。むきえらび → おえかき → くみたて → モーションえらび → なまえ
@@ -27,9 +27,9 @@ python3 tools/build.py --canva
 node tools/flow_test.js
 ```
 
-↑ 通しテスト（Playwright）。バトルは `node tools/battle_test.js`。画面のはみだし・かぶり、PNGの読みなおしもしらべる。`--canva` で1ファイル版をテスト。
+↑ 通しテスト（Playwright）。バトルは `node tools/battle_test.js`、チュートリアルは `node tools/tutorial_test.js`。画面のはみだし・かぶり、PNGの読みなおしもしらべる。`--canva` で1ファイル版をテスト。
 
 ## ファイル
 
-- `js/data.js` 体形テンプレート・パレット・色→教科／`js/codec.js` QRの中身／`js/png.js` PNGの出力・読みこみ／`js/draw.js` おえかき／`js/motion.js` モーション／`js/app.js` 画面／`js/items.js` 宝石・コイン・おみせ／`js/battle.js` バトル／`js/questions.js` 問題（nochi-jpg/manabi-resource から `tools/make_questions.py` で作る）
+- `js/data.js` 体形テンプレート・パレット・色→教科／`js/codec.js` QRの中身／`js/png.js` PNGの出力・読みこみ／`js/draw.js` おえかき／`js/motion.js` モーション／`js/ui.js` 画面の部品（音・アイコン・会話）／`js/app.js` 画面／`js/items.js` 宝石・コイン・おみせ／`js/battle.js` バトル／`js/questions.js` 問題（nochi-jpg/manabi-resource から `tools/make_questions.py` で作る）
 - `docs/DATA_FORMAT.md` QRとPNGの形／`CREDITS.md` 素材とライブラリ

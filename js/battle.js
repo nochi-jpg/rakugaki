@@ -18,18 +18,15 @@
   const subjNames = g => g <= 2 ? RG.SUBJ4 : RG.SUBJ5;
   const S = () => RG.app.S;
 
-  // ---- おと（合成。ファイル不要）----
-  let ac = null;
+  // ---- おと（効果音は js/assets.js。UI.sfx で 鳴らす）----
+  const IC = UI.IC;
   function beep(kind) {
-    if (!UI.seOn) return;
-    try {
-      ac = ac || new (window.AudioContext || window.webkitAudioContext)();
-      const [f0, f1, d, type, vol] = { ok: [660, 990, .12, 'triangle', .16], ng: [220, 150, .26, 'sawtooth', .1], hit: [190, 70, .14, 'square', .1], crit: [330, 60, .32, 'square', .13], end: [520, 780, .5, 'triangle', .16], tick: [880, 880, .06, 'triangle', .1] }[kind];
-      const t = ac.currentTime, o = ac.createOscillator(), g = ac.createGain();
-      o.type = type; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + d * 0.8);
-      g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + .01); g.gain.exponentialRampToValueAtTime(.0001, t + d);
-      o.connect(g).connect(ac.destination); o.start(t); o.stop(t + d + .02);
-    } catch (e) { }
+    if (kind === 'ok') UI.sfx('ok', { vol: 0.5 });
+    else if (kind === 'ng') UI.sfx('ng', { vol: 0.6 });
+    else if (kind === 'hit') UI.sfx('hit', { vol: 0.55, rate: 0.9 + Math.random() * 0.3 });
+    else if (kind === 'crit') { UI.sfx('hit', { vol: 0.9, rate: 0.65 }); }
+    else if (kind === 'end') UI.sfx('ko', { vol: 0.7 });
+    else if (kind === 'tick') UI.sfx('hover', { vol: 0.5, rate: 1.5 });
   }
 
   // =============== 問題（nochi-jpg/manabi-resource。js/questions.js）===============
@@ -71,16 +68,17 @@
     return new Promise(res => {
       const names = subjNames(o.grade), hits = [];
       let q = null, lockUntil = 0, done = false, t0 = 0, total = 0;
-      UI.show('solve', `<div class="qtime box"><i id="qbar"></i></div><div class="qleft box">のこり <b id="qleft">${TIME}</b></div><div class="qcnt box">せいかい <b id="qn">0</b></div>
-        <div class="qwho">${esc(o.who)}</div><div class="qsub box" id="qsub"></div><button class="btn qquit" data-a="quit">やめる</button>
-        <div class="qbox box"><p id="qtext"></p></div>
-        <div class="qch">${[0, 1, 2, 3].map(i => `<button class="btn qc" data-a="ans" data-i="${i}"></button>`).join('')}</div>
+      UI.bgm('solve');
+      UI.show('solve', `<div class="qtime box"><i id="qbar"></i></div><div class="qleft box">${IC.clock}<b id="qleft">${TIME}</b></div><div class="qcnt box" id="qcnt">${IC.check}<b id="qn">0</b></div>
+        <div class="qwho">${esc(o.who)}</div><div class="qsub box" id="qsub"></div><button class="btn qquit" data-a="quit">${IC.x}<span>やめる</span></button>
+        <div class="qbox box" id="qbx"><p id="qtext"></p></div>
+        <div class="qch">${[0, 1, 2, 3].map(i => `<button class="btn qc" data-a="ans" data-i="${i}" data-se="none"></button>`).join('')}</div>
         <div class="qlock hide" id="qlock"><div class="box"><p>ざんねん！　<b id="qlk">${LOCK}</b>びょう まってね</p><em id="qex"></em></div></div>
         <div class="qready" id="qready"><div class="box"><p>${esc(o.who)}</p><b id="qrd">3</b></div></div>`, {
         ans(b) {
           if (done || !q || !t0 || now() < lockUntil) return;
           const i = +b.dataset.i, t = now() - t0; total++;
-          if (i === q.ans) { hits.push({ t, s: q.s }); document.getElementById('qn').textContent = hits.length; beep('ok'); put(); }
+          if (i === q.ans) { hits.push({ t, s: q.s }); document.getElementById('qn').textContent = hits.length; beep('ok'); const qc = document.getElementById('qcnt'); qc.classList.remove('bump'); void qc.offsetWidth; qc.classList.add('bump'); put(); }
           else {
             beep('ng'); lockUntil = now() + LOCK;
             stage.querySelectorAll('.qc').forEach((x, k) => x.classList.add(k === q.ans ? 'right' : k === i ? 'wrong' : 'dim'));
@@ -91,7 +89,8 @@
       });
       function put() {
         q = nextQ(o.grade, o.subj < 0 ? rnd(names.length) : o.subj); B._q = q;
-        document.getElementById('qsub').innerHTML = `<b>${names[q.s]}</b><span>${esc(q.unit)}</span>`;
+        document.getElementById('qsub').innerHTML = `${IC['s' + q.s]}<b>${names[q.s]}</b><span>${esc(q.unit)}</span>`;
+        const bx = document.getElementById('qbx'); bx.classList.remove('next'); void bx.offsetWidth; bx.classList.add('next');
         const tx = document.getElementById('qtext'); tx.textContent = q.q; tx.className = q.q.length > 44 ? 'l3' : q.q.length > 24 ? 'l2' : '';
         stage.querySelectorAll('.qc').forEach((x, k) => { x.textContent = q.c[k]; x.className = 'btn qc' + (q.c[k].length > 26 ? ' l3' : q.c[k].length > 13 ? ' l2' : ''); });
       }
@@ -109,9 +108,9 @@
         requestAnimationFrame(loop);
       };
       (async () => {   // 3・2・1 → スタート
-        for (let n = 3; n >= 1; n--) { if (RG.screen !== 'solve' || done) return; document.getElementById('qrd').textContent = n; beep('tick'); await wait(0.8); }
+        for (let n = 3; n >= 1; n--) { if (RG.screen !== 'solve' || done) return; const rd = document.getElementById('qrd'); rd.textContent = n; rd.classList.remove('tick'); void rd.offsetWidth; rd.classList.add('tick'); beep('tick'); await wait(0.8); }
         if (RG.screen !== 'solve' || done) return;
-        document.getElementById('qready').remove(); put(); t0 = now(); requestAnimationFrame(loop);
+        document.getElementById('qready').remove(); UI.sfx('decide', { vol: 0.5 }); put(); t0 = now(); requestAnimationFrame(loop);
       })();
     });
   }
@@ -209,13 +208,14 @@
   // F＝[じぶん, あいて]（{m, get, name, owner, stats, hits}）、sim＝simulate の かえり値。おわったら resolve
   function watch(F, sim) {
     return new Promise(res => {
+      UI.bgm('watch');
       const mk = (cls, f, i) => `<div class="hp ${cls} box"><p><b>${esc(f.name)}</b><span>${esc(f.owner)}</span></p><div class="hpbar"><i id="hp${i}"></i></div><em id="hpn${i}">${f.maxHp}</em></div>`;
       const marks = F.map((f, i) => f.hits.map(h => `<i class="mk ${i ? 'e' : 'p'}" style="left:${h.t / TIME * 100}%"></i>`).join('')).join('');
       UI.show('watch', `<canvas id="bcv" width="1280" height="720"></canvas>${mk('l', F[0], 0)}${mk('r', F[1], 1)}
         <div class="seek box"><i id="skfill"></i>${marks}<u id="skhead"></u></div>
         <div class="sklegend"><span><i class="mk p"></i>${esc(F[0].owner)}</span><span><i class="mk e"></i>${esc(F[1].owner)}</span></div>
-        <button class="btn spd${B.speed ? ' on' : ''}" data-a="spd" id="spd">はやさ ×${SPEEDS[B.speed || 0]}</button><div class="bend hide box" id="bend"></div>`, {
-        spd(b) { B.speed = ((B.speed || 0) + 1) % SPEEDS.length; b.textContent = 'はやさ ×' + SPEEDS[B.speed]; b.classList.toggle('on', B.speed > 0); },
+        <button class="btn spd${B.speed ? ' on' : ''}" data-a="spd" id="spd" data-se="flip">${IC.speed}<span id="spdt">はやさ ×${SPEEDS[B.speed || 0]}</span></button><div class="bend hide box" id="bend"></div>`, {
+        spd(b) { B.speed = ((B.speed || 0) + 1) % SPEEDS.length; document.getElementById('spdt').textContent = 'はやさ ×' + SPEEDS[B.speed]; b.classList.toggle('on', B.speed > 0); },
       });
       const cv = document.getElementById('bcv'), ctx = cv.getContext('2d'), bend = document.getElementById('bend');
       const font = getComputedStyle(stage).fontFamily;
@@ -267,6 +267,7 @@
           st[to].hp = e.hp; if (st[to].act !== 'lose') set(to, e.hp <= 0 ? 'lose' : 'damage');
           pops.push({ i: to, text: '-' + e.dmg, crit: e.crit, at: clk }); beep(e.crit ? 'crit' : 'hit'); shake = e.crit ? 1 : 0.55;
           document.getElementById('hp' + to).style.width = (e.hp / F[to].maxHp * 100) + '%'; document.getElementById('hpn' + to).textContent = e.hp;
+          const hb = stage.querySelector(to ? '.hp.r' : '.hp.l'); hb.classList.remove('hit'); void hb.offsetWidth; hb.classList.add('hit');
         }
         if (!ended && clk >= INTRO && T >= sim.end && !pend.length && ei >= sim.events.length) {
           ended = clk; focus = null;
@@ -275,7 +276,7 @@
           setTimeout(() => { if (RG.screen === 'watch') res(); }, 3400 / (RG.timeScale || 1));
         }
         // はじまりの 文字
-        if (clk < INTRO) { const t = clk < INTRO * 0.68 ? 'よーい…' : 'はじめ！'; if (bend.textContent !== t) { bend.textContent = t; bend.classList.remove('hide'); beep('tick'); } }
+        if (clk < INTRO) { const t = clk < INTRO * 0.68 ? 'よーい…' : 'はじめ！'; if (bend.textContent !== t) { bend.textContent = t; bend.classList.remove('hide'); t === 'はじめ！' ? UI.sfx('decide', { vol: 0.6 }) : beep('tick'); } }
         else if (!ended && !bend.classList.contains('hide')) bend.classList.add('hide');
         document.getElementById('skfill').style.width = document.getElementById('skhead').style.left = (T / TIME * 100) + '%';
         // ---- カメラ ----
@@ -316,16 +317,19 @@
   // =============== けっか ===============
   function result(F, sim, o) {
     const w = sim.winner, head = w < 0 ? 'ひきわけ' : o.vs ? `${esc(F[w].owner)}の かち！` : w === 0 ? 'かち！' : 'まけ…';
+    const pose = o.vs ? 'wink' : w === 0 ? 'joy' : w < 0 ? 'surprise' : 'worry';
+    const say = (o.vs ? '' : w === 0 ? 'やったね！ ' : w < 0 ? 'いい しょうぶ だったね！ ' : 'おしい！ ') + (o.note || '');
+    UI.bgm(o.vs || w <= 0 ? 'win' : 'lose'); UI.sfx(o.vs || w === 0 ? 'cheer' : w < 0 ? 'good' : 'shock', { vol: 0.5 });
     UI.show('result', `<h1 class="rhead">${head}</h1>
-      <div class="rgrid">${F.map((f, i) => `<div class="box rcard${i === w ? ' win' : ''}"><canvas width="360" height="250" id="rv${i}"></canvas><h3>${esc(f.name)}</h3><p>${esc(f.owner)}</p><p>せいかい <b>${f.hits.length}</b>もん　のこりHP <b>${sim.hp[i]}</b> / ${f.maxHp}</p></div>`).join('')}</div>
-      <div class="row c rbtns"><button class="btn" data-a="home">ホームに もどる</button>${o.vs ? '' : '<button class="btn" data-a="set">なんいどを かえる</button>'}<button class="btn strong" data-a="again">もういっかい</button></div>
-      <p class="rnote">${o.note || ''}</p>`, {
+      <div class="rgrid">${F.map((f, i) => `<div class="box rcard${i === w ? ' win' : ''}"><canvas width="360" height="240" id="rv${i}"></canvas><h3>${esc(f.name)}</h3><p>${esc(f.owner)}</p><p>せいかい <b>${f.hits.length}</b>もん　のこりHP <b>${sim.hp[i]}</b> / ${f.maxHp}</p></div>`).join('')}</div>
+      <div class="rfoot">${UI.efude(pose)}<div class="box bubble rnote">${say}</div>
+        <div class="rbtns"><button class="btn" data-a="home">${IC.home}<span>ホーム</span></button>${o.vs ? '' : `<button class="btn" data-a="set">${IC.gear}<span>あいてを かえる</span></button>`}<button class="btn strong" data-a="again">${IC.retry}<span>もういっかい</span></button></div></div>`, {
       home() { UI.home(); }, set() { B.practice(); }, again() { o.again(); },
     });
     F.forEach((f, i) => RG.play(document.getElementById('rv' + i), f.m, f.get, { action: w < 0 ? 'idle' : i === w ? 'win' : 'lose', flip: i === 0 ? f.m.face === 1 : f.m.face !== 1, maxScale: 0.8 }));
   }
 
-  // =============== CPUの モンスター（仮。あとで K.nom の キャラに 入れかえる）===============
+  // =============== れんしゅうの あいて「のらくがき」（仮の絵。あとで K.nom の キャラに 入れかえる）===============
   const CPU_NAMES = ['もじゃ', 'ぷにお', 'とげまる', 'ぴかりん', 'のそのそ', 'がおー', 'ひらひら', 'ころん'];
   function dummyMon() {
     const shape = ['slime', 'yotsu', 'tori', 'sakana', 'ekitai', 'robot', 'nisoku'][rnd(7)], parts = {}, C = RG.COLORS.slice(2).map(c => c[1]);
@@ -346,52 +350,74 @@
     const r = RG.colorRatio(Object.values(parts)); m.r5 = r.r5; m.r4 = r.r4;
     return { m, get: pid => parts[pid] || null };
   }
+  // 手持ちの モンスターから 1たい えらぶ まど。かえり値：番号（やめたら -1）
+  const pickMon = cur => new Promise(res => {
+    const mons = S().mons;
+    UI.modal(`<p class="mtext s">どの モンスターで たたかう？</p><div class="mpick">${mons.map((m, i) => `<button class="btn bm${cur === i ? ' on' : ''}" data-a="mon" data-v="${i}"><canvas width="170" height="100" data-bm="${i}"></canvas><b>${esc(m.name)}</b></button>`).join('')}</div><div class="row c"><button class="btn" data-a="n">やめる</button></div>`,
+      { mon(b) { UI.closeModal(); res(+b.dataset.v); }, n() { UI.closeModal(); res(-1); } });
+    stage.querySelectorAll('canvas[data-bm]').forEach(c => { const m = mons[+c.dataset.bm]; RG.drawMon(c.getContext('2d'), m, UI.getter(m), 4, 2, 162, 96, { maxScale: 1 }); });
+  });
+  const stars = n => `<i class="stars">${[0, 1, 2, 3].map(k => IC.star.replace('class="ic"', `class="ic${k < n ? ' f' : ''}"`)).join('')}</i>`;
 
-  // =============== まいにちれんしゅう（CPU戦）===============
-  const P = { mode: 'A', subj: 0, grade: 0, cpu: 1, mon: 0 };
+  // =============== れんしゅう バトル（CPU戦）===============
+  // subj＝-1：ランダムきょうか（モードA）／0〜：その きょうか（モードB）
+  const P = { subj: -1, grade: 0, cpu: 1, mon: -1 };
   B.practice = function () {
     const pl = S().player, mons = S().mons;
-    if (!mons.length) return UI.tell('さきに「キャラクター」で モンスターを つくろう');
+    if (!mons.length) return UI.tell('さきに「モンスター」で モンスターを つくろう', 'teach');
+    UI.bgm('home');
     if (!P.grade || P.grade > pl.grade) P.grade = pl.grade;
-    if (P.mon >= mons.length) P.mon = 0;
-    const names = subjNames(P.grade); if (P.subj >= names.length) P.subj = 0;
+    if (P.mon < 0) P.mon = S().fav || 0; if (P.mon >= mons.length) P.mon = 0;
+    const names = subjNames(P.grade); if (P.subj >= names.length) P.subj = -1;
     RG.items.rollDay();
-    const doneB = i => pl.doneB >> i & 1, cleared = P.mode === 'A' ? pl.doneA : doneB(P.subj);
-    const row = (label, html) => `<div class="brow"><span>${label}</span><div>${html}</div></div>`;
-    const opt = (a, v, text, on, cls) => `<button class="btn bo${on ? ' on' : ''}${cls || ''}" data-a="${a}" data-v="${v}">${text}</button>`;
-    UI.show('bset', `<h1 class="ttl">まいにち れんしゅう</h1><button class="btn backbtn" data-a="back">もどる</button><div class="bsetb">
-      ${row('モード', opt('mode', 'A', 'ランダムきょうか' + (pl.doneA ? '<small>すみ</small>' : ''), P.mode === 'A', ' w') + opt('mode', 'B', 'きょうかを えらぶ', P.mode === 'B', ' w'))}
-      ${row('きょうか', names.map((n, i) => opt('subj', i, n + (doneB(i) ? '<small>すみ</small>' : ''), P.mode === 'B' && P.subj === i, P.mode === 'A' ? ' off' : '')).join(''))}
-      ${row('がくねん', [1, 2, 3, 4, 5, 6].filter(g => g <= pl.grade).map(g => opt('grade', g, g + 'ねん', P.grade === g)).join(''))}
-      ${row('あいて', CPU.map((c, i) => opt('cpu', i, c.name, P.cpu === i)).join(''))}
-      ${row('モンスター', mons.map((m, i) => `<button class="btn bm${P.mon === i ? ' on' : ''}" data-a="mon" data-v="${i}"><canvas width="120" height="70" data-bm="${i}"></canvas><b>${esc(m.name)}</b></button>`).join(''))}
-      </div><p class="bleft">かつと コイン 100。きょうの のこり <b>${RG.items.left()}</b>かい${cleared ? '　／　ここは きょうは もう クリアしたよ' : ''}</p><button class="btn strong donebtn${cleared ? ' off' : ''}" data-a="go">スタート！</button>`, {
+    const done = i => i < 0 ? pl.doneA : pl.doneB >> i & 1, cleared = done(P.subj), m = mons[P.mon], left = RG.items.left();
+    const sub = (i, icon, name) => `<button class="btn bo${P.subj === i ? ' on' : ''}${done(i) ? ' cleared' : ''}" data-a="subj" data-v="${i}" data-se="flip">${icon}<span>${name}</span>${done(i) ? '<small>すみ</small>' : ''}</button>`;
+    UI.show('bset', UI.top('れんしゅう バトル', UI.coin(pl.coins)) +
+      `<div class="box bmon"><canvas id="bmc" width="340" height="230"></canvas><b>${esc(m.name)}</b>${mons.length > 1 ? `<button class="btn" data-a="chg" data-se="flip">${IC.monster}<span>モンスターを かえる</span></button>` : ''}</div>
+      <div class="breward"><p>${IC.coin}かつと コイン <b>100</b></p><p>${IC.clock}きょう あと <b>${left}</b>かい</p></div>
+      <div class="bopts">
+        <h4>きょうか</h4><div class="bchips s${names.length + 1}">${sub(-1, IC.dice, 'ランダム')}${names.map((n, i) => sub(i, IC['s' + i], n)).join('')}</div>
+        <h4>あいての つよさ</h4><div class="bchips s4">${CPU.map((c, i) => `<button class="btn bo${P.cpu === i ? ' on' : ''}" data-a="cpu" data-v="${i}" data-se="flip">${stars(i + 1)}<span>${c.name}</span></button>`).join('')}</div>
+        <h4>もんだいの がくねん</h4><div class="bchips s6">${[1, 2, 3, 4, 5, 6].filter(g => g <= pl.grade).map(g => `<button class="btn bo sm${P.grade === g ? ' on' : ''}" data-a="grade" data-v="${g}" data-se="flip">${g}ねん</button>`).join('')}</div>
+      </div>${cleared ? '<p class="bclear">ここは きょうは もう クリアしたよ</p>' : ''}
+      <button class="btn strong donebtn${cleared ? ' off' : ''}" data-a="go" data-se="decide">${IC.play}<span>スタート！</span></button>`, {
       back() { UI.home(); },
-      mode(b) { P.mode = b.dataset.v; B.practice(); }, subj(b) { P.subj = +b.dataset.v; B.practice(); }, grade(b) { P.grade = +b.dataset.v; B.practice(); },
-      cpu(b) { P.cpu = +b.dataset.v; B.practice(); }, mon(b) { P.mon = +b.dataset.v; B.practice(); },
+      subj(b) { P.subj = +b.dataset.v; B.practice(); }, grade(b) { P.grade = +b.dataset.v; B.practice(); }, cpu(b) { P.cpu = +b.dataset.v; B.practice(); },
+      async chg() { const i = await pickMon(P.mon); if (i >= 0) { P.mon = i; B.practice(); } },
       go() { return runPractice(); },
     });
-    stage.querySelectorAll('canvas[data-bm]').forEach(c => { const m = mons[+c.dataset.bm]; RG.drawMon(c.getContext('2d'), m, UI.getter(m), 4, 2, 112, 66, { maxScale: 1 }); });
+    RG.play(document.getElementById('bmc'), m, UI.getter(m), { maxScale: 0.8 });
   };
   async function runPractice() {
-    const pl = S().player, m = S().mons[P.mon], n = subjNames(P.grade).length, subj = P.mode === 'A' ? -1 : P.subj;
+    const pl = S().player, m = S().mons[P.mon], n = subjNames(P.grade).length, subj = P.subj;
+    if (UI.first('battle')) await UI.talk([
+      ['teach', 'バトルは 60びょう！\n4つの なかから こたえを えらんでね'],
+      ['normal', 'せいかい するたびに、きみの モンスターが\nこうげき するよ'],
+      ['worry', 'まちがえると 3びょう こたえられないから、\nよく かんがえてね'],
+      ['joy', 'それじゃあ、いくよ。よーい…'],
+    ]);
     const hits = await solve({ who: pl.name, grade: P.grade, subj });
     if (!hits) return UI.home();
     const cpu = dummyMon();
     RG.items.owners();
     const F = [
       { m, get: UI.getter(m), name: m.name, owner: pl.name, stats: RG.stats(m, pl.grade), hits, fx: RG.gemFx(m.gem, pl.grade) },
-      { m: cpu.m, get: cpu.get, name: cpu.m.name, owner: 'コンピューター（' + CPU[P.cpu].name + '）', stats: RG.stats(cpu.m, pl.grade), hits: cpuHits(P.cpu, n, subj < 0 ? -1 : rnd(n)) },
+      { m: cpu.m, get: cpu.get, name: cpu.m.name, owner: 'のらくがき（' + CPU[P.cpu].name + '）', stats: RG.stats(cpu.m, pl.grade), hits: cpuHits(P.cpu, n, subj < 0 ? -1 : rnd(n)) },
     ];
     const sim = simulate(F);
+    if (UI.first('watch')) await UI.talk([
+      ['teach', 'ここからは みるだけ。きみが せいかいした\nタイミングで、モンスターが こうげき するよ'],
+      ['normal', 'みぎしたの「はやさ」を おすと、\nはやおくり も できるよ'],
+    ]);
     await watch(F, sim);
     // かったら：コイン100、きょうの 権利が 1つ きえる、ほうせきが 出ることも（つよい あいてほど 出やすく、いいものが 出やすい）
     let note = sim.winner === 0 ? '' : 'かつまで なんどでも ちょうせん できるよ';
     if (sim.winner === 0) {
-      pl.coins += 100; if (P.mode === 'A') pl.doneA = 1; else pl.doneB |= 1 << P.subj;
+      pl.coins += 100; if (subj < 0) pl.doneA = 1; else pl.doneB |= 1 << subj;
       RG.app.save(); note = 'コイン +100！';
       if (RG.gemsOn() && Math.random() < DROP[P.cpu]) {
         const t = RG.items.rollBest(Math.random, DROP_ROLLS[P.cpu]);
+        UI.sfx('good');
         await UI.tell(`${RG.gemIcon(t)}<br>ほうせきを みつけた！<br>「${RG.gemName(t)}」<br><span class="note">${RG.gemText(t)}</span>`);
         if (await RG.items.give(t)) note += `　「${RG.gemName(t)}」を てにいれた！`;
       }
@@ -400,42 +426,45 @@
   }
 
   // =============== ともだちとたいせん（1台で 2人）===============
-  const V = { mon: 0, mode: 'A', foe: null };
+  const V = { mon: -1, mode: 'A', foe: null };
   B.versus = function () {
     const pl = S().player, mons = S().mons;
-    if (!mons.length) return UI.tell('さきに「キャラクター」で モンスターを つくろう');
-    if (V.mon >= mons.length) V.mon = 0;
-    const foe = V.foe;
-    UI.show('vset', `<h1 class="ttl">ともだちと たいせん</h1><button class="btn backbtn" data-a="back">もどる</button>
-      <div class="vcol l"><h3>${esc(pl.name)}</h3><div class="vmons">${mons.map((m, i) => `<button class="btn bm${V.mon === i ? ' on' : ''}" data-a="mon" data-v="${i}"><canvas width="120" height="70" data-bm="${i}"></canvas><b>${esc(m.name)}</b></button>`).join('')}</div></div>
-      <div class="vmid">たい</div>
-      <div class="vcol r"><h3>${foe ? esc(foe.owner) : 'あいて'}</h3>${foe ? `<div class="box vfoe"><canvas width="300" height="200" id="vf"></canvas><b>${esc(foe.m.name)}</b></div>` : '<div class="box vfoe empty"><p>あいての モンスターの<br>PNGを よみこもう</p></div>'}
-        <button class="btn" data-a="load">${foe ? 'べつの PNGに かえる' : 'ファイルを えらぶ'}</button></div>
-      <div class="brow vmode"><span>モード</span><div><button class="btn bo w${V.mode === 'A' ? ' on' : ''}" data-a="mode" data-v="A">ランダムきょうか</button><button class="btn bo w${V.mode === 'B' ? ' on' : ''}" data-a="mode" data-v="B">きょうかを えらぶ</button></div></div>
-      <button class="btn strong donebtn${foe ? '' : ' off'}" data-a="go">スタート！</button>`, {
-      back() { UI.home(); }, mon(b) { V.mon = +b.dataset.v; B.versus(); }, mode(b) { V.mode = b.dataset.v; B.versus(); },
+    if (!mons.length) return UI.tell('さきに「モンスター」で モンスターを つくろう', 'teach');
+    UI.bgm('home');
+    if (V.mon < 0) V.mon = S().fav || 0; if (V.mon >= mons.length) V.mon = 0;
+    const foe = V.foe, m = mons[V.mon];
+    UI.show('vset', UI.top('ともだちと たいせん') +
+      `<div class="box vcol l"><h3>${IC.monster}${esc(pl.name)}</h3><canvas id="vme" width="340" height="220"></canvas><b>${esc(m.name)}</b>${mons.length > 1 ? `<button class="btn" data-a="chg" data-se="flip">${IC.monster}<span>モンスターを かえる</span></button>` : ''}</div>
+      <div class="vmid">${IC.battle}</div>
+      ${foe ? `<div class="box vcol r"><h3>${IC.friends}${esc(foe.owner)}</h3><canvas width="340" height="220" id="vf"></canvas><b>${esc(foe.m.name)}</b><button class="btn" data-a="load">${IC.load}<span>べつの PNGに かえる</span></button></div>`
+        : `<div class="box vcol r empty"><p>ともだちの モンスターの<br>PNGを よみこもう</p><button class="btn strong" data-a="load">${IC.load}<span>ファイルを えらぶ</span></button></div>`}
+      <div class="vmode"><h4>きょうか</h4><div class="bchips"><button class="btn bo${V.mode === 'A' ? ' on' : ''}" data-a="mode" data-v="A" data-se="flip">${IC.dice}<span>ランダム</span></button><button class="btn bo${V.mode === 'B' ? ' on' : ''}" data-a="mode" data-v="B" data-se="flip">${IC.s0}<span>ひとりずつ えらぶ</span></button></div></div>
+      <button class="btn strong donebtn${foe ? '' : ' off'}" data-a="go" data-se="decide">${IC.play}<span>スタート！</span></button>`, {
+      back() { UI.home(); }, mode(b) { V.mode = b.dataset.v; B.versus(); },
+      async chg() { const i = await pickMon(V.mon); if (i >= 0) { V.mon = i; B.versus(); } },
       async load() {
         const f = await UI.pickFile(); if (!f) return;
         const r = RG.readMonPNG(await RG.fileToCanvas(f)), q = r.mon;
-        if (q.grade !== pl.grade) return UI.tell(`この モンスターは ${q.grade}ねんせいの データだよ。<br>がくねんが ちがうと たいせん できないよ`);
-        const m = Object.assign({}, q, { parts: r.parts });
-        V.foe = { m, get: pid => r.parts[pid] || null, owner: q.creator.name === pl.name ? q.creator.name + '（あいて）' : q.creator.name };
-        B.versus();
+        if (q.grade !== pl.grade) return UI.tell(`この モンスターは ${q.grade}ねんせいの データだよ。<br>がくねんが ちがうと たいせん できないよ`, 'worry');
+        const fm = Object.assign({}, q, { parts: r.parts });
+        V.foe = { m: fm, get: pid => r.parts[pid] || null, owner: q.creator.name === pl.name ? q.creator.name + '（あいて）' : q.creator.name };
+        UI.sfx('good'); B.versus();
       },
       go() { return runVersus(); },
     });
-    stage.querySelectorAll('canvas[data-bm]').forEach(c => { const m = mons[+c.dataset.bm]; RG.drawMon(c.getContext('2d'), m, UI.getter(m), 4, 2, 112, 66, { maxScale: 1 }); });
-    if (foe) RG.drawMon(document.getElementById('vf').getContext('2d'), foe.m, foe.get, 6, 6, 288, 188, { maxScale: 1 });
+    RG.play(document.getElementById('vme'), m, UI.getter(m), { maxScale: 0.8 });
+    if (foe) RG.play(document.getElementById('vf'), foe.m, foe.get, { maxScale: 0.8, flip: foe.m.face !== 1 });
   };
   // きょうかを 1つ えらぶ（モードB）
-  const pickSubj = (who, grade) => new Promise(res => UI.modal(`<p class="mtext">${esc(who)}は どの きょうかで たたかう？</p><div class="row c wrap">${subjNames(grade).map((n, i) => `<button class="btn" data-a="s" data-i="${i}">${n}</button>`).join('')}</div>`, { s(b) { UI.closeModal(); res(+b.dataset.i); } }));
+  const pickSubj = (who, grade) => new Promise(res => UI.modal(`<p class="mtext">${esc(who)}は どの きょうかで たたかう？</p><div class="row c wrap">${subjNames(grade).map((n, i) => `<button class="btn" data-a="s" data-i="${i}">${IC['s' + i]}<span>${n}</span></button>`).join('')}</div>`, { s(b) { UI.closeModal(); res(+b.dataset.i); } }));
   async function runVersus() {
     const pl = S().player, m = S().mons[V.mon], foe = V.foe, g = pl.grade;
     const who = [pl.name, foe.owner], subj = [-1, -1];
     if (V.mode === 'B') { subj[0] = await pickSubj(who[0], g); subj[1] = await pickSubj(who[1], g); }
-    await UI.tell(`まずは ${esc(who[0])}の ばん。<br>60びょうで できるだけ たくさん こたえよう！<br><span class="note">${esc(who[1])}は みないでね</span>`);
+    await UI.tell(`まずは ${esc(who[0])}の ばん。<br>60びょうで できるだけ たくさん こたえよう！<br><span class="note">${esc(who[1])}は みないでね</span>`, 'teach');
     const h0 = await solve({ who: who[0], grade: g, subj: subj[0] }); if (!h0) return UI.home();
-    UI.show('pass', UI.guide(`こうたい！<br>${esc(who[1])}に わたしてね`) + `<button class="btn big strong okbtn" data-a="go">じゅんび できた</button>`, { go() { next(); } });
+    UI.show('pass', UI.DECO + `<div class="introbox">${UI.efude('wink')}<div class="box bubble big">こうたい！<br>${esc(who[1])}に わたしてね</div></div>
+      <button class="btn huge strong introbtn" data-a="go" data-se="decide">${IC.check}<span>じゅんび できた</span></button>`, { go() { next(); } });
     const next = async () => {
       const h1 = await solve({ who: who[1], grade: g, subj: subj[1] }); if (!h1) return UI.home();
       RG.items.owners();
@@ -444,7 +473,7 @@
         { m: foe.m, get: foe.get, name: foe.m.name, owner: who[1], stats: RG.stats(foe.m, g), hits: h1, fx: RG.gemFx(foe.m.gem, g) },
       ];
       const sim = simulate(F);
-      await UI.tell('ふたりで がめんを みよう！');
+      await UI.tell('ふたりで がめんを みよう！', 'joy');
       await watch(F, sim);
       result(F, sim, { vs: true, note: 'ともだちとの たいせんは きろくに のこらないよ', again: runVersus });
     };

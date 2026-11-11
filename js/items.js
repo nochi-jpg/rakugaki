@@ -1,7 +1,7 @@
 // ===== ほうせき・コイン・1日の ながれ・おみせ（SPEC 8・9） =====
 (function (RG) {
   'use strict';
-  const UI = RG.ui, stage = UI.stage, esc = UI.esc;
+  const UI = RG.ui, stage = UI.stage, esc = UI.esc, IC = UI.IC;
   const I = RG.items = {};
   const S = () => RG.app.S, P = () => RG.app.S.player;
 
@@ -63,7 +63,8 @@
   // 手書きの ほうせき。中の ひらがなで しゅるい、下の 数字で つよさが わかる。
   // 2つの こうかが ある いしは、まんなかより 左が 1つめの 色、右が 2つめの 色（文字も 1文字めと 2文字めで 色を かえる）
   let gemUid = 0;
-  const GEM_LINE = '<path d="M17 5 L44 4 L55 18 L30 48 L5 19 Z"/><path d="M5 19 L55 18 M17 5 L22 18 L30 48 M44 4 L38 18 L30 48" stroke-width="1.6"/>';
+  // ふちの 線だけ（中の 線は、文字に かさなって 見づらいので なし）
+  const GEM_LINE = '<path d="M17 5 L44 4 L55 18 L30 48 L5 19 Z"/>';
   RG.gemIcon = function (id) {
     const g = RG.gem(id), m = g ? g.mark : '？', two = m.length > 1, fs = two ? 15 : 22, ty = two ? 25 : 27, col = RG.gemColors(id), u = 'gm' + (++gemUid);
     let defs = '', line, text;
@@ -77,9 +78,14 @@
       line = `<g clip-path="url(#${u}l)">${body(col[0])}</g><g clip-path="url(#${u}r)">${body(col[1])}</g>`;
       text = `<text x="30" y="${ty}" text-anchor="middle" font-size="${fs}"><tspan fill="${col[0]}">${m[0]}</tspan><tspan fill="${col[1]}">${m.slice(1)}</tspan></text>`;
     } else { line = body(col[0]); text = `<text x="30" y="${ty}" text-anchor="middle" font-size="${fs}" fill="${col[0]}">${m}</text>`; }
-    // 文字の うしろだけ 白くして、ほうせきの 線が 文字に かさならないように する（ほうせきの 中は ぬらない）
+    // 下の「＋数字」も、それぞれ 対応する 色に する
     const lv = g ? g.lv : '', lfs = lv.length > 5 ? 11.5 : lv.length > 3 ? 13.5 : 15;
-    return `<svg class="gem" viewBox="0 0 60 66"><defs>${defs}</defs>${line}<rect x="13" y="10" width="34" height="19" rx="6" fill="#fff"/>${text}<text x="30" y="64" text-anchor="middle" font-size="${lfs}" fill="#111">${lv}</text></svg>`;
+    let lvt;
+    if (!g) lvt = '';
+    else if (col === 'rainbow') lvt = `<text x="30" y="64" text-anchor="middle" font-size="${lfs}" fill="url(#${u})">${lv}</text>`;
+    else if (g.b) lvt = `<text x="30" y="64" text-anchor="middle" font-size="${lfs}"><tspan fill="${col[0]}">＋${g.a}</tspan><tspan fill="${col[1]}">＋${g.b}</tspan></text>`;
+    else lvt = `<text x="30" y="64" text-anchor="middle" font-size="${lfs}" fill="${col[0]}">${lv}</text>`;
+    return `<svg class="gem" viewBox="0 0 60 66"><defs>${defs}</defs>${line}${text}${lvt}</svg>`;
   };
   // つけている ほうせきの こうか。1・2年生は こうかなし
   const NOFX = { subj: [0, 0, 0, 0, 0], hp: 0, crit: 0, cmul: 0, def: 0, back: 0 };
@@ -136,7 +142,7 @@
   I.equip = function (m, t) { if (freeOf(t) < 1) return false; m.gem = t; RG.app.save(); return true; };
   I.unequip = function (m) { m.gem = 0; RG.app.save(); };
   // キャラクター画面の ほうせきの わく（1つ）。1・2年生は 出さない
-  I.slotsHTML = m => !RG.gemsOn() ? '' : `<div class="gslots"><span>ほうせき</span><button class="btn gcell" data-a="gslot">${m.gem ? RG.gemIcon(m.gem) : '<i class="plus2">＋</i>'}</button><em>${m.gem ? RG.gemName(m.gem) : 'つけていない'}</em></div>`;
+  I.slotsHTML = m => !RG.gemsOn() ? '' : `<div class="gslots"><span>ほうせき</span><button class="btn gcell" data-a="gslot" data-se="flip">${m.gem ? RG.gemIcon(m.gem) : IC.plus}</button><em>${m.gem ? RG.gemName(m.gem) : 'つけていない'}</em></div>`;
   // わくを おした：ついていれば 中身を 見て はずす、あいていれば えらんで つける。かわったら true
   I.slotTap = async function (m) {
     I.owners(); const p = P(), cur = m.gem;
@@ -176,22 +182,26 @@
   let gsel = 0;
   I.gemScreen = function () {
     if (!RG.gemsOn()) return UI.tell('ほうせきは 3ねんせいから つかえるよ');
+    UI.bgm('home');
     const p = P(), own = I.owners(); if (gsel >= p.gems.length) gsel = Math.max(0, p.gems.length - 1);
-    const cells = []; for (let i = 0; i < RG.GEM_MAX; i++) cells.push(i < p.gems.length ? `<button class="btn gcell big${i === gsel ? ' on' : ''}" data-a="sel" data-i="${i}">${RG.gemIcon(p.gems[i])}<em>${own[i] ? esc(own[i].name) : ''}</em></button>` : '<div class="gcell big none box"></div>');
+    const cells = []; for (let i = 0; i < RG.GEM_MAX; i++) cells.push(i < p.gems.length ? `<button class="btn gcell big${i === gsel ? ' on' : ''}" data-a="sel" data-i="${i}" data-se="flip">${RG.gemIcon(p.gems[i])}<em>${own[i] ? esc(own[i].name) : ''}</em></button>` : '<div class="gcell big none box"></div>');
     const t = p.gems[gsel], m = own[gsel];
-    UI.show('gems', `<h1 class="ttl">ほうせき</h1><button class="btn backbtn" data-a="back">もどる</button><div class="gcount box">${p.gems.length} / ${RG.GEM_MAX}</div>
-      <div class="ggrid">${cells.join('')}</div>
-      <div class="gside box">${t ? `${RG.gemIcon(t)}<h3>${RG.gemName(t)}</h3><p>${RG.gemText(t)}</p><p class="note">${m ? `「${esc(m.name)}」が つけているよ` : 'だれも つけていないよ'}</p>
-        <div class="col"><button class="btn strong" data-a="${m ? 'off' : 'on'}">${m ? 'はずす' : 'モンスターに つける'}</button><button class="btn" data-a="del">すてる</button></div>` : '<p class="gnone">まだ ほうせきを<br>もっていないよ。<br>れんしゅうで かつか、<br>おみせで かおう</p>'}</div>`, {
+    UI.show('gems', UI.top('ほうせき', `<div class="chip">${IC.gem}<b>${p.gems.length}</b><span>/ ${RG.GEM_MAX}</span></div>`) +
+      `<div class="ggrid">${cells.join('')}</div>
+      <div class="box gside">${t ? `${RG.gemIcon(t)}<h3 class="${RG.gemName(t).length > 12 ? 'long' : ''}">${RG.gemName(t)}</h3><p>${RG.gemText(t)}</p><p class="note">${m ? `「${esc(m.name)}」が つけているよ` : 'だれも つけていないよ'}</p>
+        <div class="col"><button class="btn strong" data-a="${m ? 'off' : 'on'}">${IC.monster}<span>${m ? 'はずす' : 'モンスターに つける'}</span></button><button class="btn" data-a="del">${IC.trash}<span>すてる</span></button></div>` : '<p class="gnone">まだ ほうせきを<br>もっていないよ。<br>れんしゅうで かつか、<br>おみせで かおう</p>'}</div>`, {
       back() { UI.home(); }, sel(b) { gsel = +b.dataset.i; I.gemScreen(); },
       off() { I.unequip(m); I.gemScreen(); },
       async on() {
         const mons = S().mons; if (!mons.length) return UI.tell('さきに モンスターを つくろう');
-        const i = await new Promise(res => UI.modal(`<p class="mtext s">どの モンスターに つける？</p><div class="row c wrap">${mons.map((x, i) => `<button class="btn mpick" data-a="m" data-i="${i}"><b>${esc(x.name)}</b><em>${x.gem ? 'いまの いしと いれかえ' : 'つけていない'}</em></button>`).join('')}</div><div class="row c"><button class="btn" data-a="n">やめる</button></div>`, { m(b) { UI.closeModal(); res(+b.dataset.i); }, n() { UI.closeModal(); res(-1); } }));
-        if (i < 0) return; I.equip(mons[i], t); I.gemScreen();
+        const i = await new Promise(res => UI.modal(`<p class="mtext s">どの モンスターに つける？</p><div class="row c wrap">${mons.map((x, i) => `<button class="btn mpk" data-a="m" data-i="${i}"><b>${esc(x.name)}</b><em>${x.gem ? 'いまの いしと いれかえ' : 'つけていない'}</em></button>`).join('')}</div><div class="row c"><button class="btn" data-a="n">やめる</button></div>`, { m(b) { UI.closeModal(); res(+b.dataset.i); }, n() { UI.closeModal(); res(-1); } }));
+        if (i < 0) return; I.equip(mons[i], t); UI.sfx('good'); I.gemScreen();
       },
       async del() { if (await UI.ask(`「${RG.gemName(t)}」を すてるよ。もとには もどせないよ`, 'すてる')) { await discard(gsel); I.gemScreen(); } },
-    });
+    });    if (UI.first('gems')) UI.talk([
+      ['teach', 'ほうせきは、モンスターに 1つ つけられる\nおまもり だよ'],
+      ['normal', '「＋」の かずが おおきいほど つよいんだ。\nれんしゅうで かつと、ときどき みつかるよ'],
+    ]);
   };
 
   // =============== おみせ ===============
@@ -212,28 +222,33 @@
     else if (RG.gemsOn()) st.push(gemItem(gems[7], 7));
     return st;
   };
-  // てんしゅ（K.nom の 線画）。かったときだけ えがお
-  const tenshu = smile => `<img class="tenshu" alt="てんしゅ" src="${(RG.ASSETS && RG.ASSETS[smile ? 'tenshuSmile' : 'tenshu']) || ''}">`;
-  I.shop = function (say) {
+  // てんしゅ（K.nom の 線画）。たびを している 竜の むすめ。かったときだけ えがお
+  const tenshu = smile => `<img class="tenshu${smile ? ' smile' : ''}" alt="てんしゅ" draggable="false" src="${(RG.ASSETS && RG.ASSETS.img && RG.ASSETS.img[smile ? 'tenshu_smile' : 'tenshu_normal']) || ''}">`;
+  I.shop = async function (say) {
     const p = P(), st = I.stock();
-    UI.show('shop', `<h1 class="ttl">おみせ</h1><button class="btn backbtn" data-a="back">もどる</button><div class="hcoin box">コイン　${p.coins}</div>
-      <div class="skeeper">${tenshu(!!say)}<div class="box bubble">${say || (st.length ? 'いらっしゃい！<br>しなものは まいにち かわるよ' : 'きょうは もう うるものが ないよ。<br>また きてね')}</div></div>
+    UI.bgm('shop');
+    UI.show('shop', UI.top('おみせ', UI.coin(p.coins)) +
+      `<div class="skeeper">${tenshu(!!say)}<div class="box bubble">${say || (st.length ? 'いらっしゃい！<br>しなものは まいにち かわるよ' : 'きょうは もう うるものが ないよ。<br>また きてね')}</div></div>
       <div class="sgrid">${st.map((it, n) => {
         const sold = p.bought >> it.i & 1;
-        return `<button class="btn scell${sold ? ' sold' : ''}" data-a="it" data-i="${n}">${it.kind === 'gem' ? RG.gemIcon(it.t) : `<i class="sico">${it.kind === 'slot' ? '＋わく' : esc(RG.SHAPE_NAMES[it.k])}</i>`}<b>${sold ? 'うりきれ' : it.price + 'コイン'}</b></button>`;
+        return `<button class="btn scell${sold ? ' sold' : ''}" data-a="it" data-i="${n}" data-se="flip">${it.kind === 'gem' ? RG.gemIcon(it.t) : `<i class="sico">${it.kind === 'slot' ? IC.plus + 'わくを ふやす' : IC[it.k] + esc(RG.SHAPE_NAMES[it.k])}</i>`}<b>${sold ? 'うりきれ' : IC.coin + it.price}</b></button>`;
       }).join('')}</div>`, {
       back() { UI.home(); },
       async it(b) {
         const it = st[+b.dataset.i], i = it.i; if (p.bought >> i & 1) return;
         const buy = await new Promise(res => UI.modal(`${it.kind === 'gem' ? RG.gemIcon(it.t) : ''}<p class="mtext">${it.name}</p><p class="mtext s">${it.text}</p><p class="mtext s">${it.price}コイン（もっている コイン：${p.coins}）</p>
-          <div class="row c"><button class="btn" data-a="n">やめる</button><button class="btn strong${p.coins < it.price ? ' off' : ''}" data-a="y">かう</button></div>${p.coins < it.price ? '<p class="note">コインが たりないよ</p>' : ''}`, { y() { UI.closeModal(); res(true); }, n() { UI.closeModal(); res(false); } }));
+          <div class="row c"><button class="btn" data-a="n">やめる</button><button class="btn strong${p.coins < it.price ? ' off' : ''}" data-a="y" data-se="none">${IC.coin}<span>かう</span></button></div>${p.coins < it.price ? '<p class="note">コインが たりないよ</p>' : ''}`, { y() { UI.closeModal(); res(true); }, n() { UI.closeModal(); res(false); } }));
         if (!buy || p.coins < it.price) return;
         if (it.kind === 'gem') { if (!(await I.give(it.t))) return; }
         else if (it.kind === 'slot') p.slots = Math.min(6, p.slots + 1);
         else if (!p.shapes.includes(it.k)) p.shapes.push(it.k);
-        p.coins -= it.price; p.bought |= 1 << i; RG.app.save();
-        I.shop(it.kind === 'gem' ? 'まいど あり～！<br>「ほうせき」や「キャラクター」で つけてね' : it.kind === 'slot' ? 'まいど あり～！<br>モンスターを もう 1たい つくれるよ' : `まいど あり～！<br>「${RG.SHAPE_NAMES[it.k]}」を つくってみてね`);
+        p.coins -= it.price; p.bought |= 1 << i; RG.app.save(); UI.sfx('shop', { vol: 0.7 });
+        I.shop(it.kind === 'gem' ? 'まいど あり～！<br>「ほうせき」や「モンスター」で つけてね' : it.kind === 'slot' ? 'まいど あり～！<br>モンスターを もう 1たい つくれるよ' : `まいど あり～！<br>「${RG.SHAPE_NAMES[it.k]}」を つくってみてね`);
       },
     });
+    if (!say && UI.first('shop')) await UI.talk([
+      ['normal', 'いらっしゃい！ わたしは たびの てんしゅ。\nせなかの リュックに、いろんな ものを つめているよ'],
+      ['smile', 'あたらしい「からだ」や、モンスターの「わく」を\nうっているよ。しなものは まいにち かわるから、また きてね！'],
+    ], 'てんしゅ');
   };
 })(window.RG);

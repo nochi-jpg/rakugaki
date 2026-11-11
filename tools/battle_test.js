@@ -8,8 +8,9 @@ const SHOT = process.env.SHOT_DIR || '/tmp/rakugaki_shots'; fs.mkdirSync(SHOT, {
 let fails = 0; const ok = (c, msg) => { console.log((c ? 'OK   ' : 'FAIL ') + msg); if (!c) fails++; };
 (async () => {
   const br = await chromium.launch(), pg = await br.newPage({ viewport: { width: 1280, height: 720 } });
+  await pg.addInitScript(() => { window.RG = window.RG || {}; window.RG.noTalk = true; window.RG.noAnim = true; });   // 会話と アニメーションを 止める
   const errs = []; pg.on('pageerror', e => errs.push(e.message)); pg.on('console', m => { if (m.type() === 'error') errs.push(m.text()); });
-  await pg.goto(url); await pg.evaluate(() => localStorage.clear()); await pg.reload();
+  await pg.goto(url); await pg.evaluate(() => localStorage.clear()); await pg.reload(); await pg.evaluate(() => { window.RG.noTalk = true; window.RG.noAnim = true; });
   let n = 0;
   const shot = async name => {
     await pg.screenshot({ path: `${SHOT}/b${String(++n).padStart(2, '0')}_${name}.png` });
@@ -84,8 +85,8 @@ let fails = 0; const ok = (c, msg) => { console.log((c ? 'OK   ' : 'FAIL ') + ms
   // ---- CPU戦（時間を 20倍に 早送り）----
   await pg.evaluate(() => { window.RG.timeScale = 20; });
   await act('prac'); await shot('bset');
-  await tap('[data-a="mode"][data-v="B"]'); await tap('[data-a="subj"][data-v="1"]'); await tap('[data-a="grade"][data-v="2"]'); await shot('bset_b');
-  await tap('[data-a="grade"][data-v="5"]'); await tap('[data-a="mode"][data-v="A"]'); await tap('[data-a="cpu"][data-v="0"]'); await tap('[data-a="mon"][data-v="1"]');
+  await tap('[data-a="subj"][data-v="1"]'); await tap('[data-a="grade"][data-v="2"]'); await shot('bset_b');
+  await tap('[data-a="grade"][data-v="5"]'); await tap('[data-a="subj"][data-v="-1"]'); await tap('[data-a="cpu"][data-v="0"]'); await act('chg'); await shot('bset_pick'); await tap('.modal [data-a="mon"][data-v="1"]');
   await pg.evaluate(() => { window.RG.timeScale = 1; });
   await act('go');
   const over = await pg.evaluate(() => {
@@ -165,7 +166,7 @@ let fails = 0; const ok = (c, msg) => { console.log((c ? 'OK   ' : 'FAIL ') + ms
   await pg.evaluate(() => { const RG = window.RG, p = RG.app.S.player; RG.timeScale = 1; p.grade = 5; p.gems = []; p.coins = 3000; p.slots = 2; p.shapes = ['slime', 'yotsu']; p.day = -1; RG.app.S.mons.forEach(m => { m.gem = 0; }); RG.app.save(); });
   await pg.evaluate(() => window.RG.ui.closeModal()); await pg.evaluate(() => window.RG.ui.home());
   await act('shop'); await shot('shop');
-  ok(await pg.evaluate(() => document.querySelector('.tenshu').src === window.RG.ASSETS.tenshu && document.querySelector('.tenshu').naturalWidth > 0), 'おみせ：てんしゅの え（ふつうの かお）');
+  ok(await pg.evaluate(() => document.querySelector('.tenshu').src === window.RG.ASSETS.img.tenshu_normal && document.querySelector('.tenshu').naturalWidth > 0), 'おみせ：てんしゅの え（ふつうの かお）');
   const gc = await pg.evaluate(() => { const RG = window.RG, id = RG.gemId, f = t => JSON.stringify(RG.gemColors(t)); return [f(id(1, 1)), f(id(12, 1, 2)), f(id(22, 3, 1)), f(id(27, 1, 2)), f(id(6, 1)), f(id(10, 1)), f(id(11, 2))].join(' '); });
   ok(gc === '["#e8434b","#e8434b"] ["#e8434b","#3a6fe0"] ["#e8434b","#f28bb6"] ["#e8434b","#9a6235"] ["#f59331","#f59331"] ["#9a98a8","#9a98a8"] "rainbow"', 'ほうせきの 色：こくご＝赤、こくさん＝赤｜青、こくたい＝赤｜ピンク、こくまも＝赤｜茶、かいしん＝オレンジ、ぎゃくてん＝灰、にじ');
   // ほうせきの 見本を ならべた 画像
@@ -174,7 +175,7 @@ let fails = 0; const ok = (c, msg) => { console.log((c ? 'OK   ' : 'FAIL ') + ms
   const st = await pg.evaluate(() => window.RG.items.stock().map(x => x.kind + ':' + x.price));
   ok(st.length === 8 && st[6] === 'slot:100' && st[7] === 'shape:200' && st.slice(0, 6).every(x => /^gem:\d+$/.test(x) && +x.slice(4) % 50 === 0 && +x.slice(4) <= 1000), 'おみせ：ほうせき6＋かくちょう＋くみたて（' + st.join(' ') + '）');
   await tap('.scell[data-i="0"]'); await shot('shop_buy'); await act('y'); await pg.waitForTimeout(100);
-  ok(await pg.evaluate(() => /まいど あり～/.test(document.querySelector('.skeeper .bubble').textContent) && document.querySelector('.tenshu').src === window.RG.ASSETS.tenshuSmile), 'おみせ：かうと てんしゅが えがおで「まいど あり～」');
+  ok(await pg.evaluate(() => /まいど あり～/.test(document.querySelector('.skeeper .bubble').textContent) && document.querySelector('.tenshu').src === window.RG.ASSETS.img.tenshu_smile), 'おみせ：かうと てんしゅが えがおで「まいど あり～」');
   await tap('.scell[data-i="6"]'); await act('y'); await pg.waitForTimeout(100);
   await tap('.scell[data-i="7"]'); await act('y'); await pg.waitForTimeout(100); await shot('shop_after');
   const sh = await pg.evaluate(() => { const RG = window.RG, p = RG.app.S.player, st0 = RG.items.stock(); return { gems: p.gems.length, slots: p.slots, shapes: p.shapes.join(','), coins: p.coins, bought: p.bought, again: RG.items.stock()[0].t === st0[0].t }; });

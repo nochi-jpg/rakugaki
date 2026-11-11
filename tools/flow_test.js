@@ -11,8 +11,9 @@ let fails = 0; const ok = (c, msg) => { console.log((c ? 'OK   ' : 'FAIL ') + ms
 (async () => {
   const br = await chromium.launch();
   const pg = await br.newPage({ viewport: { width: 1280, height: 720 } });
+  await pg.addInitScript(() => { window.RG = window.RG || {}; window.RG.noTalk = true; window.RG.noAnim = true; });   // 会話と アニメーションを 止める
   const errs = []; pg.on('pageerror', e => errs.push(e.message)); pg.on('console', m => { if (m.type() === 'error') errs.push(m.text()); });
-  await pg.goto(page_url); await pg.evaluate(() => localStorage.clear()); await pg.reload();
+  await pg.goto(page_url); await pg.evaluate(() => localStorage.clear()); await pg.reload(); await pg.evaluate(() => { window.RG.noTalk = true; window.RG.noAnim = true; });
   let n = 0;
   const shot = async name => {
     await pg.screenshot({ path: `${SHOT}/${String(++n).padStart(2, '0')}_${name}.png` });
@@ -204,7 +205,7 @@ let fails = 0; const ok = (c, msg) => { console.log((c ? 'OK   ' : 'FAIL ') + ms
   }
   await pg.evaluate(() => { window.RG.app.S.player.slots = 2; window.RG.app.save(); });
   // 再読みこみしても 残っているか
-  await pg.reload(); await act('go'); await act('chars');
+  await pg.reload(); await pg.evaluate(() => { window.RG.noTalk = true; window.RG.noAnim = true; }); await act('go'); await act('chars');
   ok(await pg.evaluate(() => window.RG.app.S.mons.length === 2), 'セーブ：再読みこみ後も 2たい いる');
   // うみのおや でない人は なおせない
   await pg.evaluate(() => { window.RG.app.S.mons[0].creator.id = 12345; });
