@@ -32,35 +32,36 @@
     } catch (e) { }
   }
 
-  // =============== 問題 ===============
-  // 1〜3年の さんすう・算数は 自動で 作る（仮）
-  function mathQ(g) {
-    let a, b, q, ans;
-    const k = rnd(3);
-    if (g <= 1) { if (k) { a = 1 + rnd(9); b = 1 + rnd(9); q = `${a} ＋ ${b} ＝ ？`; ans = a + b; } else { a = 3 + rnd(15); b = 1 + rnd(Math.min(9, a - 1)); q = `${a} － ${b} ＝ ？`; ans = a - b; } }
-    else if (g === 2) { if (k === 0) { a = 2 + rnd(8); b = 2 + rnd(8); q = `${a} × ${b} ＝ ？`; ans = a * b; } else if (k === 1) { a = 11 + rnd(60); b = 3 + rnd(28); q = `${a} ＋ ${b} ＝ ？`; ans = a + b; } else { a = 30 + rnd(69); b = 3 + rnd(27); q = `${a} － ${b} ＝ ？`; ans = a - b; } }
-    else { if (k === 0) { b = 2 + rnd(8); ans = 2 + rnd(8); a = b * ans; q = `${a} ÷ ${b} ＝ ？`; } else if (k === 1) { a = 11 + rnd(40); b = 2 + rnd(8); q = `${a} × ${b} ＝ ？`; ans = a * b; } else { a = 120 + rnd(700); b = 105 + rnd(180); q = `${a} ＋ ${b} ＝ ？`; ans = a + b; } }
-    const set = new Set([ans]);
-    for (const d of shuffle([1, -1, 2, -2, 10, -10, 3, 9, -9])) { if (set.size >= 4) break; if (ans + d >= 0) set.add(ans + d); }
-    return { s: 1, q, c: [...set].map(String), ex: '' };
-  }
-  const queues = {};
-  // その学年・教科の 問題を 1つ。同じ問題が 続かないように、山を 引ききるまで 出さない
-  function nextQ(g, s) {
-    let o;
-    if (s === 1 && g <= 3) o = mathQ(g);
-    else {
-      const key = g + '/' + s;
-      if (!queues[key] || !queues[key].length) {
-        let ids = []; RG.QDB.forEach((q, i) => { if (q[0] === g && q[1] === s) ids.push(i); });
-        if (!ids.length) RG.QDB.forEach((q, i) => { if (q[0] <= g && q[1] === s) ids.push(i); });   // 仮の問題が 足りない わくは 下の学年から
-        queues[key] = shuffle(ids);
-      }
-      const q = RG.QDB[queues[key].pop()];
-      o = q ? { s, q: q[3], c: q[4].slice(), ex: q[5] } : mathQ(Math.min(3, g));
+  // =============== 問題（nochi-jpg/manabi-resource。js/questions.js）===============
+  // せっていの「もんだいの もじ」：かんじ（その学年までに ならう かんじ だけ）／ひらがな
+  const kanaMode = () => !!(RG.app.S && RG.app.S.kana);
+  // おなじ日に おなじ問題が 出ないように、出した 問題を その日の あいだ おぼえておく
+  const SEEN_KEY = 'rakugaki_seen_v1';
+  let seen = null;
+  function seenSet() {
+    const d = RG.items ? RG.items.dayNow() : 0;
+    if (!seen || seen.day !== d) {
+      seen = { day: d, set: new Set() };
+      try { const o = JSON.parse(localStorage.getItem(SEEN_KEY) || 'null'); if (o && o.day === d && o.n === RG.QDB.length) seen.set = new Set(o.list); } catch (e) { }
     }
-    const right = o.c[0], c = shuffle(o.c.slice());
-    return { s: o.s, q: o.q, c, ans: c.indexOf(right), ex: o.ex };
+    return seen.set;
+  }
+  function saveSeen() { try { localStorage.setItem(SEEN_KEY, JSON.stringify({ day: seen.day, n: RG.QDB.length, list: [...seen.set] })); } catch (e) { } }
+  const queues = {};
+  // その学年・教科の 問題を 1つ。きょう まだ 出していない 問題から まぜて 出す（ぜんぶ 出しきったら 1から）
+  function nextQ(g, s) {
+    const key = g + '/' + s, used = seenSet();
+    if (!queues[key] || !queues[key].length) {
+      let ids = []; RG.QDB.forEach((q, i) => { if (q[0] === g && q[1] === s) ids.push(i); });
+      if (!ids.length) RG.QDB.forEach((q, i) => { if (q[0] <= g && q[1] === s) ids.push(i); });   // 問題が ない わくは 下の学年から
+      let fresh = ids.filter(i => !used.has(i));
+      if (!fresh.length) { ids.forEach(i => used.delete(i)); fresh = ids; }
+      queues[key] = shuffle(fresh);
+    }
+    const n = queues[key].pop(), q = RG.QDB[n]; used.add(n); saveSeen();
+    const k = kanaMode(), text = k && q[7] ? q[7] : q[4], ch = (k && q[8] ? q[8] : q[5]).slice(), ex = k && q[9] ? q[9] : q[6];
+    const right = ch[0], c = shuffle(ch), u = RG.QUNITS[q[2]];
+    return { s, q: text, c, ans: c.indexOf(right), ex, unit: u ? u[1] : '', id: q[3] };
   }
   B.nextQ = nextQ;
 
@@ -74,7 +75,7 @@
         <div class="qwho">${esc(o.who)}</div><div class="qsub box" id="qsub"></div><button class="btn qquit" data-a="quit">やめる</button>
         <div class="qbox box"><p id="qtext"></p></div>
         <div class="qch">${[0, 1, 2, 3].map(i => `<button class="btn qc" data-a="ans" data-i="${i}"></button>`).join('')}</div>
-        <div class="qlock hide" id="qlock"><div class="box">ざんねん！　<b id="qlk">${LOCK}</b>びょう まってね</div></div>
+        <div class="qlock hide" id="qlock"><div class="box"><p>ざんねん！　<b id="qlk">${LOCK}</b>びょう まってね</p><em id="qex"></em></div></div>
         <div class="qready" id="qready"><div class="box"><p>${esc(o.who)}</p><b id="qrd">3</b></div></div>`, {
         ans(b) {
           if (done || !q || !t0 || now() < lockUntil) return;
@@ -83,14 +84,14 @@
           else {
             beep('ng'); lockUntil = now() + LOCK;
             stage.querySelectorAll('.qc').forEach((x, k) => x.classList.add(k === q.ans ? 'right' : k === i ? 'wrong' : 'dim'));
-            document.getElementById('qlock').classList.remove('hide');
+            document.getElementById('qex').textContent = q.ex || ''; document.getElementById('qlock').classList.remove('hide');
           }
         },
         async quit() { if (await UI.ask('バトルを やめる？', 'やめる', 'つづける')) { done = true; res(null); } },
       });
       function put() {
         q = nextQ(o.grade, o.subj < 0 ? rnd(names.length) : o.subj); B._q = q;
-        document.getElementById('qsub').textContent = names[q.s];
+        document.getElementById('qsub').innerHTML = `<b>${names[q.s]}</b><span>${esc(q.unit)}</span>`;
         const tx = document.getElementById('qtext'); tx.textContent = q.q; tx.className = q.q.length > 44 ? 'l3' : q.q.length > 24 ? 'l2' : '';
         stage.querySelectorAll('.qc').forEach((x, k) => { x.textContent = q.c[k]; x.className = 'btn qc' + (q.c[k].length > 26 ? ' l3' : q.c[k].length > 13 ? ' l2' : ''); });
       }

@@ -45,10 +45,41 @@
   RG.gemText = id => { const g = RG.gem(id); return g ? g.text : ''; };
   // ほうせきは 3年生から（1・2年生モードでは つかえない）
   RG.gemsOn = () => !!(P() && P().grade >= 3);
-  // 白黒の 手書きの ほうせき（中の ひらがなで しゅるい、下の 数字で つよさが わかる）
+  // ---- ほうせきの 色：ふちの 線と 中の 文字だけ 色を つける（中は ぬらない）----
+  // 教科は モンスターの 属性と 同じ色（国語＝赤・算数＝青・社会＝黄・理科＝緑・英語＝紫）、ほかは 教科で 使っていない 色
+  // 社会の 黄色は 白の 上で 見えにくいので、少し こくした 黄色（#e0aa00）を 使う
+  RG.GEM_COLORS = { s: ['#e8434b', '#3a6fe0', '#e0aa00', '#3db66b', '#8e55d0'], hp: '#f28bb6', def: '#9a6235', back: '#9a98a8', crit: '#f59331', cmul: '#5ec8ef' };
+  // かえり値：[左の色, 右の色]（1色の いしは おなじ色 2つ。にじは 'rainbow'）
+  RG.gemColors = function (id) {
+    const g = RG.gem(id); if (!g) return ['#111', '#111'];
+    const K = KIND[g.kind], C = RG.GEM_COLORS;
+    if (K.type === 'rainbow') return 'rainbow';
+    if (K.type === 's') return [C.s[K.s[0]], C.s[K.s[0]]];
+    if (K.type === 'ss') return [C.s[K.s[0]], C.s[K.s[1]]];
+    if (K.type === 'shp') return [C.s[K.s[0]], C.hp];
+    if (K.type === 'sdef') return [C.s[K.s[0]], C.def];
+    return [C[K.type], C[K.type]];
+  };
+  // 手書きの ほうせき。中の ひらがなで しゅるい、下の 数字で つよさが わかる。
+  // 2つの こうかが ある いしは、まんなかより 左が 1つめの 色、右が 2つめの 色（文字も 1文字めと 2文字めで 色を かえる）
+  let gemUid = 0;
+  const GEM_LINE = '<path d="M17 5 L44 4 L55 18 L30 48 L5 19 Z"/><path d="M5 19 L55 18 M17 5 L22 18 L30 48 M44 4 L38 18 L30 48" stroke-width="1.6"/>';
   RG.gemIcon = function (id) {
-    const g = RG.gem(id), m = g ? g.mark : '？', fs = m.length > 1 ? 15 : 22;
-    return `<svg class="gem" viewBox="0 0 60 66"><g fill="#fff" stroke="#111" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"><path d="M17 5 L44 4 L55 18 L30 48 L5 19 Z"/><path d="M5 19 L55 18 M17 5 L22 18 L30 48 M44 4 L38 18 L30 48" stroke-width="1.6" fill="none"/></g><rect x="13" y="10" width="34" height="19" rx="6" fill="#fff"/><text x="30" y="${m.length > 1 ? 25 : 27}" text-anchor="middle" font-size="${fs}" fill="#111">${m}</text><text x="30" y="64" text-anchor="middle" font-size="15" fill="#111">${g ? g.lv : ''}</text></svg>`;
+    const g = RG.gem(id), m = g ? g.mark : '？', two = m.length > 1, fs = two ? 15 : 22, ty = two ? 25 : 27, col = RG.gemColors(id), u = 'gm' + (++gemUid);
+    let defs = '', line, text;
+    const body = stroke => `<g fill="none" stroke="${stroke}" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">${GEM_LINE}</g>`;
+    if (col === 'rainbow') {
+      const st = RG.GEM_COLORS.s.map((c, i) => `<stop offset="${i * 25}%" stop-color="${c}"/>`).join('');
+      defs = `<linearGradient id="${u}" x1="0" y1="0" x2="1" y2="0">${st}</linearGradient>`;
+      line = body(`url(#${u})`); text = `<text x="30" y="${ty}" text-anchor="middle" font-size="${fs}" fill="url(#${u})">${m}</text>`;
+    } else if (col[0] !== col[1]) {
+      defs = `<clipPath id="${u}l"><rect x="0" y="0" width="30" height="50"/></clipPath><clipPath id="${u}r"><rect x="30" y="0" width="30" height="50"/></clipPath>`;
+      line = `<g clip-path="url(#${u}l)">${body(col[0])}</g><g clip-path="url(#${u}r)">${body(col[1])}</g>`;
+      text = `<text x="30" y="${ty}" text-anchor="middle" font-size="${fs}"><tspan fill="${col[0]}">${m[0]}</tspan><tspan fill="${col[1]}">${m.slice(1)}</tspan></text>`;
+    } else { line = body(col[0]); text = `<text x="30" y="${ty}" text-anchor="middle" font-size="${fs}" fill="${col[0]}">${m}</text>`; }
+    // 文字の うしろだけ 白くして、ほうせきの 線が 文字に かさならないように する（ほうせきの 中は ぬらない）
+    const lv = g ? g.lv : '', lfs = lv.length > 5 ? 11.5 : lv.length > 3 ? 13.5 : 15;
+    return `<svg class="gem" viewBox="0 0 60 66"><defs>${defs}</defs>${line}<rect x="13" y="10" width="34" height="19" rx="6" fill="#fff"/>${text}<text x="30" y="64" text-anchor="middle" font-size="${lfs}" fill="#111">${lv}</text></svg>`;
   };
   // つけている ほうせきの こうか。1・2年生は こうかなし
   const NOFX = { subj: [0, 0, 0, 0, 0], hp: 0, crit: 0, cmul: 0, def: 0, back: 0 };
@@ -181,11 +212,12 @@
     else if (RG.gemsOn()) st.push(gemItem(gems[7], 7));
     return st;
   };
-  const TENSHU = `<svg class="tenshu" viewBox="0 0 200 260"><g fill="#fff" stroke="#111" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"><path d="M40 250 Q36 150 100 150 Q164 150 160 250 Z"/><path d="M70 190 L130 190 L126 250 L74 250 Z"/><circle cx="100" cy="92" r="58"/><path d="M48 70 Q100 8 152 70 Q100 52 48 70 Z"/></g><g fill="#111"><circle cx="80" cy="96" r="5"/><circle cx="120" cy="96" r="5"/></g><path d="M82 118 Q100 134 118 118" fill="none" stroke="#111" stroke-width="4" stroke-linecap="round"/></svg>`;
+  // てんしゅ（K.nom の 線画）。かったときだけ えがお
+  const tenshu = smile => `<img class="tenshu" alt="てんしゅ" src="${(RG.ASSETS && RG.ASSETS[smile ? 'tenshuSmile' : 'tenshu']) || ''}">`;
   I.shop = function (say) {
     const p = P(), st = I.stock();
     UI.show('shop', `<h1 class="ttl">おみせ</h1><button class="btn backbtn" data-a="back">もどる</button><div class="hcoin box">コイン　${p.coins}</div>
-      <div class="skeeper">${TENSHU}<div class="box bubble">${say || (st.length ? 'いらっしゃい！<br>しなものは まいにち かわるよ' : 'きょうは もう うるものが ないよ。<br>また きてね')}</div></div>
+      <div class="skeeper">${tenshu(!!say)}<div class="box bubble">${say || (st.length ? 'いらっしゃい！<br>しなものは まいにち かわるよ' : 'きょうは もう うるものが ないよ。<br>また きてね')}</div></div>
       <div class="sgrid">${st.map((it, n) => {
         const sold = p.bought >> it.i & 1;
         return `<button class="btn scell${sold ? ' sold' : ''}" data-a="it" data-i="${n}">${it.kind === 'gem' ? RG.gemIcon(it.t) : `<i class="sico">${it.kind === 'slot' ? '＋わく' : esc(RG.SHAPE_NAMES[it.k])}</i>`}<b>${sold ? 'うりきれ' : it.price + 'コイン'}</b></button>`;
@@ -200,7 +232,7 @@
         else if (it.kind === 'slot') p.slots = Math.min(6, p.slots + 1);
         else if (!p.shapes.includes(it.k)) p.shapes.push(it.k);
         p.coins -= it.price; p.bought |= 1 << i; RG.app.save();
-        I.shop(it.kind === 'gem' ? 'まいど あり！<br>「ほうせき」や「キャラクター」で つけてね' : it.kind === 'slot' ? 'まいど あり！<br>モンスターを もう 1たい つくれるよ' : `まいど あり！<br>「${RG.SHAPE_NAMES[it.k]}」を つくってみてね`);
+        I.shop(it.kind === 'gem' ? 'まいど あり～！<br>「ほうせき」や「キャラクター」で つけてね' : it.kind === 'slot' ? 'まいど あり～！<br>モンスターを もう 1たい つくれるよ' : `まいど あり～！<br>「${RG.SHAPE_NAMES[it.k]}」を つくってみてね`);
       },
     });
   };

@@ -86,7 +86,26 @@ let fails = 0; const ok = (c, msg) => { console.log((c ? 'OK   ' : 'FAIL ') + ms
   await act('prac'); await shot('bset');
   await tap('[data-a="mode"][data-v="B"]'); await tap('[data-a="subj"][data-v="1"]'); await tap('[data-a="grade"][data-v="2"]'); await shot('bset_b');
   await tap('[data-a="grade"][data-v="5"]'); await tap('[data-a="mode"][data-v="A"]'); await tap('[data-a="cpu"][data-v="0"]'); await tap('[data-a="mon"][data-v="1"]');
+  await pg.evaluate(() => { window.RG.timeScale = 1; });
   await act('go');
+  const over = await pg.evaluate(() => {
+    const RG = window.RG, bad = [], tx = document.getElementById('qtext'), box = tx.parentNode, qc = [...document.querySelectorAll('.qc')];
+    const fit = (q, c) => {
+      tx.textContent = q; tx.className = q.length > 44 ? 'l3' : q.length > 24 ? 'l2' : '';
+      if (box.scrollHeight > box.clientHeight + 1 || box.scrollWidth > box.clientWidth + 1) bad.push('問: ' + q.slice(0, 24));
+      c.forEach((t, k) => { const b = qc[k]; b.textContent = t; b.className = 'btn qc' + (t.length > 26 ? ' l3' : t.length > 13 ? ' l2' : ''); if (b.scrollHeight > b.clientHeight + 1 || b.scrollWidth > b.clientWidth + 1) bad.push('選: ' + t.slice(0, 24)); });
+    };
+    for (const q of RG.QDB) { fit(q[4], q[5]); fit(q[7] || q[4], q[8] || q[5]); }
+    // まちがえたときの 解説
+    const ex = document.getElementById('qex'), lk = document.getElementById('qlock'); lk.classList.remove('hide');
+    for (const q of RG.QDB) for (const e of [q[6], q[9] || q[6]]) { ex.textContent = e; const r = lk.firstElementChild.getBoundingClientRect(); if (r.bottom > 720 || r.right > 1280) bad.push('解説: ' + e.slice(0, 20)); }
+    lk.classList.add('hide');
+    return bad;
+  });
+  ok(!over.length, `問題 ${await pg.evaluate(() => window.RG.QDB.length)}問（かんじ・ひらがな）：問題文・選択肢・解説が はみださない` + (over.length ? ` → ${over.length}こ：` + over.slice(0, 5).join(' / ') : ''));
+  const qs = await pg.evaluate(() => { const RG = window.RG, B = RG.battle, S = RG.app.S, out = {}; S.kana = false; const a = B.nextQ(1, 1); S.kana = true; const k = B.nextQ(6, 2); S.kana = false; const seen = new Set(); let dup = 0; for (let i = 0; i < 200; i++) { const q = B.nextQ(3, 4); if (seen.has(q.id)) dup++; seen.add(q.id); } return { a: a.id + ' ' + a.unit, k: k.id + ' ' + k.q, ok: a.c.length === 4 && a.ans >= 0 && /^sa1-/.test(a.id) && /^sh6-/.test(k.id) && !/[一-龠]/.test(k.q.replace(/「.+?」/g, '')), dup }; });
+  ok(qs.ok && qs.dup === 20, `問題：学年・教科で 出る（${qs.a}／ひらがな ${qs.k}）。3年英語180問から200問 出して かさなりは ${qs.dup}問だけ`);
+  await pg.evaluate(() => { window.RG.timeScale = 20; });
   await pg.waitForFunction(() => !document.getElementById('qready') && window.RG.battle._q);
   await pg.evaluate(() => { window.RG.timeScale = 1; });
   await shot('solve');
@@ -97,16 +116,6 @@ let fails = 0; const ok = (c, msg) => { console.log((c ? 'OK   ' : 'FAIL ') + ms
   await pg.evaluate(() => { window.RG.timeScale = 20; });
   await pg.waitForFunction(() => document.getElementById('qlock') && document.getElementById('qlock').classList.contains('hide'));
   // いろいろな 問題を 出して、文字の はみだしを しらべる
-  const over = await pg.evaluate(() => {
-    const RG = window.RG, bad = [], tx = document.getElementById('qtext'), box = tx.parentNode, qc = [...document.querySelectorAll('.qc')];
-    for (const q of RG.QDB) {
-      tx.textContent = q[3]; tx.className = q[3].length > 44 ? 'l3' : q[3].length > 24 ? 'l2' : '';
-      if (box.scrollHeight > box.clientHeight + 1 || box.scrollWidth > box.clientWidth + 1) bad.push('問: ' + q[3].slice(0, 20));
-      q[4].forEach((c, k) => { const b = qc[k]; b.textContent = c; b.className = 'btn qc' + (c.length > 26 ? ' l3' : c.length > 13 ? ' l2' : ''); if (b.scrollHeight > b.clientHeight + 1 || b.scrollWidth > b.clientWidth + 1) bad.push('選: ' + c.slice(0, 20)); });
-    }
-    return bad;
-  });
-  ok(!over.length, `問題 ${await pg.evaluate(() => window.RG.QDB.length)}問：問題文・選択肢が はみださない` + (over.length ? ` → ${over.length}こ：` + over.slice(0, 5).join(' / ') : ''));
   // せいかいを おしつづける
   const answer = async () => { for (;;) { const r = await pg.evaluate(() => { if (window.RG.screen !== 'solve') return 'end'; const q = window.RG.battle._q, b = document.querySelector(`.qc[data-i="${q.ans}"]`); if (b && !document.getElementById('qready')) b.click(); return ''; }); if (r) break; await pg.waitForTimeout(40); } };
   await answer();
@@ -156,9 +165,16 @@ let fails = 0; const ok = (c, msg) => { console.log((c ? 'OK   ' : 'FAIL ') + ms
   await pg.evaluate(() => { const RG = window.RG, p = RG.app.S.player; RG.timeScale = 1; p.grade = 5; p.gems = []; p.coins = 3000; p.slots = 2; p.shapes = ['slime', 'yotsu']; p.day = -1; RG.app.S.mons.forEach(m => { m.gem = 0; }); RG.app.save(); });
   await pg.evaluate(() => window.RG.ui.closeModal()); await pg.evaluate(() => window.RG.ui.home());
   await act('shop'); await shot('shop');
+  ok(await pg.evaluate(() => document.querySelector('.tenshu').src === window.RG.ASSETS.tenshu && document.querySelector('.tenshu').naturalWidth > 0), 'おみせ：てんしゅの え（ふつうの かお）');
+  const gc = await pg.evaluate(() => { const RG = window.RG, id = RG.gemId, f = t => JSON.stringify(RG.gemColors(t)); return [f(id(1, 1)), f(id(12, 1, 2)), f(id(22, 3, 1)), f(id(27, 1, 2)), f(id(6, 1)), f(id(10, 1)), f(id(11, 2))].join(' '); });
+  ok(gc === '["#e8434b","#e8434b"] ["#e8434b","#3a6fe0"] ["#e8434b","#f28bb6"] ["#e8434b","#9a6235"] ["#f59331","#f59331"] ["#9a98a8","#9a98a8"] "rainbow"', 'ほうせきの 色：こくご＝赤、こくさん＝赤｜青、こくたい＝赤｜ピンク、こくまも＝赤｜茶、かいしん＝オレンジ、ぎゃくてん＝灰、にじ');
+  // ほうせきの 見本を ならべた 画像
+  await pg.evaluate(() => { const RG = window.RG, id = RG.gemId, list = [id(1, 3), id(2, 3), id(3, 3), id(4, 3), id(5, 3), id(6, 3), id(7, 3), id(8, 3), id(9, 3), id(10, 3), id(11, 4), id(12, 1, 2), id(13, 1, 2), id(15, 1, 2), id(21, 10, 10), id(22, 3, 1), id(23, 3, 1), id(27, 1, 2), id(29, 1, 2), id(31, 5, 5)]; RG.ui.modal(`<div class="gpick">${list.map(t => `<button class="btn gcell" title="${RG.gemName(t)}">${RG.gemIcon(t)}</button>`).join('')}</div><div class="row c"><button class="btn" data-a="n">とじる</button></div>`, { n() { RG.ui.closeModal(); } }); });
+  await shot('gem_samples'); await act('n');
   const st = await pg.evaluate(() => window.RG.items.stock().map(x => x.kind + ':' + x.price));
   ok(st.length === 8 && st[6] === 'slot:100' && st[7] === 'shape:200' && st.slice(0, 6).every(x => /^gem:\d+$/.test(x) && +x.slice(4) % 50 === 0 && +x.slice(4) <= 1000), 'おみせ：ほうせき6＋かくちょう＋くみたて（' + st.join(' ') + '）');
   await tap('.scell[data-i="0"]'); await shot('shop_buy'); await act('y'); await pg.waitForTimeout(100);
+  ok(await pg.evaluate(() => /まいど あり～/.test(document.querySelector('.skeeper .bubble').textContent) && document.querySelector('.tenshu').src === window.RG.ASSETS.tenshuSmile), 'おみせ：かうと てんしゅが えがおで「まいど あり～」');
   await tap('.scell[data-i="6"]'); await act('y'); await pg.waitForTimeout(100);
   await tap('.scell[data-i="7"]'); await act('y'); await pg.waitForTimeout(100); await shot('shop_after');
   const sh = await pg.evaluate(() => { const RG = window.RG, p = RG.app.S.player, st0 = RG.items.stock(); return { gems: p.gems.length, slots: p.slots, shapes: p.shapes.join(','), coins: p.coins, bought: p.bought, again: RG.items.stock()[0].t === st0[0].t }; });

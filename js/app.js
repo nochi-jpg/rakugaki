@@ -520,7 +520,7 @@
     const p = S.player;
     show('settings', `<h1 class="ttl">せってい</h1><button class="btn backbtn" data-a="back">もどる</button>
       <div class="setgrid">
-        <div class="box sc"><h3>プレイヤー</h3><p>${esc(p.name)}　${p.grade}ねんせい</p><div class="row"><button class="btn" data-a="grade">がくねんを かえる</button></div></div>
+        <div class="box sc"><h3>プレイヤー</h3><p>${esc(p.name)}　${p.grade}ねんせい</p><div class="row"><button class="btn" data-a="grade">がくねんを かえる</button></div><div class="row"><button class="btn" data-a="kana">${S.kana ? 'もんだいの もじ：ひらがな' : 'もんだいの もじ：かんじ'}</button></div><p class="note">かんじ＝ならった かんじ だけ つかうよ</p></div>
         <div class="box sc"><h3>データ</h3><div class="col"><button class="btn" data-a="pp">プレイヤーデータを PNGで だす</button><button class="btn" data-a="all">ぜんぶ まとめて だす</button></div></div>
         <div class="box sc"><h3>おと</h3><div class="row"><button class="btn" data-a="se">${S.se ? 'こうかおん：あり' : 'こうかおん：なし'}</button></div></div>
         ${RG.debug ? `<div class="box sc dbg"><h3>テストよう</h3><div class="dgrid"><button class="btn" data-a="t1">からだ ぜんぶ</button><button class="btn" data-a="t2">わく +1</button><button class="btn" data-a="t4">コイン +1000</button><button class="btn" data-a="t5">きょうを もどす</button><button class="btn" data-a="t6">ほうせき +3</button><button class="btn" data-a="t3">データを けす</button></div></div>` : ''}
@@ -534,6 +534,7 @@
       async pp() { await showPNG(RG.buildPlayerPNG(p), `rakugaki_player_${p.name}.png`, 'プレイヤーデータの PNG'); },
       all() { return exportAll(); },
       se() { S.se = !S.se; save(); settings(); },
+      kana() { S.kana = !S.kana; save(); settings(); },
       t1() { p.shapes = RG.SHAPE_ORDER.slice(); save(); toast('からだを ぜんぶ かいきんしたよ'); },
       t2() { p.slots = Math.min(6, p.slots + 1); save(); toast(`わくが ${p.slots}つに なったよ`); },
       async t3() { if (await ask('データを ぜんぶ けすよ。ほんとうに いい？', 'けす')) { try { localStorage.removeItem(SAVE_KEY); } catch (e) { } S = { v: 1, player: null, mons: [], se: true }; title(); } },

@@ -8,4 +8,5 @@
 
 - フォント「しねきゃぷしょん」はまだ入っていない（配布条件を確認してから、使う文字だけ埋めこむ）。いまは端末のフォントで表示される。
 - おえかきの描画エンジンは nochi-jpg/oekaki-relay、QRの考え方は nochi-jpg/manabi-battle がもと。
-- 問題データ（4〜6年・仮）は nochi-jpg/manabi-battle の問題をそのまま使っている。
+- 問題データは nochi-jpg/manabi-resource（まなび4択問題データベース）。
+- てんしゅの絵は K.nom（`assets/npc/`）。

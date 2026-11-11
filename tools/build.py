@@ -10,7 +10,10 @@ def data_url(path, mime):
     return f"data:{mime};base64," + base64.b64encode((ROOT / path).read_bytes()).decode()
 
 def build_assets():
-    assets = {"decide": data_url("assets/audio/decide.mp3", "audio/mpeg")}
+    assets = {"decide": data_url("assets/audio/decide.mp3", "audio/mpeg"),
+              # てんしゅ（K.nom の 線画。ふつう／かったときの えがお）
+              "tenshu": data_url("assets/npc/tenshu_normal.png", "image/png"),
+              "tenshuSmile": data_url("assets/npc/tenshu_smile.png", "image/png")}
     (ROOT / "js/assets.js").write_text(
         "// tools/build.py が 作る ファイル（手で 書きかえない）\nwindow.RG = window.RG || {};\nwindow.RG.ASSETS = " + json.dumps(assets) + ";\n", encoding="utf-8")
 

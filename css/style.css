@@ -139,7 +139,7 @@ button{font:inherit;color:inherit;cursor:pointer;background:none;border:0}
 
 /* せってい */
 .setgrid{position:absolute;left:60px;top:110px;width:1160px;display:grid;grid-template-columns:1fr 1fr;gap:22px}
-.sc{padding:14px 22px;display:flex;flex-direction:column;gap:10px;min-height:150px}
+.sc{padding:12px 22px;display:flex;flex-direction:column;gap:8px;min-height:150px}
 .sc h3{font-size:28px;font-weight:normal;border-bottom:3px dashed var(--ink);padding-bottom:4px}
 .sc .btn{height:52px;font-size:24px;align-self:flex-start}
 
@@ -170,7 +170,8 @@ button{font:inherit;color:inherit;cursor:pointer;background:none;border:0}
 .qcnt{position:absolute;left:1084px;top:14px;width:156px;height:48px;display:flex;align-items:center;justify-content:center;gap:8px;font-size:22px}
 .qleft b,.qcnt b{font-size:32px;font-weight:normal;min-width:44px;text-align:center}
 .qwho{position:absolute;left:40px;top:74px;font-size:26px}
-.qsub{position:absolute;left:540px;top:70px;width:200px;height:44px;display:flex;align-items:center;justify-content:center;font-size:26px}
+.qsub{position:absolute;left:300px;top:70px;width:680px;height:44px;display:flex;align-items:center;justify-content:center;gap:16px;font-size:26px;white-space:nowrap;overflow:hidden}
+.qsub b{font-weight:normal}.qsub span{font-size:20px;color:#555}
 .btn.qquit{position:absolute;right:40px;top:70px;min-width:110px;height:44px;font-size:20px}
 .qbox{position:absolute;left:90px;top:128px;width:1100px;height:214px;display:flex;align-items:center;justify-content:center;padding:14px 40px}
 .qbox p{font-family:var(--kyo);font-size:46px;line-height:1.35;text-align:center}
@@ -180,7 +181,8 @@ button{font:inherit;color:inherit;cursor:pointer;background:none;border:0}
 .btn.qc.l2{font-size:28px}.btn.qc.l3{font-size:22px}
 .btn.qc.right{background:var(--ink);color:#fff}.btn.qc.wrong{border-style:dashed;text-decoration:line-through;opacity:.55}.btn.qc.dim{opacity:.3}
 .qlock{position:absolute;left:0;right:0;top:60px;display:flex;justify-content:center;pointer-events:none;z-index:5}
-.qlock .box{padding:10px 40px;font-size:32px;box-shadow:4px 5px 0 var(--ink)}
+.qlock .box{padding:10px 40px;font-size:32px;box-shadow:4px 5px 0 var(--ink);max-width:1100px;text-align:center}
+.qlock em{display:block;font-style:normal;font-family:var(--kyo);font-size:24px;line-height:1.35;margin-top:4px}.qlock em:empty{display:none}
 .qlock b{font-size:44px;font-weight:normal}
 .qready{position:absolute;inset:0;background:rgba(255,255,255,.9);display:flex;align-items:center;justify-content:center;z-index:9}
 .qready .box{width:420px;height:320px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;box-shadow:5px 6px 0 var(--ink)}
@@ -245,8 +247,8 @@ button{font:inherit;color:inherit;cursor:pointer;background:none;border:0}
 .grow span{display:flex;flex-direction:column;flex:1;overflow:hidden;line-height:1.2}.grow b{font-size:21px;font-weight:normal;white-space:nowrap}.grow em{font-style:normal;font-size:14px;color:#555;white-space:normal}
 .grow u{text-decoration:none;font-size:22px}
 .btn.mpick{min-width:200px;height:84px;flex-direction:column;gap:0}.mpick b{font-weight:normal}.mpick em{font-style:normal;font-size:18px}
-.skeeper{position:absolute;left:30px;top:110px;width:400px;display:flex;flex-direction:column;align-items:center;gap:10px}
-.tenshu{width:220px;height:286px}.skeeper .bubble{width:380px;flex:none;min-height:96px;max-height:110px;justify-content:center;text-align:center;font-size:23px}
+.skeeper{position:absolute;left:30px;top:84px;width:400px;display:flex;flex-direction:column;align-items:center;gap:10px}
+.tenshu{height:400px;width:auto;display:block;-webkit-user-drag:none;pointer-events:none}.skeeper .bubble{width:380px;flex:none;min-height:96px;max-height:110px;justify-content:center;text-align:center;font-size:23px}
 .sgrid{position:absolute;left:460px;top:120px;width:790px;display:grid;grid-template-columns:repeat(4,182px);gap:22px 20px}
 .btn.scell{min-width:0;width:182px;height:182px;padding:6px;flex-direction:column;gap:6px;font-size:22px}
 .scell .gem{width:100px;height:110px}.scell b{font-weight:normal}
