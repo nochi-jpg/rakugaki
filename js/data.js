@@ -2,7 +2,7 @@
 window.RG = window.RG || {};
 (function (RG) {
   'use strict';
-  RG.VERSION = '0.8.0';
+  RG.VERSION = '0.9.0';
   RG.JR = 24;            // 関節の丸の半径
   RG.ADJ_MAX = 20;       // くみたてで ずらせる はば（関節の丸の中まで）
   RG.GUIDE_IN = 6;       // ガイド（描ける範囲）は わくの 6px 内がわ

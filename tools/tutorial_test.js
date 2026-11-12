@@ -21,11 +21,17 @@ let fails = 0; const ok = (c, msg) => { console.log((c ? 'OK   ' : 'FAIL ') + ms
   await pg.hover('[data-a="go"]'); await pg.waitForTimeout(250); await shot('title_hover');
   await pg.click('[data-a="go"]'); await pg.waitForTimeout(1500);
   ok(await has('.talk'), 'さいしょの おはなし：えふでの 会話が 出る'); await shot('story1');
+  const bgm = () => pg.evaluate(() => window.RG.chip.playing + ':' + window.RG.chip.count);
+  const b0 = await bgm(); await pg.waitForTimeout(700); const b1 = await bgm();
+  ok(await pg.evaluate(() => window.RG.chip.check().length === 0), 'BGM：9きょくの 譜面の 長さが 合っている');
+  ok(b0.startsWith('story:') && +b1.split(':')[1] > +b0.split(':')[1], `BGM：おはなしの きょくが 鳴りつづける（${b0} → ${b1}）`);
   await click(640, 330); await pg.waitForTimeout(1300); await shot('story2');
   const n1 = await skip('.talk'); await pg.waitForTimeout(600);
   ok(n1 >= 5 && await pg.evaluate(() => window.RG.screen === 'setup'), `おはなしを おくると なまえの 入力へ（${n1}回 おした）`); await shot('name');
   await pg.keyboard.type('yuu'); await pg.keyboard.press('Enter'); await pg.waitForTimeout(600); await shot('grade');
-  await pg.click('[data-g="4"]'); await pg.waitForTimeout(700); await shot('intro');
+  await pg.click('[data-g="4"]'); await pg.waitForTimeout(700); await shot('kana_mode');
+  await pg.click('[data-a="k"][data-v="1"]'); await pg.waitForTimeout(700);
+  ok(await pg.evaluate(() => window.RG.app.S.kana === true), 'はじめに「ひらがなモード」を えらべる'); await shot('intro');
   await pg.click('[data-a="go"]'); await pg.waitForTimeout(500); await pg.click('[data-f="0"]'); await pg.waitForTimeout(900);
   ok(await has('.coach .ring'), 'おえかき：はじめては ガイド（かこみ）が 出る'); await shot('coach1');
   await click(640, 360); await pg.waitForTimeout(250); await shot('coach2');
@@ -47,14 +53,22 @@ let fails = 0; const ok = (c, msg) => { console.log((c ? 'OK   ' : 'FAIL ') + ms
   await pg.click('[data-a="ok"]'); await pg.waitForTimeout(1000);
   ok(await has('.coach') && await pg.evaluate(() => window.RG.screen === 'home'), 'ホーム：はじめては ガイドが 出る'); await shot('home_coach');
   await skip('.coach'); await pg.waitForTimeout(500); await shot('home');
+  ok((await bgm()).startsWith('home:'), 'BGM：ホームの きょく');
   await pg.hover('[data-a="chars"]'); await pg.waitForTimeout(200); await shot('home_hover');
   ok(await pg.evaluate(() => { const b = document.querySelector('[data-a="chars"]'); return getComputedStyle(b).transform !== 'none'; }), 'ボタンに カーソルを のせると うごく');
   await pg.click('[data-a="shop"]'); await pg.waitForTimeout(1500);
   ok(await has('.talk.nochar'), 'おみせ：はじめては てんしゅが じこしょうかい する'); await shot('shop_talk'); await skip('.talk');
+  ok((await bgm()).startsWith('shop:'), 'BGM：おみせの きょく');
   await pg.click('[data-a="back"]'); await pg.waitForTimeout(300); await pg.click('[data-a="prac"]'); await pg.waitForTimeout(700); await shot('bset');
   await pg.click('[data-a="go"]'); await pg.waitForTimeout(1200);
   ok(await has('.talk'), 'はじめての バトル：あそびかたの せつめいが 出る'); await shot('battle_talk'); await skip('.talk');
   await pg.waitForTimeout(1200); await shot('ready'); await pg.waitForFunction(() => !document.getElementById('qready')); await pg.waitForTimeout(300); await shot('solve');
+  ok((await bgm()).startsWith('solve:'), 'BGM：もんだいの きょく');
+  // くりかえし：かち（イントロ 2小節＋4小節）を 早送りせずに 12びょう 鳴らして、音が とぎれない
+  const lp = await pg.evaluate(async () => { const C = window.RG.chip; window.RG.ui.bgm(null); window.RG.ui.bgm('win'); const c0 = C.count; await new Promise(r => setTimeout(r, 6000)); const c1 = C.count; await new Promise(r => setTimeout(r, 6000)); return [C.playing, c1 - c0, C.count - c1]; });
+  ok(lp[0] === 'win' && lp[1] > 40 && lp[2] > 40, `BGM：くりかえして 鳴りつづける（6びょうごとの 音の数 ${lp[1]}・${lp[2]}）`);
+  await pg.evaluate(() => { window.RG.app.S.bgm = false; window.RG.ui.bgmRefresh(); }); ok((await bgm()).startsWith('null'), 'BGM：せっていで「なし」に すると 止まる');
+  await pg.evaluate(() => { window.RG.app.S.bgm = true; window.RG.ui.bgmRefresh(); });
   // 2回めは 出ない
   await pg.evaluate(() => window.RG.ui.home()); await pg.waitForTimeout(600);
   ok(!(await has('.coach')) && !(await has('.talk')), '2回めの ホームでは ガイドは 出ない');

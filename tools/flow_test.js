@@ -56,7 +56,7 @@ let fails = 0; const ok = (c, msg) => { console.log((c ? 'OK   ' : 'FAIL ') + ms
 
   await shot('title');
   await act('go'); await kana('たろう'); await shot('setup_name');
-  await act('ok'); await shot('grade'); await tap('[data-g="3"]'); await shot('intro');
+  await act('ok'); await shot('grade'); await tap('[data-g="3"]'); await shot('kana_mode'); await tap('[data-a="k"][data-v="0"]'); await shot('intro');
   await act('go'); await shot('face'); await tap('[data-f="0"]');
   await shot('draw_empty');
   // かんせいを 早まって おす → 点滅で 教える

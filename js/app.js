@@ -87,10 +87,16 @@
         const g = +b.dataset.g;
         if (editing) { S.player.grade = g; save(); settings(); return; }
         S.player = { name, id: RG.newId(), grade: g, coins: 0, gems: [], shapes: ['slime'], slots: 1, day: 0, doneA: 0, doneB: 0, bonus: 0, bought: 0, tutorial: false };
-        save(); tutorialIntro();
+        save(); setupKana();
       },
       back() { settings(); },
     });
+  }
+  // もんだいの もじを えらぶ（あとで せっていで かえられる）
+  function setupKana() {
+    show('kana', guide('もんだいの もじは、どっちに する？<br>あとで「せってい」で かえられるよ', 'teach') +
+      `<div class="faces"><button class="btn fc km" data-a="k" data-v="0">${IC.s0}<b>かんじモード</b><em>ならった かんじを つかう</em><span class="sample">山に のぼる</span></button><button class="btn fc km" data-a="k" data-v="1"><i class="kanaic">あ</i><b>ひらがなモード</b><em>ぜんぶ ひらがなと カタカナ</em><span class="sample">やまに のぼる</span></button></div>`,
+      { k(b) { S.kana = b.dataset.v === '1'; save(); tutorialIntro(); } });
   }
   async function tutorialIntro() {
     show('intro', DECO + `<div class="introbox">${UI.efude('teach')}<div class="box bubble big">まずは いっしょに、さいしょの モンスター<br>「スライム」を かいて みよう！</div></div>
@@ -458,6 +464,7 @@
           <button class="btn setrow" data-a="all">${IC.save}<span><b>ぜんぶ まとめて だす</b><em>モンスターも いっしょに ほぞん</em></span></button>
           <h4>そのほか</h4>
           <button class="btn setrow" data-a="how">${IC.help}<span><b>あそびかた</b><em>えふでの せつめいを もういちど</em></span></button>
+          <button class="btn setrow" data-a="jukebox">${IC.music}<span><b>おんがくを きく</b><em>ゲームの きょくを ならせるよ</em></span></button>
           <button class="btn setrow" data-a="credit">${IC.star}<span><b>クレジット</b><em>つかっている そざい</em></span></button>
         </div>
         ${RG.debug ? `<div class="box dbg"><h4>テストよう</h4><div class="dgrid"><button class="btn" data-a="t1">からだ ぜんぶ</button><button class="btn" data-a="t2">わく +1</button><button class="btn" data-a="t4">コイン +1000</button><button class="btn" data-a="t5">きょうを もどす</button><button class="btn" data-a="t6">ほうせき +3</button><button class="btn" data-a="t3">データを けす</button></div></div>` : ''}
@@ -480,8 +487,14 @@
           ['joy', 'かつと コインが もらえる。おみせで あたらしい\n「からだ」や「わく」を かおう！'],
         ]));
       },
+      // きょくを ためしに 鳴らす
+      jukebox() {
+        const names = { title: 'タイトル', story: 'おはなし', home: 'ホーム', make: 'つくる', shop: 'おみせ', solve: 'もんだい', watch: 'バトル', win: 'かち', lose: 'まけ' };
+        modal(`<p class="mtext">おんがくを きく</p><div class="kinds">${Object.keys(names).map(k => `<button class="btn" data-a="p" data-k="${k}" data-se="none">${IC.music}<span>${names[k]}</span></button>`).join('')}</div><div class="row c"><button class="btn strong" data-a="n">とじる</button></div>`,
+          { p(b) { if (S.bgm === false) return toast('「おんがく」が なしに なっているよ'); UI.bgm(null); UI.bgm(b.dataset.k); stage.querySelectorAll('.kinds .btn').forEach(x => x.classList.toggle('on', x === b)); }, n() { closeModal(); UI.bgm(null); UI.bgm('home'); } });
+      },
       credit() {
-        modal(`<p class="mtext">クレジット</p><div class="credit"><p><b>え</b>　K.nom（えふで・てんしゅ）</p><p><b>フォント</b>　しねきゃぷしょん（chiphead／ひらがな：雑念の塊）</p><p><b>こうかおん</b>　効果音ラボ</p><p><b>もんだい</b>　まなび4択問題データベース</p><p><b>QRコード</b>　qrcode-generator（Kazuhiko Arase）・jsQR（Cosmo Wolfe）</p></div><div class="row c"><button class="btn strong" data-a="n">とじる</button></div>`, { n() { closeModal(); } });
+        modal(`<p class="mtext">クレジット</p><div class="credit"><p><b>え</b>　K.nom（えふで・てんしゅ）</p><p><b>フォント</b>　しねきゃぷしょん（chiphead／ひらがな：雑念の塊）</p><p><b>こうかおん</b>　効果音ラボ</p><p><b>おんがく</b>　オリジナル（チップチューン）</p><p><b>もんだい</b>　まなび4択問題データベース</p><p><b>QRコード</b>　qrcode-generator（Kazuhiko Arase）・jsQR（Cosmo Wolfe）</p></div><div class="row c"><button class="btn strong" data-a="n">とじる</button></div>`, { n() { closeModal(); } });
       },
       t1() { p.shapes = RG.SHAPE_ORDER.slice(); save(); toast('からだを ぜんぶ かいきんしたよ'); },
       t2() { p.slots = Math.min(6, p.slots + 1); save(); toast(`わくが ${p.slots}つに なったよ`); },

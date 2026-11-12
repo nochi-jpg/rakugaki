@@ -47,7 +47,7 @@ let fails = 0; const ok = (c, msg) => { console.log((c ? 'OK   ' : 'FAIL ') + ms
     await strokeOn('#cv', pts); await tap('[data-t="fill"]'); await strokeOn('#cv', [[cx, cy], [cx, cy]]);
   };
   // ---- はじめて設定 → チュートリアルの スライム ----
-  await act('go'); await kana('たろう'); await act('ok'); await tap('[data-g="5"]'); await act('go'); await tap('[data-f="0"]');
+  await act('go'); await kana('たろう'); await act('ok'); await tap('[data-g="5"]'); await tap('[data-a="k"][data-v="0"]'); await act('go'); await tap('[data-f="0"]');
   await blob('#3a6fe0', 0.5, 0.55, 0.36, 0.36); await tap('[data-p="horn"]'); await blob('#f7cc2e', 0.5, 0.6, 0.12, 0.3);
   ok(await pg.evaluate(() => !document.querySelector('[data-a="addfree"]')), 'じゆうパーツ：なにも 解禁していないと「パーツを たす」は 出ない');
   await act('done'); await act('next'); await act('next'); await kana('すらお'); await act('ok'); await act('ok');

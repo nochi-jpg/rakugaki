@@ -29,23 +29,40 @@
     a.volume = Math.min(1, (o && o.vol) || 0.55); a.playbackRate = (o && o.rate) || 1;
     const p = a.play(); if (p && p.catch) p.catch(() => { });
   };
-  // BGMの 名前（assets/bgm/<名前>.mp3 を 置くと 鳴る。docs/BGM.md）
+  // ---- BGM ----
+  // ふつうは 内蔵の チップチューン（js/bgm.js。譜面データを その場で 鳴らすので 容量を 使わない）。
+  // assets/bgm/<名前>.mp3 を 置くと、その曲だけ ファイルの 音に さしかえる（docs/BGM.md）
   const BGM_FALLBACK = { story: 'title', make: 'home', shop: 'home', watch: 'solve', lose: 'win' }, BGM_ONCE = ['win', 'lose'];
-  let bgm = null, bgmName = null, bgmPending = false;
-  // BGMを かえる（同じ曲なら そのまま）。曲が まだ ないときは なにも しない。null で 止める
+  const BGM_VOL = { solve: 0.34, make: 0.36, story: 0.42 };       // 考える 場面は 小さめ
+  let bgm = null, bgmName = null, bgmPending = null;
+  function bgmStop() {
+    if (bgm) { const a = bgm, v0 = a.volume, t0 = performance.now(); bgm = null; const f = () => { const t = Math.min(1, (performance.now() - t0) / 400); a.volume = v0 * (1 - t); t < 1 ? requestAnimationFrame(f) : a.pause(); }; f(); }
+    if (RG.chip) RG.chip.stop();
+  }
+  function bgmStart(name) {
+    const files = (RG.ASSETS && RG.ASSETS.bgm) || {}, chip = RG.chip;
+    let n = name; for (let k = 0; n && !files[n] && !(chip && chip.TRACKS[n]) && k < 3; k++) n = BGM_FALLBACK[n];
+    if (!n) return;
+    if (files[n]) { bgm = new Audio(files[n]); bgm.loop = !BGM_ONCE.includes(name); bgm.volume = 0.35; const p = bgm.play(); if (p && p.catch) p.catch(() => { bgmPending = name; }); return; }
+    // チップチューン：さいしょに がめんを さわる 前は 鳴らせないので、さわったときに 鳴らす
+    // （さわった すぐ あとは 音の じゅんびが まだの ことが あるので、すこし 待って たしかめなおす）
+    if (!chip.ready()) {
+      chip.unlock(); bgmPending = name; let tries = 0;
+      const again = () => { if (bgmPending !== name || bgmName !== name) return; if (chip.ready()) { bgmPending = null; chip.play(n, BGM_VOL[n] || 0.5); } else if (++tries < 15) setTimeout(again, 100); };
+      setTimeout(again, 100); return;
+    }
+    chip.play(n, BGM_VOL[n] || 0.5);
+  }
+  // BGMを かえる（同じ曲なら そのまま）。null で 止める
   UI.bgm = function (name) {
-    if (name === bgmName) return; bgmName = name || null;
-    if (bgm) { const a = bgm, v0 = a.volume, t0 = performance.now(); bgm = null; const f = () => { const t = Math.min(1, (performance.now() - t0) / 500); a.volume = v0 * (1 - t); t < 1 ? requestAnimationFrame(f) : a.pause(); }; f(); }
-    // その曲が ないときは かわりの 曲（BGM_FALLBACK）。それも なければ 鳴らさない
-    const list = (RG.ASSETS && RG.ASSETS.bgm) || {}; let n = name;
-    for (let k = 0; n && !list[n] && k < 3; k++) n = BGM_FALLBACK[n];
-    const src = n && list[n];
-    if (!src || S().bgm === false) return;
-    bgm = new Audio(src); bgm.loop = !BGM_ONCE.includes(name); bgm.volume = 0.35;
-    const p = bgm.play(); if (p && p.catch) p.catch(() => { bgmPending = true; });
+    if (name === bgmName) return; bgmName = name || null; bgmPending = null;
+    bgmStop();
+    if (!name || S().bgm === false || RG.noBgm) return;
+    bgmStart(name);
   };
-  UI.bgmRefresh = () => { const n = bgmName; bgmName = null; if (bgm) { bgm.pause(); bgm = null; } UI.bgm(n); };
-  addEventListener('pointerdown', () => { if (bgmPending && bgm) { bgmPending = false; bgm.play().catch(() => { }); } }, true);
+  UI.bgmRefresh = () => { const n = bgmName; bgmName = null; bgmStop(); UI.bgm(n); };
+  const bgmRetry = () => { if (!bgmPending) return; const n = bgmPending; bgmPending = null; setTimeout(() => { if (bgmName === n) { bgmStop(); bgmStart(n); } }, 60); };
+  addEventListener('pointerdown', bgmRetry, true); addEventListener('keydown', bgmRetry, true);
 
   // ---- アイコン（白黒の 線画。24×24）----
   const svg = (d, w) => `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w || 2.3}" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
