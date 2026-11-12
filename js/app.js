@@ -56,16 +56,28 @@
     UI.bgm('title');
     show('title', `${DECO}<div class="tlogo"><span class="tl1">${[...'らくがき'].map((c, i) => `<i style="animation-delay:${i * 90}ms">${c}</i>`).join('')}</span><span class="tl2">学習バトル</span></div>
       <div class="tefude">${UI.efude('joy')}</div>
-      <div class="tbtns"><button class="btn huge strong" data-a="go" data-se="decide">${IC.play}<span>はじめる</span></button><button class="btn" data-a="load">${IC.load}<span>データを よみこむ</span></button></div>
-      <div class="ver">ver ${RG.VERSION}</div>`, {
+      <div class="tbtns"><button class="btn huge strong" data-a="go" data-se="decide">${IC.play}<span>はじめる</span></button>${RG.debug ? `<button class="btn" data-a="load">${IC.load}<span>データを ふっかつ（デバッグ）</span></button>` : ''}</div>
+      <div class="ver">ver ${RG.VERSION}</div><button class="knom" data-a="kn" data-se="none">K.nom</button>`, {
       async go() { if (S.player) return home(); await opening(); setupName(); },
-      async load() {
-        const f = await pickFile(); if (!f) return;
-        const p = RG.readPlayerPNG(await RG.fileToCanvas(f));
-        if (S.player && !(await ask(`いまの データ（${esc(S.player.name)}）を「${esc(p.name)}」の データに かえるよ。いい？<br><span class="note">モンスターは そのまま のこるよ</span>`))) return;
-        S.player = p; S.mons.forEach(m => { m.gem = 0; }); save(); await tell(`「${esc(p.name)}」の データを よみこんだよ。<br><span class="note">モンスターは 1たいずつ PNGから よみこんでね</span>`, 'joy'); home();
-      },
+      async load() { if (await restorePlayer()) home(); },
+      // デバッグモード：右下の「K.nom」を 30かい おす（タイトルでは、データの 復元ボタンが 出る）
+      kn() { if (++knTap >= 30) { knTap = 0; debugOn(); title(); } },
     });
+  }
+  // ---- デバッグモード（K.nom を 30かい）：ぜんぶ 解禁・コイン 5000。セーブデータの 復元と 消去は ここからだけ ----
+  let knTap = 0;
+  function debugOn() {
+    RG.debug = true; sfx('good');
+    const p = S.player; if (!p) return toast('デバッグモード');
+    p.shapes = RG.SHAPE_ORDER.slice(); p.slots = 6; p.coins = 5000; save(); toast('デバッグモード：ぜんぶ かいきん・コイン 5000');
+  }
+  // プレイヤーデータの PNGから 復元する。できたら true
+  async function restorePlayer() {
+    const f = await pickFile(); if (!f) return false;
+    const p = RG.readPlayerPNG(await RG.fileToCanvas(f));
+    if (S.player && !(await ask(`いまの データ（${esc(S.player.name)}）を「${esc(p.name)}」の データに かえるよ。いい？<br><span class="note">モンスターは そのまま のこるよ</span>`))) return false;
+    S.player = p; S.mons.forEach(m => { m.gem = 0; }); save(); await tell(`「${esc(p.name)}」の データを よみこんだよ。<br><span class="note">モンスターは 1たいずつ PNGから よみこんでね</span>`, 'joy');
+    return true;
   }
   // さいしょの おはなし
   async function opening() {
@@ -307,6 +319,8 @@
     const ed = new RG.Editor(document.getElementById('cv'), { shape: D.shape, face: D.face, adj: D.adj, free: D.free, sources: D.parts, onChange: () => refresh() });
     RG.ed = ed;
     mark('.sw', stage.querySelector('.sw'));
+    // かおに なる パーツ（めを かいて ほしい ところ）
+    const isFace = pid => pid === 'face' || pid === 'head' || pid === 'up' || (D.shape === 'slime' && pid === 'body');
     let lastHint = '';
     function setHint(t, pose) {
       if (t === lastHint) return; lastHint = t;
@@ -324,6 +338,7 @@
       const miss = ed.check(), cur = RG.partOf(D, ed.cur) || RG.part(D.shape, ed.cur);
       let t, pose = 'teach';
       if (!miss.length) { t = 'いいね！ できたら「かんせい」を おそう。「ぜんたい」で くみあわせも みられるよ'; pose = 'joy'; }
+      else if (!ed.hasInk(ed.cur) && isFace(cur.id)) t = `「${cur.name}」を かこう。「め」も かいて あげてね。ちゃいろの まるの なかにも かこう`;
       else if (!ed.hasInk(ed.cur)) t = `「${cur.name}」を かこう。てんせんの なかなら、どんな かたちでも いいよ` + (cur.parent || parts.some(c => c.parent === cur.id) ? '。ちゃいろの まるは つなぎめ。まるの なかにも かいてね' : '');
       else { const m = miss.find(x => x.pid === ed.cur) || miss[0]; t = m.text + (m.pid !== ed.cur ? '（みぎの パーツを おして きりかえよう）' : ''); pose = 'normal'; }
       if (cur.free && !miss.some(x => x.pid === ed.cur)) t = `「${cur.name}」は、つぎの「くみたて」で すきな ばしょに つけられるよ。もういちど おすと、かえたり はずしたり できるよ`;
@@ -332,6 +347,7 @@
     refresh();
     if (D.tutorial && first('draw')) UI.coach([
       ['.paper', 'teach', 'ここが かみ だよ。てんせんの なかに、モンスターの「からだ」を かこう'],
+      ['.paper', 'joy', 'からだには「め」も かいて あげよう。かおが あると、モンスターが いきいき するよ！'],
       ['.tools', 'normal', 'ひだりで どうぐと いろを えらべるよ。バケツは、かこんだ なかを ぬれるんだ'],
       ['.paper', 'teach', 'ちゃいろの まるは「つなぎめ」。まるの なかにも かならず かいてね'],
       ['.plist', 'normal', 'からだが かけたら、ここで「つの」に きりかえて、つのも かこう'],
@@ -448,7 +464,6 @@
   }
 
   // =============== せってい ===============
-  let verTap = 0;
   function settings() {
     const p = S.player, sw = (a, on, icon, label, text) => `<button class="btn setrow" data-a="${a}" data-se="flip">${icon}<span><b>${label}</b><em>${text}</em></span><i class="tog${on ? ' on' : ''}"></i></button>`;
     show('settings', UI.top('せってい') + `<div class="setgrid">
@@ -467,10 +482,11 @@
           <button class="btn setrow" data-a="jukebox">${IC.music}<span><b>おんがくを きく</b><em>ゲームの きょくを ならせるよ</em></span></button>
           <button class="btn setrow" data-a="credit">${IC.star}<span><b>クレジット</b><em>つかっている そざい</em></span></button>
         </div>
-        ${RG.debug ? `<div class="box dbg"><h4>テストよう</h4><div class="dgrid"><button class="btn" data-a="t1">からだ ぜんぶ</button><button class="btn" data-a="t2">わく +1</button><button class="btn" data-a="t4">コイン +1000</button><button class="btn" data-a="t5">きょうを もどす</button><button class="btn" data-a="t6">ほうせき +3</button><button class="btn" data-a="t3">データを けす</button></div></div>` : ''}
-      </div><button class="ver" data-a="ver" data-se="none">ver ${RG.VERSION}</button>`, {
-      // テストよう：バージョンを 7かい おすと 出る
-      ver() { verTap++; if (verTap >= 7) { verTap = 0; RG.debug = !RG.debug; settings(); } },
+        ${RG.debug ? `<div class="box dbg"><h4>デバッグモード</h4><div class="dgrid"><button class="btn" data-a="t1">からだ ぜんぶ</button><button class="btn" data-a="t2">わく +1</button><button class="btn" data-a="t4">コイン +1000</button><button class="btn" data-a="t5">きょうを もどす</button><button class="btn" data-a="t6">ほうせき +3</button><button class="btn" data-a="t7">データを ふっかつ</button><button class="btn" data-a="t3">データを けす</button></div></div>` : ''}
+      </div><div class="ver">ver ${RG.VERSION}</div><button class="knom" data-a="kn" data-se="none">K.nom</button>`, {
+      // デバッグモード：右下の「K.nom」を 30かい おす
+      kn() { if (++knTap >= 30) { knTap = 0; debugOn(); settings(); } },
+      async t7() { if (await restorePlayer()) settings(); },
       t4() { p.coins += 1000; save(); toast('コイン +1000'); },
       t5() { p.day = -1; RG.items.rollDay(); toast('きょうの かいすうと おみせを もどしたよ'); },
       async t6() { for (let i = 0; i < 3; i++) await RG.items.give(RG.items.rollGem(Math.random)); toast('ほうせきを 3こ もらったよ'); },

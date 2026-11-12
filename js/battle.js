@@ -25,7 +25,11 @@
     else if (kind === 'ng') UI.sfx('ng', { vol: 0.6 });
     else if (kind === 'hit') UI.sfx('hit', { vol: 0.55, rate: 0.9 + Math.random() * 0.3 });
     else if (kind === 'crit') { UI.sfx('hit', { vol: 0.9, rate: 0.65 }); }
-    else if (kind === 'end') UI.sfx('ko', { vol: 0.7 });
+    else if (kind === 'end') UI.sfx('decide', { vol: 0.6 });
+    // つよい 打撃音：会心は 低くて 大きい 音を 2つ かさねる。とどめは さらに「ドン」
+    else if (kind === 'heavy') { UI.sfx('hit', { vol: 1, rate: 0.55 }); UI.sfx('hit', { vol: 0.8, rate: 0.8 }); }
+    else if (kind === 'finish') { UI.sfx('hit', { vol: 1, rate: 0.5 }); UI.sfx('ko', { vol: 1 }); }
+    else if (kind === 'cut') UI.sfx('slide', { vol: 0.8, rate: 1.3 });
     else if (kind === 'tick') UI.sfx('hover', { vol: 0.5, rate: 1.5 });
   }
 
@@ -146,7 +150,7 @@
 
   // =============== みる（3Dの ステージで 殴り合い。シークバーつき）===============
   const hill = (u, a, b) => (u <= a || u >= b) ? 0 : Math.sin(Math.PI * (u - a) / (b - a));
-  const SPEEDS = [1, 1.5, 2, 3];
+  const SPEEDS = [1, 1.5, 2, 3, 6];
   // ---- 3D：せかいの 座標（x＝右、y＝上、z＝おく）を がめんに うつす ----
   // カメラは「見る点（tx,ty,tz）」の まわりを、きょり dist・よこの かくど yaw・たての かくど pitch で まわる
   const FOCAL = 780, CXS = 640, CYS = 380, DEG = Math.PI / 180;
@@ -218,11 +222,21 @@
         spd(b) { B.speed = ((B.speed || 0) + 1) % SPEEDS.length; document.getElementById('spdt').textContent = 'はやさ ×' + SPEEDS[B.speed]; b.classList.toggle('on', B.speed > 0); },
       });
       const cv = document.getElementById('bcv'), ctx = cv.getContext('2d'), bend = document.getElementById('bend');
+      B._cuts = 0;
       const font = getComputedStyle(stage).fontFamily;
       let T = 0, clk = 0, last = now(), ei = 0, ended = 0, shake = 0;
       const INTRO = 3.0, X0 = [-2.4, 2.4];
       const st = F.map((f, i) => ({ act: 'idle', at: 0, hp: f.maxHp, flip: i === 0 ? f.m.face === 1 : f.m.face !== 1 }));
-      const pend = [], pops = [];
+      const pend = [], pops = [], starts = [];
+      // カットイン：会心と、さいごの こうげき（あいての HPを 0に した／時間ぎれ前の さいごの 1回）で、こうげきする モンスターを 大きく うつす
+      const lastEv = sim.events[sim.events.length - 1];
+      let cut = null, holdUntil = 0;
+      const CUT = 0.62;                  // カットインの 長さ（びょう。この あいだ しあいの 時計は 止まる）
+      const startAttack = e => {
+        const d = RG.motionDur(F[e.who].m.shape, F[e.who].m.motion || 0, 'attack');
+        set(e.who, 'attack'); pend.push({ at: clk + d * 0.5, e });
+        focus = { who: e.who, until: clk + d + 0.35, len: d + 0.35, crit: e.crit || e === lastEv };
+      };
       const set = (i, a) => { st[i].act = a; st[i].at = clk; };
       // カメラ：cam＝いまの 位置、goal＝めざす 位置（なめらかに 近づく）
       const cam = { tx: 0, ty: 1.3, tz: 0, dist: 17, yaw: -70 * DEG, pitch: 30 * DEG, sx: 0, sy: 0 }, goal = Object.assign({}, cam);
@@ -251,25 +265,29 @@
       };
       const loop = () => {
         if (RG.screen !== 'watch') return;
-        const speed = SPEEDS[B.speed || 0], n = now(), dt = Math.max(0, Math.min(0.1 * (RG.timeScale || 1), n - last)) * speed; last = n; clk += dt;
+        const speed = SPEEDS[B.speed || 0], n = now(); if (n < last) last = n; const dt = Math.max(0, Math.min(0.1 * (RG.timeScale || 1), n - last)) * speed; last = n; clk += dt;
         // ---- しあいを すすめる ----
         if (clk >= INTRO && !ended) {
-          T = Math.min(sim.end, T + dt);
-          while (ei < sim.events.length && sim.events[ei].t <= T) {
-            const e = sim.events[ei++], d = RG.motionDur(F[e.who].m.shape, F[e.who].m.motion || 0, 'attack');
-            set(e.who, 'attack'); pend.push({ at: clk + d * 0.5, e });
-            focus = { who: e.who, until: clk + d + 0.35, len: d + 0.35, crit: e.crit };
+          if (clk >= holdUntil) T = Math.min(sim.end, T + dt);
+          while (clk >= holdUntil && ei < sim.events.length && sim.events[ei].t <= T) {
+            const e = sim.events[ei++], fin = e === lastEv;
+            if (e.crit || fin) {
+              cut = { who: e.who, at: clk, text: fin ? (e.hp <= 0 ? 'とどめ！' : 'ラスト！') : 'かいしん！' };
+              holdUntil = clk + CUT; starts.push({ at: holdUntil, e }); beep('cut'); B._cuts++; B._cutText = cut.text;
+            } else startAttack(e);
           }
         }
+        for (let k = starts.length - 1; k >= 0; k--) if (clk >= starts[k].at) startAttack(starts.splice(k, 1)[0].e);
         for (let k = pend.length - 1; k >= 0; k--) {
           if (clk < pend[k].at) continue;
           const e = pend.splice(k, 1)[0].e, to = 1 - e.who;
           st[to].hp = e.hp; if (st[to].act !== 'lose') set(to, e.hp <= 0 ? 'lose' : 'damage');
-          pops.push({ i: to, text: '-' + e.dmg, crit: e.crit, at: clk }); beep(e.crit ? 'crit' : 'hit'); shake = e.crit ? 1 : 0.55;
+          const fin = e === lastEv;
+          pops.push({ i: to, text: '-' + e.dmg, crit: e.crit, at: clk }); beep(fin ? 'finish' : e.crit ? 'heavy' : 'hit'); shake = fin ? 1.5 : e.crit ? 1.1 : 0.55;
           document.getElementById('hp' + to).style.width = (e.hp / F[to].maxHp * 100) + '%'; document.getElementById('hpn' + to).textContent = e.hp;
           const hb = stage.querySelector(to ? '.hp.r' : '.hp.l'); hb.classList.remove('hit'); void hb.offsetWidth; hb.classList.add('hit');
         }
-        if (!ended && clk >= INTRO && T >= sim.end && !pend.length && ei >= sim.events.length) {
+        if (!ended && clk >= INTRO && T >= sim.end && !pend.length && !starts.length && ei >= sim.events.length) {
           ended = clk; focus = null;
           F.forEach((f, i) => { if (sim.winner < 0) return; if (i === sim.winner) set(i, 'win'); else if (st[i].act !== 'lose') set(i, 'lose'); });
           bend.textContent = 'しあい しゅうりょう！'; bend.classList.remove('hide'); beep('end');
@@ -299,6 +317,28 @@
           } });
         });
         items.sort((a, b) => b.z - a.z).forEach(it => it.draw(ctx));
+        if (cut) {
+          const u = (clk - cut.at) / CUT;
+          if (u >= 1.15) cut = null;
+          else {
+            // 帯が こうげきする がわから すべりこみ、さいごに ぬける
+            const f = F[cut.who], dir = cut.who ? -1 : 1, slide = u < 0.2 ? 1 - u / 0.2 : u > 1 ? (u - 1) / 0.15 : 0, off = dir * -1 * slide * slide * 1400 * (u > 1 ? -1 : 1);
+            ctx.save(); ctx.translate(off, 0);
+            ctx.beginPath(); ctx.moveTo(-200, 300); ctx.lineTo(1480, 210); ctx.lineTo(1480, 480); ctx.lineTo(-200, 570); ctx.closePath();
+            ctx.fillStyle = '#fff'; ctx.fill(); ctx.strokeStyle = '#111'; ctx.lineWidth = 8; ctx.stroke(); ctx.clip();
+            // スピード線
+            ctx.strokeStyle = '#111'; ctx.lineCap = 'round';
+            for (let k = 0; k < 16; k++) { const y = 220 + ((k * 53 + Math.floor(clk * 40) * 37) % 340), x0 = (k * 211 + Math.floor(clk * 40) * 97) % 1280, len = 120 + (k * 67) % 260; ctx.lineWidth = 2 + k % 3 * 2; ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x0 + len, y - len * 0.054); ctx.stroke(); }
+            // モンスターの アップ（こうげきする がわに 大きく）
+            const bw = 560, bh = 520, bx = cut.who ? 700 : 20;
+            RG.drawMon(ctx, f.m, f.get, bx, 130 + Math.sin(clk * 30) * 4, bw, bh, { maxScale: 9, pose: RG.poseFor(f.m, 'win', clk), flip: st[cut.who].flip });
+            // 文字
+            ctx.font = '150px ' + font; ctx.textAlign = 'center'; ctx.lineJoin = 'round'; const tx = cut.who ? 400 : 880, pop = 1 + 0.25 * Math.max(0, 1 - u * 4);
+            ctx.save(); ctx.translate(tx, 400); ctx.rotate(-0.054); ctx.scale(pop, pop);
+            ctx.lineWidth = 26; ctx.strokeStyle = '#fff'; ctx.strokeText(cut.text, 0, 0); ctx.lineWidth = 8; ctx.strokeStyle = '#111'; ctx.strokeText(cut.text, 0, 0); ctx.fillStyle = '#111'; ctx.fillText(cut.text, 0, 0);
+            ctx.restore(); ctx.restore();
+          }
+        }
         ctx.textAlign = 'center';
         for (let n2 = pops.length - 1; n2 >= 0; n2--) {
           const p = pops[n2], a = (clk - p.at) / 0.9; if (a >= 1) { pops.splice(n2, 1); continue; }

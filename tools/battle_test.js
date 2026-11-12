@@ -124,8 +124,10 @@ let fails = 0; const ok = (c, msg) => { console.log((c ? 'OK   ' : 'FAIL ') + ms
   await pg.waitForTimeout(500); await shot('watch_intro1'); await pg.waitForTimeout(1300); await shot('watch_intro2');
   await pg.waitForFunction(() => document.getElementById('bend').classList.contains('hide'), null, { timeout: 20000 });
   await pg.waitForTimeout(350); await shot('watch_attack'); await pg.waitForTimeout(500); await shot('watch_attack2');
-  for (const x of ['1.5', '2', '3']) { await act('spd'); ok(await pg.evaluate(x => document.getElementById('spd').textContent === 'はやさ ×' + x, x), 'はやさ ×' + x); }
-  await pg.waitForTimeout(900); await shot('watch_x3');
+  for (const x of ['1.5', '2', '3', '6']) { await act('spd'); ok(await pg.evaluate(x => document.getElementById('spd').textContent === 'はやさ ×' + x, x), 'はやさ ×' + x); }
+  // カットイン：会心か さいごの こうげきで 出る（×6で 待つ）
+  await pg.waitForFunction(() => window.RG.battle._cuts > 0, null, { timeout: 60000, polling: 16 }); await pg.waitForTimeout(40); await shot('cutin');
+  ok(/かいしん！|とどめ！|ラスト！/.test(await pg.evaluate(() => window.RG.battle._cutText)), 'バトル：カットインが 出る（' + await pg.evaluate(() => window.RG.battle._cutText) + '）');
   await pg.evaluate(() => { window.RG.timeScale = 20; });
   await pg.waitForFunction(() => document.getElementById('bend').textContent.includes('しゅうりょう'), null, { timeout: 60000 }); await pg.evaluate(() => { window.RG.timeScale = 1; }); await pg.waitForTimeout(1200); await shot('watch_end');
   await pg.evaluate(() => { window.RG.timeScale = 20; });
@@ -225,7 +227,17 @@ let fails = 0; const ok = (c, msg) => { console.log((c ? 'OK   ' : 'FAIL ') + ms
   await act('shop'); await shot('shop_grade2'); await act('back');
   await act('chars'); await tap('[data-a="open"][data-i="0"]'); ok(await pg.evaluate(() => !document.querySelector('.gslots')), '1・2年生：キャラクターに ほうせきの わくが 出ない'); await act('back'); await act('back');
   await pg.evaluate(() => { const RG = window.RG; RG.app.S.player.grade = 6; RG.ui.home(); }); await act('prac'); await shot('bset_grade6');
-  await act('back'); await pg.evaluate(() => { window.RG.debug = true; }); await act('set'); await shot('settings_debug');
+  // デバッグモード：せっていの 右下の「K.nom」を 30かい
+  await act('back'); await pg.evaluate(() => { const RG = window.RG, p = RG.app.S.player; RG.debug = false; p.coins = 10; p.slots = 2; p.shapes = ['slime']; });
+  await act('set'); ok(!(await pg.evaluate(() => !!document.querySelector('.dbg'))), 'デバッグモード：ふだんは 出ない');
+  for (let i = 0; i < 29; i++) await pg.click('.knom');
+  ok(!(await pg.evaluate(() => !!document.querySelector('.dbg'))), 'デバッグモード：29かいでは 出ない');
+  await pg.click('.knom'); await pg.waitForTimeout(100);
+  const dbg = await pg.evaluate(() => { const p = window.RG.app.S.player; return { box: !!document.querySelector('.dbg'), coins: p.coins, slots: p.slots, shapes: p.shapes.length, del: !!document.querySelector('.dbg [data-a="t3"]'), res: !!document.querySelector('.dbg [data-a="t7"]') }; });
+  ok(dbg.box && dbg.coins === 5000 && dbg.slots === 6 && dbg.shapes === 7 && dbg.del && dbg.res, `デバッグモード：30かいで ぜんぶ 解禁・コイン ${dbg.coins}・わく ${dbg.slots}。「データを けす」「データを ふっかつ」が ある`);
+  await shot('settings_debug');
+  await pg.evaluate(() => window.RG.app.title()); await pg.waitForTimeout(100);
+  ok(await pg.evaluate(() => !!document.querySelector('[data-a="load"]')), 'デバッグモード：タイトルに 復元ボタンが 出る'); await shot('title_debug');
   ok(!errs.length, 'エラーなし' + (errs.length ? ' → ' + errs.join(' | ') : ''));
   await br.close(); console.log(fails ? `\n${fails}こ しっぱい` : '\nぜんぶ OK'); process.exit(fails ? 1 : 0);
 })();

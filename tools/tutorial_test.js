@@ -16,6 +16,7 @@ let fails = 0; const ok = (c, msg) => { console.log((c ? 'OK   ' : 'FAIL ') + ms
   // 会話・ガイドを さいごまで おくる。おした 回数を かえす
   const skip = async sel => { let n = 0; while (await has(sel) && n < 30) { await click(640, 330); n++; } return n; };
   await pg.waitForTimeout(1500); await shot('title');
+  ok(!(await pg.evaluate(() => !!document.querySelector('[data-a="load"]'))), 'タイトル：データの 復元ボタンは ふだんは 出ない');
   ok(await pg.evaluate(() => document.fonts.check('30px cinecaption')), 'フォント「しねきゃぷしょん」が 読みこまれている');
   ok(await pg.evaluate(() => { const A = window.RG.ASSETS; return Object.keys(A.se).length >= 14 && Object.keys(A.img).length === 11; }), '効果音 14こ・絵 11まいが うめこまれている');
   await pg.hover('[data-a="go"]'); await pg.waitForTimeout(250); await shot('title_hover');
@@ -35,7 +36,9 @@ let fails = 0; const ok = (c, msg) => { console.log((c ? 'OK   ' : 'FAIL ') + ms
   await pg.click('[data-a="go"]'); await pg.waitForTimeout(500); await pg.click('[data-f="0"]'); await pg.waitForTimeout(900);
   ok(await has('.coach .ring'), 'おえかき：はじめては ガイド（かこみ）が 出る'); await shot('coach1');
   await click(640, 360); await pg.waitForTimeout(250); await shot('coach2');
-  const n2 = 1 + await skip('.coach'); ok(n2 === 5, `ガイドは 5つ（${n2}）`);
+  ok(await pg.evaluate(() => document.getElementById('cct').textContent.includes('「め」')), 'おえかきの ガイド：2つめで「め」を かくように 言う');
+  const n2 = 1 + await skip('.coach'); ok(n2 === 6, `ガイドは 6つ（${n2}）`);
+  ok(await pg.evaluate(() => document.getElementById('hint').textContent.includes('「め」')), 'おえかき：からだを かく ときの ひとことにも「め」');
   const r = await pg.evaluate(() => { const b = document.getElementById('cv').getBoundingClientRect(); return [b.left, b.top, b.width, b.height]; });
   const blob = async (col, cx, cy, rx, ry) => {
     await pg.click(`.pal:not(.hide) .sw[data-c="${col}"]`); await pg.click('[data-t="pen"]');
