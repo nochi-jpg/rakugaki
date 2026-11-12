@@ -31,7 +31,7 @@ SOUNDS = {
     "cheer":  (LIFE + "cheer.mp3", 3.6, "かち"),
     "shock":  (LIFE + "shock.mp3", 0, "まけ"),
 }
-IMAGES = ["tenshu_normal", "tenshu_smile"] + ["efude_" + n for n in ["normal", "joy", "angry", "sad", "surprise", "worry", "think", "wink", "teach"]]
+IMAGES = ["logo", "tenshu_normal", "tenshu_smile"] + ["efude_" + n for n in ["normal", "joy", "angry", "sad", "surprise", "worry", "think", "wink", "teach"]]
 
 def encode_sound(src, sec):
     cmd = ["ffmpeg", "-v", "error", "-y", "-i", str(src)] + (["-t", str(sec), "-af", f"afade=t=out:st={sec - 0.5}:d=0.5"] if sec else []) + ["-ac", "1", "-ar", "32000", "-b:a", "56k", "-f", "mp3", "-"]

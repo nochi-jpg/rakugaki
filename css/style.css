@@ -110,14 +110,10 @@ h4::after{content:'';flex:1;height:0;border-top:3px dashed var(--line)}
 .coachtalk .bubble{font-size:28px;min-height:110px;max-height:none;padding:18px 34px 26px;box-shadow:0 6px 0 var(--ink);margin-bottom:18px}
 
 /* ---------- タイトル ---------- */
-.tlogo{position:absolute;left:0;right:0;top:70px;display:flex;flex-direction:column;align-items:center;gap:0}
-.tl1{font-size:170px;line-height:1.1;display:flex}
-.tl1 i{display:inline-block;animation:letter .7s var(--spring) backwards,bob 2.2s ease-in-out infinite alternate}
-.tl1 i:nth-child(2){animation-delay:90ms,.3s}.tl1 i:nth-child(3){animation-delay:180ms,.6s}.tl1 i:nth-child(4){animation-delay:270ms,.9s}
-@keyframes letter{from{opacity:0;transform:translateY(-60px) rotate(-18deg)}}
-.tl2{font-size:58px;letter-spacing:.3em;padding:0 30px 0 44px;border:4px solid var(--ink);border-radius:var(--wob);background:#fff;box-shadow:0 6px 0 var(--ink)}
-.tefude{position:absolute;left:150px;top:350px}.tefude .efude{height:280px}
-.tbtns{position:absolute;left:0;right:0;top:400px;display:flex;flex-direction:column;align-items:center;gap:26px}
+.tlogo{position:absolute;left:56px;top:96px;width:640px;height:auto;pointer-events:none;animation:logoin .8s var(--spring) backwards,bob 3s ease-in-out .8s infinite alternate;transform-origin:50% 60%}
+@keyframes logoin{from{opacity:0;transform:scale(.7) rotate(-6deg)}}
+.tefude{position:absolute;left:870px;top:110px}.tefude .efude{height:270px}
+.tbtns{position:absolute;left:740px;top:410px;width:480px;display:flex;flex-direction:column;align-items:center;gap:22px}
 .tbtns .huge{animation:pulse 2s ease-in-out infinite}
 .introbox{position:absolute;left:150px;top:150px;width:980px;display:flex;align-items:center;gap:20px}
 .introbox .efude{height:300px}
@@ -408,3 +404,5 @@ h4::after{content:'';flex:1;height:0;border-top:3px dashed var(--line)}
 .kanaic{font-size:84px;line-height:96px;height:96px}
 .btn.fc.km em{font-size:21px;color:var(--sub)}
 .sample{margin-top:10px;padding:6px 26px;border:3px dashed var(--line);border-radius:16px;font-family:var(--kyo);font-size:34px}
+/* タイトル：ロゴに かさなる 左上の くもと ほしは 出さない */
+.scr-title .deco .fl.a,.scr-title .deco .fl.c path:first-child{display:none}

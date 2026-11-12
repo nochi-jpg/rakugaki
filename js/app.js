@@ -54,7 +54,7 @@
       <path d="M330 640c0-14-4-22-10-28M342 640c0-16 2-24 8-32"/><path d="M930 642c0-14-4-22-10-28M942 642c0-16 2-24 8-32"/></g></svg>`;
   function title() {
     UI.bgm('title');
-    show('title', `${DECO}<div class="tlogo"><span class="tl1">${[...'らくがき'].map((c, i) => `<i style="animation-delay:${i * 90}ms">${c}</i>`).join('')}</span><span class="tl2">学習バトル</span></div>
+    show('title', `${DECO}<img class="tlogo" alt="らくがき学習バトル" draggable="false" src="${(RG.ASSETS && RG.ASSETS.img && RG.ASSETS.img.logo) || ''}">
       <div class="tefude">${UI.efude('joy')}</div>
       <div class="tbtns"><button class="btn huge strong" data-a="go" data-se="decide">${IC.play}<span>はじめる</span></button>${RG.debug ? `<button class="btn" data-a="load">${IC.load}<span>データを ふっかつ（デバッグ）</span></button>` : ''}</div>
       <div class="ver">ver ${RG.VERSION}</div><button class="knom" data-a="kn" data-se="none">K.nom</button>`, {

@@ -18,7 +18,7 @@ let fails = 0; const ok = (c, msg) => { console.log((c ? 'OK   ' : 'FAIL ') + ms
   await pg.waitForTimeout(1500); await shot('title');
   ok(!(await pg.evaluate(() => !!document.querySelector('[data-a="load"]'))), 'タイトル：データの 復元ボタンは ふだんは 出ない');
   ok(await pg.evaluate(() => document.fonts.check('30px cinecaption')), 'フォント「しねきゃぷしょん」が 読みこまれている');
-  ok(await pg.evaluate(() => { const A = window.RG.ASSETS; return Object.keys(A.se).length >= 14 && Object.keys(A.img).length === 11; }), '効果音 14こ・絵 11まいが うめこまれている');
+  ok(await pg.evaluate(() => { const A = window.RG.ASSETS; return Object.keys(A.se).length >= 14 && Object.keys(A.img).length === 12 && document.querySelector('.tlogo').naturalWidth === 760; }), '効果音 14こ・絵 12まい（ロゴも）が うめこまれている');
   await pg.hover('[data-a="go"]'); await pg.waitForTimeout(250); await shot('title_hover');
   await pg.click('[data-a="go"]'); await pg.waitForTimeout(1500);
   ok(await has('.talk'), 'さいしょの おはなし：えふでの 会話が 出る'); await shot('story1');
