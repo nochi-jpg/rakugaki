@@ -94,8 +94,8 @@ h4::after{content:'';flex:1;height:0;border-top:3px dashed var(--line)}
 .talk{position:absolute;inset:0;z-index:70;cursor:pointer;background:rgba(255,255,255,.55);animation:fade .2s}
 .talkchar{position:absolute;left:60px;bottom:26px;height:330px}
 .talkchar .efude{height:330px}
-.talk.nochar{background:none}.talk.nochar .talkbox{left:420px;width:810px}
-.talkbox{position:absolute;left:280px;bottom:44px;width:940px;height:190px;padding:34px 44px 20px;box-shadow:0 7px 0 var(--ink);border-radius:var(--wob3);animation:pop .3s var(--spring)}
+.talk.nochar{background:none}.talk.nochar .talkbox{left:400px;width:830px}.talk.nochar .talkbox p{font-size:28px}
+.talkbox{position:absolute;left:280px;bottom:44px;width:940px;min-height:190px;padding:34px 44px 20px;box-shadow:0 7px 0 var(--ink);border-radius:var(--wob3);animation:pop .3s var(--spring)}
 .talkbox p{font-size:32px;line-height:1.5}
 .talkname{position:absolute;left:30px;top:-24px;height:44px;padding:0 22px;font-size:24px;line-height:40px;background:var(--ink);color:#fff;border-radius:22px 18px 24px 16px}
 .talknext{position:absolute;right:22px;bottom:12px;opacity:0}.talknext .ic{width:30px;height:30px}

@@ -14,7 +14,10 @@ let fails = 0; const ok = (c, msg) => { console.log((c ? 'OK   ' : 'FAIL ') + ms
   const click = async (x, y) => { await pg.mouse.click(x, y); await pg.waitForTimeout(120); };
   const has = sel => pg.evaluate(s => !!document.querySelector(s), sel);
   // 会話・ガイドを さいごまで おくる。おした 回数を かえす
-  const skip = async sel => { let n = 0; while (await has(sel) && n < 30) { await click(640, 330); n++; } return n; };
+  // 会話の 文が まどの 下から はみださないかも しらべる（おした あとは 文が ぜんぶ 出ている）
+  const talkOver = [];
+  const overTalk = () => pg.evaluate(() => { const b = document.querySelector('.talk .talkbox'), p = document.getElementById('tkt'); if (!b || !p || !p.textContent) return ''; const pb = p.getBoundingClientRect().bottom, bb = b.getBoundingClientRect().bottom; return pb > bb - 8 ? p.textContent.slice(0, 16) : ''; });
+  const skip = async sel => { let n = 0; while (await has(sel) && n < 30) { const o = await overTalk(); if (o) talkOver.push(o); await click(640, 330); n++; } return n; };
   await pg.waitForTimeout(1500); await shot('title');
   ok(!(await pg.evaluate(() => !!document.querySelector('[data-a="load"]'))), 'タイトル：データの 復元ボタンは ふだんは 出ない');
   ok(await pg.evaluate(() => document.fonts.check('30px cinecaption')), 'フォント「しねきゃぷしょん」が 読みこまれている');
@@ -76,5 +79,6 @@ let fails = 0; const ok = (c, msg) => { console.log((c ? 'OK   ' : 'FAIL ') + ms
   await pg.evaluate(() => window.RG.ui.home()); await pg.waitForTimeout(600);
   ok(!(await has('.coach')) && !(await has('.talk')), '2回めの ホームでは ガイドは 出ない');
   ok(!errs.length, 'エラーなし' + (errs.length ? ' → ' + errs.join(' | ') : ''));
+  ok(talkOver.length === 0, '会話の 文が まどから はみださない' + (talkOver.length ? '：' + [...new Set(talkOver)].join(' / ') : ''));
   await br.close(); console.log(fails ? `\n${fails}こ しっぱい` : '\nぜんぶ OK'); process.exit(fails ? 1 : 0);
 })();

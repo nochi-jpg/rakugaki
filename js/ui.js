@@ -206,6 +206,8 @@
       d.innerHTML = `<div class="talkchar" id="tkc"></div><div class="box talkbox"><b class="talkname">${who || 'えふで'}</b><p id="tkt"></p><i class="talknext">${IC.down}</i></div>`;
       stage.appendChild(d);
       let i = 0, typing = 0, full = '';
+      // ぎょうがえ（\n・<br>）は、とちゅうでも さいごまで 出したときも 同じに する
+      const html = t => esc(t.replace(/<br>/g, '\n')).replace(/\n/g, '<br>');
       const put = () => {
         const [pose, text] = lines[i]; full = text;
         const keeper = who === 'てんしゅ' && stage.querySelector('.tenshu');
@@ -215,13 +217,13 @@
         // 1文字ずつ 出す
         const chars = [...text.replace(/<br>/g, '\n')]; let n = 0; clearInterval(typing);
         typing = setInterval(() => {
-          n += 1; el.innerHTML = esc(chars.slice(0, n).join('')).replace(/\n/g, '<br>');
+          n += 1; el.innerHTML = html(chars.slice(0, n).join(''));
           if (n % 3 === 1) UI.sfx('place', { vol: 0.12, rate: 1.5 });
           if (n >= chars.length) { clearInterval(typing); typing = 0; d.classList.add('done'); }
         }, 34 / (RG.timeScale || 1));
       };
       talkNext = () => {
-        if (typing) { clearInterval(typing); typing = 0; document.getElementById('tkt').innerHTML = full; d.classList.add('done'); return; }
+        if (typing) { clearInterval(typing); typing = 0; document.getElementById('tkt').innerHTML = html(full); d.classList.add('done'); return; }
         UI.sfx('flip', { vol: 0.4 });
         if (++i >= lines.length) { talkNext = null; d.remove(); res(); return; }
         put();

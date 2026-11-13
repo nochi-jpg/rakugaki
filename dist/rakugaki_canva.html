@@ -102,8 +102,8 @@ h4::after{content:'';flex:1;height:0;border-top:3px dashed var(--line)}
 .talk{position:absolute;inset:0;z-index:70;cursor:pointer;background:rgba(255,255,255,.55);animation:fade .2s}
 .talkchar{position:absolute;left:60px;bottom:26px;height:330px}
 .talkchar .efude{height:330px}
-.talk.nochar{background:none}.talk.nochar .talkbox{left:420px;width:810px}
-.talkbox{position:absolute;left:280px;bottom:44px;width:940px;height:190px;padding:34px 44px 20px;box-shadow:0 7px 0 var(--ink);border-radius:var(--wob3);animation:pop .3s var(--spring)}
+.talk.nochar{background:none}.talk.nochar .talkbox{left:400px;width:830px}.talk.nochar .talkbox p{font-size:28px}
+.talkbox{position:absolute;left:280px;bottom:44px;width:940px;min-height:190px;padding:34px 44px 20px;box-shadow:0 7px 0 var(--ink);border-radius:var(--wob3);animation:pop .3s var(--spring)}
 .talkbox p{font-size:32px;line-height:1.5}
 .talkname{position:absolute;left:30px;top:-24px;height:44px;padding:0 22px;font-size:24px;line-height:40px;background:var(--ink);color:#fff;border-radius:22px 18px 24px 16px}
 .talknext{position:absolute;right:22px;bottom:12px;opacity:0}.talknext .ic{width:30px;height:30px}
@@ -20855,6 +20855,8 @@ window.RG.QDB = [
       d.innerHTML = `<div class="talkchar" id="tkc"></div><div class="box talkbox"><b class="talkname">${who || 'えふで'}</b><p id="tkt"></p><i class="talknext">${IC.down}</i></div>`;
       stage.appendChild(d);
       let i = 0, typing = 0, full = '';
+      // ぎょうがえ（\n・<br>）は、とちゅうでも さいごまで 出したときも 同じに する
+      const html = t => esc(t.replace(/<br>/g, '\n')).replace(/\n/g, '<br>');
       const put = () => {
         const [pose, text] = lines[i]; full = text;
         const keeper = who === 'てんしゅ' && stage.querySelector('.tenshu');
@@ -20864,13 +20866,13 @@ window.RG.QDB = [
         // 1文字ずつ 出す
         const chars = [...text.replace(/<br>/g, '\n')]; let n = 0; clearInterval(typing);
         typing = setInterval(() => {
-          n += 1; el.innerHTML = esc(chars.slice(0, n).join('')).replace(/\n/g, '<br>');
+          n += 1; el.innerHTML = html(chars.slice(0, n).join(''));
           if (n % 3 === 1) UI.sfx('place', { vol: 0.12, rate: 1.5 });
           if (n >= chars.length) { clearInterval(typing); typing = 0; d.classList.add('done'); }
         }, 34 / (RG.timeScale || 1));
       };
       talkNext = () => {
-        if (typing) { clearInterval(typing); typing = 0; document.getElementById('tkt').innerHTML = full; d.classList.add('done'); return; }
+        if (typing) { clearInterval(typing); typing = 0; document.getElementById('tkt').innerHTML = html(full); d.classList.add('done'); return; }
         UI.sfx('flip', { vol: 0.4 });
         if (++i >= lines.length) { talkNext = null; d.remove(); res(); return; }
         put();
@@ -21780,7 +21782,7 @@ window.RG.QDB = [
     });
     if (!say && UI.first('shop')) await UI.talk([
       ['normal', 'いらっしゃい！ わたしは たびの てんしゅ。\nせなかの リュックに、いろんな ものを つめているよ'],
-      ['smile', 'あたらしい「からだ」や、モンスターの「わく」を\nうっているよ。しなものは まいにち かわるから、また きてね！'],
+      ['smile', 'あたらしい「からだ」や、モンスターの「わく」を\nうっているよ。しなものは まいにち かわるから、\nまた きてね！'],
     ], 'てんしゅ');
   };
 })(window.RG);
